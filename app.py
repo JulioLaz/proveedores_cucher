@@ -109,10 +109,6 @@ st.markdown("""
         background-color: #f5f5dc !important;
     }            
 
-    /* 🎯 Forzar fondo beige en el SVG principal de Plotly */
-    .js-plotly-plot .main-svg {
-        background: #f5f5dc !important;
-    }
 
     /* Opcional: darle margen interno y borde a todo el gráfico */
     [data-testid="stPlotlyChart"] {
