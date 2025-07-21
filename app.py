@@ -74,7 +74,7 @@ st.markdown("""
     }
     /* Estilo personalizado al contenedor específico */
     .st-emotion-cache-16txtl3 {
-        padding: 2rem 1rem !important;
+        padding: 0rem 1rem !important;
     }
     /* Ocultar el header superior de Streamlit */
     header {
@@ -330,7 +330,7 @@ class ProveedorDashboard:
         # Header
         st.markdown("""
         <div class="main-header">
-            <h1>📈 Dashboard de Análisis por Porveedor</h1>
+            <h3>📈 Dashboard de Análisis por Porveedor</h1>
         </div>
         """, unsafe_allow_html=True)
         
