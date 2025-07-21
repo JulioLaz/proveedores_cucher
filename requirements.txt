@@ -12,3 +12,4 @@ db-dtypes
 plotly
 streamlit
 numpy
+reportlab
