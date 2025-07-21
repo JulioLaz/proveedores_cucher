@@ -65,10 +65,10 @@ st.markdown("""
         background: #f1f3f4;
     }
 
-    /* Ocultar header */
-    header {
+    /* header {
         display: none !important;
-    }
+    } */
+
 
     /* Quitar padding-top del contenido principal */
     section.main > div.block-container {
