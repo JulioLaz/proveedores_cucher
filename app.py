@@ -22,60 +22,97 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    .main-header {
-        background: linear-gradient(90deg, #1e3c72, #2a5298);
-        border-radius: 15px;
-        margin-bottom: .5rem;
-        text-align: center;
-        color: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Ocultar solo el logo de Streamlit, no las pestañas */
+    header .st-emotion-cache-1avcm0n { display: none !important; }
+
+    /* Estilo para el contenedor principal (cambia padding) */
+    .st-emotion-cache-16txtl3 {
+        padding: 2rem 1.5rem !important;
     }
-    .metric-container {
+
+    /* Estilo profesional para el sidebar y la imagen de branding */
+    .sidebar-brand-box {
         background: white;
-        padding: 1.5rem;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        border-left: 4px solid #2a5298;
-    }
-    .insight-box {
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
+        border-radius: 12px;
         padding: 1rem;
-        margin: 0.5rem 0;
-        border-left: 4px solid #28a745;
-    }
-    .warning-box {
-        background: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 0.5rem 0;
-        border-left: 4px solid #ffc107;
-    }
-    .success-box {
-        background: #d4edda;
-        border: 1px solid #c3e6cb;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 0.5rem 0;
-        border-left: 4px solid #28a745;
-    }
-    .sidebar .sidebar-content {
-        background: #f1f3f4;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
     }
 
-    /* header {
-        display: none !important;
-    } */
-
-
-    /* Quitar padding-top del contenido principal */
-    section.main > div.block-container {
-        padding-top: 0rem !important;
+    .sidebar-brand-box img {
+        max-width: 100%;
+        border-radius: 12px;
     }
+
+    /* Padding general para el contenido */
+    .block-container {
+        width: 100% !important;
+        padding: 2rem 1.5rem !important;
+        min-width: auto !important;
+        max-width: initial !important;
+    }
+
 </style>
 """, unsafe_allow_html=True)
+
+
+# st.markdown("""
+# <style>
+#     .main-header {
+#         background: linear-gradient(90deg, #1e3c72, #2a5298);
+#         border-radius: 15px;
+#         margin-bottom: .5rem;
+#         text-align: center;
+#         color: white;
+#         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+#     }
+#     .metric-container {
+#         background: white;
+#         padding: 1.5rem;
+#         border-radius: 10px;
+#         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+#         border-left: 4px solid #2a5298;
+#     }
+#     .insight-box {
+#         background: #f8f9fa;
+#         border: 1px solid #e9ecef;
+#         border-radius: 8px;
+#         padding: 1rem;
+#         margin: 0.5rem 0;
+#         border-left: 4px solid #28a745;
+#     }
+#     .warning-box {
+#         background: #fff3cd;
+#         border: 1px solid #ffeaa7;
+#         border-radius: 8px;
+#         padding: 1rem;
+#         margin: 0.5rem 0;
+#         border-left: 4px solid #ffc107;
+#     }
+#     .success-box {
+#         background: #d4edda;
+#         border: 1px solid #c3e6cb;
+#         border-radius: 8px;
+#         padding: 1rem;
+#         margin: 0.5rem 0;
+#         border-left: 4px solid #28a745;
+#     }
+#     .sidebar .sidebar-content {
+#         background: #f1f3f4;
+#     }
+
+#     /* header {
+#         display: none !important;
+#     } */
+
+
+#     /* Quitar padding-top del contenido principal */
+#     section.main > div.block-container {
+#         padding-top: 0rem !important;
+#     }
+# </style>
+# """, unsafe_allow_html=True)
 
     # /* 🎯 Estilo personalizado para el contenedor principal */
     # .block-container {
@@ -245,21 +282,25 @@ class ProveedorDashboard:
         return insights
     
     def show_sidebar_filters(self):
-        """Mostrar filtros en sidebar"""
         st.sidebar.markdown("""
-            <style>
-             .sidebar-logo-box img {
-                max-width: 100%;
-                border-radius: 8px;
-                margin-bottom: 0.5rem;
-            }
-
-            </style>
-
-            <div class="sidebar-logo-box">
-                <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
+            <div class="sidebar-brand-box">
+                <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Logo Cucher">
             </div>
         """, unsafe_allow_html=True)
+        # st.sidebar.markdown("""
+        #     <style>
+        #      .sidebar-logo-box img {
+        #         max-width: 100%;
+        #         border-radius: 8px;
+        #         margin-bottom: 0.5rem;
+        #     }
+
+        #     </style>
+
+        #     <div class="sidebar-logo-box">
+        #         <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
+        #     </div>
+        # """, unsafe_allow_html=True)
 
 
         # st.sidebar.markdown("Configuración de Análisis")
