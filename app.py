@@ -109,11 +109,17 @@ st.markdown("""
         background-color: #f5f5dc !important;
     }            
 
-    img {
-        background-color: #f5f5dc !important;  /* Beige */
-        border-radius: 8px; /* Opcional: bordes suaves */
-        padding: 4px; /* Opcional: espacio alrededor */
-    }            
+    /* Fondo beige al contenedor de gráficos Plotly */
+    [data-testid="stPlotlyChart"] {
+        background-color: #f5f5dc !important; /* Beige */
+        padding: 1rem;
+        border-radius: 10px;
+    }
+
+    /* O si preferís que no tenga fondo visible: */
+    [data-testid="stPlotlyChart"] {
+        background-color: transparent !important;
+    }          
 
 </style>
 """, unsafe_allow_html=True)
