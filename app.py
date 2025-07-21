@@ -25,7 +25,6 @@ st.markdown("""
 <style>
     .main-header {
         background: linear-gradient(90deg, #1e3c72, #2a5298);
-        padding: 1rem;
         border-radius: 15px;
         margin-bottom: .5rem;
         text-align: center;
@@ -66,12 +65,38 @@ st.markdown("""
     .sidebar .sidebar-content {
         background: #f1f3f4;
     }
+
+    /* 🎯 Estilo personalizado para el contenedor principal */
+    .block-container {
+        width: 100% !important;
+        padding: 2rem 1rem !important;
+        min-width: auto !important;
+        max-width: initial !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+    <style>
+    .branding-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+    .branding-container img {
+        max-width: 300px;
+        height: auto;
+    }
+    </style>
+    <div class="branding-container">
+        <img src="https://raw.githubusercontent.com/JulioLaz/cuchermercados-main/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
+    </div>
+""", unsafe_allow_html=True)
+
+
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
-
 class ProveedorDashboard:
     def __init__(self):
         self.df_proveedores = None
