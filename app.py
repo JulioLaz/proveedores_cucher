@@ -66,6 +66,9 @@ st.markdown("""
         background: #f1f3f4;
         background: black;
     }
+    .sidebar{
+        background: black;
+    }
     /* 🎯 Estilo personalizado para el contenedor principal */
     .block-container {
         width: 100% !important;
@@ -77,17 +80,12 @@ st.markdown("""
     .st-emotion-cache-16txtl3 {
         padding: 1rem 1rem !important;
     }
-    /* Ocultar el header superior de Streamlit */
-    header {
-        display: none !important
-        }              
-
-        [data-testid="collapsedControl"] {
-        display: none;
-    }
-
 </style>
 """, unsafe_allow_html=True)
+    # /* Ocultar el header superior de Streamlit */
+    # header {
+    #     display: none !important
+    #     }              
 
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
