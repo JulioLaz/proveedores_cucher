@@ -1,0 +1,6 @@
+# .gitignore
+temp_credentials.json
+.env
+# Streamlit configuration files
+.streamlit/config.toml
+.streamlit/secrets.toml
