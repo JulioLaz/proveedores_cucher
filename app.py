@@ -69,7 +69,7 @@ st.markdown("""
     /* 🎯 Estilo personalizado para el contenedor principal */
     .block-container {
         width: 100% !important;
-        padding: 2rem 1rem !important;
+        padding: .5rem 1rem !important;
         min-width: auto !important;
         max-width: initial !important;
     }
