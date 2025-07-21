@@ -116,14 +116,13 @@ st.markdown("""
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .main-svg{
-        background-color: #f5f5dc !important;
+        background-color: transparent !important;
             }
 
 </style>
 """, unsafe_allow_html=True)
     # /* O si preferís que no tenga fondo visible: */
     # [data-testid="stPlotlyChart"] {
-    #     background-color: transparent !important;
     # }          
 
 # === DETECTAR ENTORNO ===
