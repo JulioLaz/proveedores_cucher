@@ -117,7 +117,7 @@ import pandas as pd
 import os
 import json
 from datetime import datetime
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 import gspread
 from google.cloud import bigquery
 from google.oauth2.service_account import Credentials
@@ -159,25 +159,19 @@ except Exception as e:
     st.error(f"Error al cargar credenciales de Google Sheets: {e}")
     st.stop()
 
+# === LISTAR HOJAS DISPONIBLES PARA DEBUG ===
 try:
-    creds = Credentials.from_service_account_file(CREDENTIALS_PATH, scopes=SCOPES)
-    gc = gspread.authorize(creds)
-    st.success("✅ Autenticación Google Sheets exitosa")
+    sheets = gc.open_by_key(sheet_id)
+    hojas_disponibles = [ws.title for ws in sheets.worksheets()]
+    st.info(f"Hojas disponibles en el documento: {hojas_disponibles}")
 except Exception as e:
-    st.error(f"❌ Error autenticando Google Sheets: {e}")
-    st.stop()
-
+    st.warning(f"No se pudo listar hojas disponibles: {e}")
 
 @st.cache_data(ttl=3600)
 def leer_google_sheet(sheet_id, sheet_name):
-    spreadsheet = gc.open_by_key(sheet_id)
-    worksheet = spreadsheet.worksheet(sheet_name)
-    data = worksheet.get_all_records()
-    return pd.DataFrame(data)
+    ws = gc.open_by_key(sheet_id).worksheet(sheet_name)
+    return pd.DataFrame(ws.get_all_records())
 
-# def leer_google_sheet(sheet_id, sheet_name):
-#     ws = gc.open_by_key(sheet_id).worksheet(sheet_name)
-#     return pd.DataFrame(ws.get_all_records())
 try:
     df = leer_google_sheet(sheet_id, sheet_name)
     st.success(f"Datos cargados: {len(df):,} registros")
@@ -221,7 +215,6 @@ if proveedor:
         st.metric("Artículos vendidos", f"{df_bq['cantidad_total'].sum():,.0f}")
     except Exception as e:
         st.error(f"Error en BigQuery: {e}")
-
 
 
 ############################################################################################################
