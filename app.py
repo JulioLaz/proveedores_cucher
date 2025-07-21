@@ -26,7 +26,7 @@ st.markdown("""
     .main-header {
         background: linear-gradient(90deg, #1e3c72, #2a5298);
         border-radius: 5px;
-        margin-bottom: 1rem;
+        margin: 1rem;
         text-align: center;
         color: white;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -84,6 +84,9 @@ st.markdown("""
     /* Ocultar el header superior de Streamlit */
     header {
         z-index: 1;
+        height: 2rem;
+        min-height: 2rem;
+;
         }              
 </style>
 """, unsafe_allow_html=True)
