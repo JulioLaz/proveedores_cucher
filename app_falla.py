@@ -20,75 +20,118 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# === CSS PERSONALIZADO ===
 st.markdown("""
 <style>
-    .main-header {
-        background: linear-gradient(90deg, #1e3c72, #2a5298);
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        text-align: center;
-        color: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Ocultar solo el logo de Streamlit, no las pestañas */
+    header .st-emotion-cache-1avcm0n { display: none !important; }
+
+    /* Estilo para el contenedor principal (cambia padding) */
+    .st-emotion-cache-16txtl3 {
+        padding: 2rem 1.5rem !important;
     }
-    .metric-container {
+
+    /* Estilo profesional para el sidebar y la imagen de branding */
+    .sidebar-brand-box {
         background: white;
-        padding: 1.5rem;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        border-left: 4px solid #2a5298;
-    }
-    .insight-box {
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
+        border-radius: 12px;
         padding: 1rem;
-        margin: 0.5rem 0;
-        border-left: 4px solid #28a745;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
     }
-    .warning-box {
-        background: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 0.5rem 0;
-        border-left: 4px solid #ffc107;
+
+    .sidebar-brand-box img {
+        max-width: 100%;
+        border-radius: 12px;
     }
-    .success-box {
-        background: #d4edda;
-        border: 1px solid #c3e6cb;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 0.5rem 0;
-        border-left: 4px solid #28a745;
-    }
-    .sidebar .sidebar-content {
-        background: #f1f3f4;
-    }
-    /* 🎯 Estilo personalizado para el contenedor principal */
+
+    /* Padding general para el contenido */
     .block-container {
         width: 100% !important;
-        padding: .5rem 1rem !important;
+        padding: 2rem 1.5rem !important;
         min-width: auto !important;
         max-width: initial !important;
     }
-    /* Estilo personalizado al contenedor específico */
-    .st-emotion-cache-16txtl3 {
-        padding: 2rem 1rem !important;
-    }
-    /* Ocultar el header superior de Streamlit */
-    header {
-        display: none !important
-        }              
-
 
 </style>
 """, unsafe_allow_html=True)
 
+
+# st.markdown("""
+# <style>
+#     .main-header {
+#         background: linear-gradient(90deg, #1e3c72, #2a5298);
+#         border-radius: 15px;
+#         margin-bottom: .5rem;
+#         text-align: center;
+#         color: white;
+#         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+#     }
+#     .metric-container {
+#         background: white;
+#         padding: 1.5rem;
+#         border-radius: 10px;
+#         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+#         border-left: 4px solid #2a5298;
+#     }
+#     .insight-box {
+#         background: #f8f9fa;
+#         border: 1px solid #e9ecef;
+#         border-radius: 8px;
+#         padding: 1rem;
+#         margin: 0.5rem 0;
+#         border-left: 4px solid #28a745;
+#     }
+#     .warning-box {
+#         background: #fff3cd;
+#         border: 1px solid #ffeaa7;
+#         border-radius: 8px;
+#         padding: 1rem;
+#         margin: 0.5rem 0;
+#         border-left: 4px solid #ffc107;
+#     }
+#     .success-box {
+#         background: #d4edda;
+#         border: 1px solid #c3e6cb;
+#         border-radius: 8px;
+#         padding: 1rem;
+#         margin: 0.5rem 0;
+#         border-left: 4px solid #28a745;
+#     }
+#     .sidebar .sidebar-content {
+#         background: #f1f3f4;
+#     }
+
+#     /* header {
+#         display: none !important;
+#     } */
+
+
+#     /* Quitar padding-top del contenido principal */
+#     section.main > div.block-container {
+#         padding-top: 0rem !important;
+#     }
+# </style>
+# """, unsafe_allow_html=True)
+
+    # /* 🎯 Estilo personalizado para el contenedor principal */
+    # .block-container {
+    #     width: 100% !important;
+    #     padding: .5rem 1rem !important;
+    #     min-width: auto !important;
+    #     max-width: initial !important;
+    # }
+    # /* Estilo personalizado al contenedor específico */
+    # .st-emotion-cache-16txtl3 {
+    #     padding: 2rem 1rem !important;
+    # }
+    # /* Ocultar el header superior de Streamlit */
+    # header {
+    #     display: none !important
+    #     }         
+
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
-
 class ProveedorDashboard:
     def __init__(self):
         self.df_proveedores = None
@@ -239,25 +282,45 @@ class ProveedorDashboard:
         return insights
     
     def show_sidebar_filters(self):
-        """Mostrar filtros en sidebar"""
-        st.sidebar.markdown("## 🎛️ Configuración de Análisis")
+        st.sidebar.markdown("""
+            <div class="sidebar-brand-box">
+                <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Logo Cucher">
+            </div>
+        """, unsafe_allow_html=True)
+        # st.sidebar.markdown("""
+        #     <style>
+        #      .sidebar-logo-box img {
+        #         max-width: 100%;
+        #         border-radius: 8px;
+        #         margin-bottom: 0.5rem;
+        #     }
+
+        #     </style>
+
+        #     <div class="sidebar-logo-box">
+        #         <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
+        #     </div>
+        # """, unsafe_allow_html=True)
+
+
+        # st.sidebar.markdown("Configuración de Análisis")
         
         # Cargar proveedores
         if self.df_proveedores is None:
             with st.spinner("Cargando proveedores..."):
                 self.df_proveedores = self.load_proveedores()
         
-        st.sidebar.markdown("### 🏪 Selección de Proveedor")
+        # st.sidebar.markdown("### 🏪 Selección de Proveedor")
         proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())
         
         proveedor = st.sidebar.selectbox(
-            "Proveedor:",
+            "🏪 Selección de Proveedor:",
             options=proveedores,
             index=None,
             placeholder="Seleccionar proveedor..."
         )
         
-        st.sidebar.markdown("### 📅 Período de Análisis")
+        # st.sidebar.markdown("### 📅 Período de Análisis")
         
         # Opciones de rango predefinidas
         rango_opciones = {
@@ -269,7 +332,7 @@ class ProveedorDashboard:
         }
         
         rango_seleccionado = st.sidebar.selectbox(
-            "Rango de fechas:",
+            "📅 Período de Análisis:",
             options=list(rango_opciones.keys()),
             index=2  # Por defecto últimos 6 meses
         )
@@ -317,8 +380,7 @@ class ProveedorDashboard:
         # Header
         st.markdown("""
         <div class="main-header">
-            <h1>📊 Dashboard de Análisis Empresarial</h1>
-            <p>Sistema profesional de análisis por proveedor con BigQuery</p>
+            <h3>📈 Análisis por Proveedor</h1>
         </div>
         """, unsafe_allow_html=True)
         
@@ -515,27 +577,71 @@ class ProveedorDashboard:
                     "Tickets": st.column_config.NumberColumn("Tickets", format="%d")
                 }
             )
-            
+
             # Gráficas de productos
             col1, col2 = st.columns(2)
-            
+
             with col1:
-                # Scatter plot Ventas vs Margen - CORREGIDO
-                top_20 = productos_stats.head(20).reset_index()
-                top_20['producto_corto'] = top_20['descripcion'].str[:30] + '...'
+                # Validar columnas requeridas
+                required_cols = ['descripcion', 'Ventas', 'Margen %', 'Cantidad', 'Utilidad']
+                missing_cols = [col for col in required_cols if col not in productos_stats.columns]
+                if missing_cols:
+                    st.error(f"❌ Faltan columnas para graficar: {missing_cols}")
+                    st.stop()
+
+                # Preprocesamiento seguro
+                top_20 = productos_stats.head(20).copy().reset_index()
+                top_20['producto_corto'] = top_20['descripcion'].astype(str).str[:30] + '...'
+
+                # Asegurar que sean numéricos
+                for col in ['Ventas', 'Margen %', 'Cantidad', 'Utilidad']:
+                    top_20[col] = pd.to_numeric(top_20[col], errors='coerce')
+
+                # Eliminar filas inválidas
+                top_20.dropna(subset=['Ventas', 'Margen %', 'Cantidad'], inplace=True)
+
+                # Evitar errores si no hay datos válidos
+                if top_20.empty:
+                    st.warning("⚠️ No hay datos válidos para mostrar el gráfico de productos.")
+                else:
+                    try:
+                        fig = px.scatter(
+                            top_20,
+                            x='Ventas',
+                            y='Margen %',
+                            size='Cantidad',
+                            hover_name='producto_corto',
+                            hover_data={'Utilidad': ':.0f'},
+                            title="💹 Ventas vs Margen (TOP 20)",
+                            labels={'Ventas': 'Ventas ($)', 'Margen %': 'Margen (%)'}
+                        )
+                        fig.update_traces(marker=dict(opacity=0.7))
+                        st.plotly_chart(fig, use_container_width=True)
+                    except Exception as e:
+                        st.error(f"❌ Error al generar el gráfico: {e}")
+
+
+
+            # # Gráficas de productos
+            # col1, col2 = st.columns(2)
+            
+            # with col1:
+            #     # Scatter plot Ventas vs Margen - CORREGIDO
+            #     top_20 = productos_stats.head(20).reset_index()
+            #     top_20['producto_corto'] = top_20['descripcion'].str[:30] + '...'
                 
-                fig = px.scatter(
-                    top_20,
-                    x='Ventas', 
-                    y='Margen %',
-                    size='Cantidad',
-                    hover_name='producto_corto',
-                    hover_data={'Utilidad': ':,.0f'},
-                    title="💹 Ventas vs Margen (TOP 20)",
-                    labels={'Ventas': 'Ventas ($)', 'Margen %': 'Margen (%)'}
-                )
-                fig.update_traces(marker=dict(opacity=0.7))
-                st.plotly_chart(fig, use_container_width=True)
+            #     fig = px.scatter(
+            #         top_20,
+            #         x='Ventas', 
+            #         y='Margen %',
+            #         size='Cantidad',
+            #         hover_name='producto_corto',
+            #         hover_data={'Utilidad': ':,.0f'},
+            #         title="💹 Ventas vs Margen (TOP 20)",
+            #         labels={'Ventas': 'Ventas ($)', 'Margen %': 'Margen (%)'}
+            #     )
+            #     fig.update_traces(marker=dict(opacity=0.7))
+            #     st.plotly_chart(fig, use_container_width=True)
             
             with col2:
                 # Análisis de Pareto
