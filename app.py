@@ -498,27 +498,71 @@ class ProveedorDashboard:
                     "Tickets": st.column_config.NumberColumn("Tickets", format="%d")
                 }
             )
-            
+
             # Gráficas de productos
             col1, col2 = st.columns(2)
-            
+
             with col1:
-                # Scatter plot Ventas vs Margen - CORREGIDO
-                top_20 = productos_stats.head(20).reset_index()
-                top_20['producto_corto'] = top_20['descripcion'].str[:30] + '...'
+                # Validar columnas requeridas
+                required_cols = ['descripcion', 'Ventas', 'Margen %', 'Cantidad', 'Utilidad']
+                missing_cols = [col for col in required_cols if col not in productos_stats.columns]
+                if missing_cols:
+                    st.error(f"❌ Faltan columnas para graficar: {missing_cols}")
+                    st.stop()
+
+                # Preprocesamiento seguro
+                top_20 = productos_stats.head(20).copy().reset_index()
+                top_20['producto_corto'] = top_20['descripcion'].astype(str).str[:30] + '...'
+
+                # Asegurar que sean numéricos
+                for col in ['Ventas', 'Margen %', 'Cantidad', 'Utilidad']:
+                    top_20[col] = pd.to_numeric(top_20[col], errors='coerce')
+
+                # Eliminar filas inválidas
+                top_20.dropna(subset=['Ventas', 'Margen %', 'Cantidad'], inplace=True)
+
+                # Evitar errores si no hay datos válidos
+                if top_20.empty:
+                    st.warning("⚠️ No hay datos válidos para mostrar el gráfico de productos.")
+                else:
+                    try:
+                        fig = px.scatter(
+                            top_20,
+                            x='Ventas',
+                            y='Margen %',
+                            size='Cantidad',
+                            hover_name='producto_corto',
+                            hover_data={'Utilidad': ':.0f'},
+                            title="💹 Ventas vs Margen (TOP 20)",
+                            labels={'Ventas': 'Ventas ($)', 'Margen %': 'Margen (%)'}
+                        )
+                        fig.update_traces(marker=dict(opacity=0.7))
+                        st.plotly_chart(fig, use_container_width=True)
+                    except Exception as e:
+                        st.error(f"❌ Error al generar el gráfico: {e}")
+
+
+
+            # # Gráficas de productos
+            # col1, col2 = st.columns(2)
+            
+            # with col1:
+            #     # Scatter plot Ventas vs Margen - CORREGIDO
+            #     top_20 = productos_stats.head(20).reset_index()
+            #     top_20['producto_corto'] = top_20['descripcion'].str[:30] + '...'
                 
-                fig = px.scatter(
-                    top_20,
-                    x='Ventas', 
-                    y='Margen %',
-                    size='Cantidad',
-                    hover_name='producto_corto',
-                    hover_data={'Utilidad': ':,.0f'},
-                    title="💹 Ventas vs Margen (TOP 20)",
-                    labels={'Ventas': 'Ventas ($)', 'Margen %': 'Margen (%)'}
-                )
-                fig.update_traces(marker=dict(opacity=0.7))
-                st.plotly_chart(fig, use_container_width=True)
+            #     fig = px.scatter(
+            #         top_20,
+            #         x='Ventas', 
+            #         y='Margen %',
+            #         size='Cantidad',
+            #         hover_name='producto_corto',
+            #         hover_data={'Utilidad': ':,.0f'},
+            #         title="💹 Ventas vs Margen (TOP 20)",
+            #         labels={'Ventas': 'Ventas ($)', 'Margen %': 'Margen (%)'}
+            #     )
+            #     fig.update_traces(marker=dict(opacity=0.7))
+            #     st.plotly_chart(fig, use_container_width=True)
             
             with col2:
                 # Análisis de Pareto
