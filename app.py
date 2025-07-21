@@ -30,6 +30,7 @@ st.markdown("""
         text-align: center;
         color: white;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 100;
     }
     .metric-container {
         background: white;
@@ -80,12 +81,12 @@ st.markdown("""
     .st-emotion-cache-16txtl3 {
         padding: 1rem 1rem !important;
     }
+    /* Ocultar el header superior de Streamlit */
+    header {
+        z-index: 1;
+        }              
 </style>
 """, unsafe_allow_html=True)
-    # /* Ocultar el header superior de Streamlit */
-    # header {
-    #     display: none !important
-    #     }              
 
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
