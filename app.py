@@ -25,9 +25,9 @@ st.markdown("""
 <style>
     .main-header {
         background: linear-gradient(90deg, #1e3c72, #2a5298);
-        padding: 2rem;
+        padding: 1rem;
         border-radius: 15px;
-        margin-bottom: 2rem;
+        margin-bottom: .5rem;
         text-align: center;
         color: white;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -300,8 +300,7 @@ class ProveedorDashboard:
         # Header
         st.markdown("""
         <div class="main-header">
-            <h1>📊 Dashboard de Análisis Empresarial</h1>
-            <p>Sistema profesional de análisis por proveedor con BigQuery</p>
+            <h3>📈 Análisis por Proveedor</h1>
         </div>
         """, unsafe_allow_html=True)
         
