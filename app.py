@@ -116,13 +116,13 @@ st.markdown("""
         border-radius: 10px;
     }
 
-    /* O si preferís que no tenga fondo visible: */
-    [data-testid="stPlotlyChart"] {
-        background-color: transparent !important;
-    }          
 
 </style>
 """, unsafe_allow_html=True)
+    # /* O si preferís que no tenga fondo visible: */
+    # [data-testid="stPlotlyChart"] {
+    #     background-color: transparent !important;
+    # }          
 
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
