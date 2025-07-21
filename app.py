@@ -113,6 +113,7 @@ st.markdown("""
     /* Opcional: darle margen interno y borde a todo el gráfico */
     [data-testid="stPlotlyChart"] {
         border-radius: 10px;
+        border: 1px solid #ddd;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .main-svg{
