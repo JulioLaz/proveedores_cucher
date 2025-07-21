@@ -77,22 +77,20 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown("""
-    <style>
-    .branding-container {
-        display: flex;
-        justify-content: center;
-        margin-top: 1rem;
-        margin-bottom: 1rem;
-    }
-    .branding-container img {
-        max-width: 300px;
-        height: auto;
-    }
-    </style>
-    <div class="branding-container">
-        <img src="https://raw.githubusercontent.com/JulioLaz/cuchermercados-main/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
-    </div>
+<style>
+.st-emotion-cache-595tnf.eu6y2f94::before {
+    content: "";
+    display: block;
+    background-image: url('https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    height: 120px;
+    margin-bottom: 1rem;
+}
+</style>
 """, unsafe_allow_html=True)
+
 
 
 # === DETECTAR ENTORNO ===
