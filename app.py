@@ -64,6 +64,7 @@ st.markdown("""
     }
     .sidebar .sidebar-content {
         background: #f1f3f4;
+        background: black;
     }
     /* 🎯 Estilo personalizado para el contenedor principal */
     .block-container {
@@ -74,7 +75,7 @@ st.markdown("""
     }
     /* Estilo personalizado al contenedor específico */
     .st-emotion-cache-16txtl3 {
-        padding: 0rem 1rem !important;
+        padding: 1rem 1rem !important;
     }
     /* Ocultar el header superior de Streamlit */
     header {
