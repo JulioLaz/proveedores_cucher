@@ -118,9 +118,7 @@ import os
 import json
 from datetime import datetime
 from dotenv import load_dotenv
-import gspread
 from google.cloud import bigquery
-from google.oauth2.service_account import Credentials
 
 # === CONFIGURACION DE PAGINA ===
 st.set_page_config(page_title="📦 Dashboard Proveedores", layout="wide")
@@ -150,30 +148,14 @@ else:
     project_id = "youtube-analysis-24"
     bigquery_table = "tickets.tickets_all"
 
-# === CONECTAR A GOOGLE SHEETS ===
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.file']
-try:
-    creds = Credentials.from_service_account_file(CREDENTIALS_PATH, scopes=SCOPES)
-    gc = gspread.authorize(creds)
-except Exception as e:
-    st.error(f"Error al cargar credenciales de Google Sheets: {e}")
-    st.stop()
-
-# === LISTAR HOJAS DISPONIBLES PARA DEBUG ===
-try:
-    sheets = gc.open_by_key(sheet_id)
-    hojas_disponibles = [ws.title for ws in sheets.worksheets()]
-    st.info(f"Hojas disponibles en el documento: {hojas_disponibles}")
-except Exception as e:
-    st.warning(f"No se pudo listar hojas disponibles: {e}")
-
+# === LEER GOOGLE SHEET PUBLICO ===
 @st.cache_data(ttl=3600)
-def leer_google_sheet(sheet_id, sheet_name):
-    ws = gc.open_by_key(sheet_id).worksheet(sheet_name)
-    return pd.DataFrame(ws.get_all_records())
+def leer_google_sheet_publico(sheet_id, sheet_name):
+    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
+    return pd.read_csv(url)
 
 try:
-    df = leer_google_sheet(sheet_id, sheet_name)
+    df = leer_google_sheet_publico(sheet_id, sheet_name)
     st.success(f"Datos cargados: {len(df):,} registros")
 except Exception as e:
     st.error(f"Error leyendo Google Sheet: {e}")
@@ -215,6 +197,7 @@ if proveedor:
         st.metric("Artículos vendidos", f"{df_bq['cantidad_total'].sum():,.0f}")
     except Exception as e:
         st.error(f"Error en BigQuery: {e}")
+
 
 
 ############################################################################################################
