@@ -369,10 +369,8 @@ class ProveedorDashboard:
         
         with tab5:
             self.show_reports_section(df, proveedor, metrics)
-
-##############################################################################
-
-    def show_executive_summary00(self, df, proveedor, metrics):
+    
+    def show_executive_summary(self, df, proveedor, metrics):
         """Mostrar resumen ejecutivo"""
         st.subheader(f"📈 Resumen Ejecutivo - {proveedor}")
         
@@ -449,126 +447,6 @@ class ProveedorDashboard:
             fig.update_layout(height=400)
             st.plotly_chart(fig, use_container_width=True)
     
-def show_executive_summary(self, df, proveedor, metrics):
-    """Mostrar resumen ejecutivo"""
-    st.subheader(f"📈 Resumen Ejecutivo - {proveedor}")
-
-    # Estilo visual para KPIs
-    st.markdown("""
-        <style>
-        .kpi-box {
-            border: 1px solid #444;
-            border-radius: 10px;
-            padding: 1rem;
-            text-align: center;
-            background-color: #0e1117;
-            box-shadow: 0 2px 5px rgba(255, 255, 255, 0.05);
-            transition: 0.3s ease-in-out;
-        }
-        .kpi-box:hover {
-            border-color: #888;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
-        }
-        .kpi-title {
-            font-size: 0.9rem;
-            color: #ccc;
-            margin-bottom: 0.3rem;
-        }
-        .kpi-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #fff;
-        }
-        .kpi-delta {
-            font-size: 0.85rem;
-            color: #aaa;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # KPIs principales con estilo
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.markdown(f"""
-            <div class="kpi-box">
-                <div class="kpi-title">💰 Ventas Totales</div>
-                <div class="kpi-value">${metrics['total_ventas']:,.0f}</div>
-                <div class="kpi-delta">{metrics['margen_promedio']:.1f}% margen</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    with col2:
-        st.markdown(f"""
-            <div class="kpi-box">
-                <div class="kpi-title">📈 Utilidad Total</div>
-                <div class="kpi-value">${metrics['total_utilidad']:,.0f}</div>
-                <div class="kpi-delta">${metrics['ticket_promedio']:,.0f} ticket prom.</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    with col3:
-        st.markdown(f"""
-            <div class="kpi-box">
-                <div class="kpi-title">🧾 Total Transacciones</div>
-                <div class="kpi-value">{metrics['num_tickets']:,}</div>
-                <div class="kpi-delta">{metrics['dias_con_ventas']} días activos</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    with col4:
-        st.markdown(f"""
-            <div class="kpi-box">
-                <div class="kpi-title">📦 Cantidad Vendida</div>
-                <div class="kpi-value">{metrics['total_cantidad']:,.0f}</div>
-                <div class="kpi-delta">{metrics['productos_unicos']} productos únicos</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    # Insights automáticos
-    st.subheader("💡 Insights Clave")
-    insights = self.generate_insights(df, metrics)
-
-    for tipo, mensaje in insights:
-        if tipo == "success":
-            st.markdown(f'<div class="success-box">{mensaje}</div>', unsafe_allow_html=True)
-        elif tipo == "warning":
-            st.markdown(f'<div class="warning-box">{mensaje}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="insight-box">{mensaje}</div>', unsafe_allow_html=True)
-
-    # Gráficas de resumen
-    col1, col2 = st.columns(2)
-
-    with col1:
-        # Distribución de ventas por día
-        ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
-        fig = px.line(
-            ventas_diarias, x='fecha', y='precio_total',
-            title="📈 Evolución Diaria de Ventas",
-            labels={'precio_total': 'Ventas ($)', 'fecha': 'Fecha'}
-        )
-        fig.update_traces(line_color='#2a5298', line_width=3)
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
-
-    with col2:
-        # Top 5 productos
-        top_productos = df.groupby('descripcion')['precio_total'].sum().nlargest(5).reset_index()
-        top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
-
-        fig = px.bar(
-            top_productos, x='precio_total', y='descripcion_corta',
-            orientation='h',
-            title="🏆 Top 5 Productos por Ventas",
-            labels={'precio_total': 'Ventas ($)', 'descripcion_corta': 'Producto'}
-        )
-        fig.update_traces(marker_color='#28a745')
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
-
-##########################################################################################
-
     def show_products_analysis(self, df):
         """Análisis detallado de productos"""
         st.subheader("🏆 Análisis Detallado de Productos")
