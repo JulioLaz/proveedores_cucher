@@ -10,3 +10,5 @@ python-dotenv
 google-cloud-bigquery
 db-dtypes
 plotly
+streamlit
+numpy
