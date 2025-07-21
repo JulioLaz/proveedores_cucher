@@ -109,11 +109,16 @@ st.markdown("""
         background-color: #f5f5dc !important;
     }            
 
-    /* Fondo beige al contenedor de gráficos Plotly */
+    /* 🎯 Forzar fondo beige en el SVG principal de Plotly */
+    .js-plotly-plot .main-svg {
+        background: #f5f5dc !important;
+    }
+
+    /* Opcional: darle margen interno y borde a todo el gráfico */
     [data-testid="stPlotlyChart"] {
-        background-color: #f5f5dc !important; /* Beige */
         padding: 1rem;
         border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
 
