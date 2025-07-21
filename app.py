@@ -115,7 +115,9 @@ st.markdown("""
         border-radius: 10px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-
+    .main-svg{
+        background-color: #f5f5dc !important;
+            }
 
 </style>
 """, unsafe_allow_html=True)
