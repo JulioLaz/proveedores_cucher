@@ -12,5 +12,3 @@ db-dtypes
 plotly
 streamlit
 numpy
-reportlab
-prophet

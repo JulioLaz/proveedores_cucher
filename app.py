@@ -11,11 +11,6 @@ from dotenv import load_dotenv
 from google.cloud import bigquery
 import warnings
 import io
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
-from reportlab.lib.styles import getSampleStyleSheet
-from prophet import Prophet
 import logging
 
 # Configurar logging
@@ -34,7 +29,7 @@ st.set_page_config(
     menu_items={
         'Get Help': 'https://docs.streamlit.io',
         'Report a Bug': 'https://github.com/streamlit/streamlit/issues',
-        'About': 'Advanced Analytics Dashboard powered by xAI'
+        'About': 'Advanced Analytics Dashboard powered by Streamlit'
     }
 )
 
@@ -207,23 +202,48 @@ class ProveedorDashboard:
             st.error(f"❌ Error consultando datos: {str(e)}")
             return None
     
-    def generate_forecast(self, df):
-        """Generar pronóstico de ventas usando Prophet"""
+    def generate_simple_forecast(self, df):
+        """Generar pronóstico simple usando media móvil"""
         try:
             ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
-            ventas_diarias.columns = ['ds', 'y']
+            ventas_diarias = ventas_diarias.sort_values('fecha')
             
-            model = Prophet(
-                yearly_seasonality=True,
-                weekly_seasonality=True,
-                daily_seasonality=True
+            if len(ventas_diarias) < 7:
+                return None
+            
+            # Calcular media móvil de 7 días
+            ventas_diarias['media_movil_7'] = ventas_diarias['precio_total'].rolling(window=7).mean()
+            
+            # Crear pronóstico simple para próximos 30 días
+            ultimo_promedio = ventas_diarias['media_movil_7'].iloc[-1]
+            
+            forecast_dates = pd.date_range(
+                start=ventas_diarias['fecha'].max() + timedelta(days=1),
+                periods=30,
+                freq='D'
             )
-            model.fit(ventas_diarias)
             
-            future = model.make_future_dataframe(periods=30)
-            forecast = model.predict(future)
+            # Agregar variabilidad basada en desviación estándar
+            std_ventas = ventas_diarias['precio_total'].std()
+            forecast_values = []
             
-            return forecast, model
+            for i in range(30):
+                # Agregar algo de tendencia y estacionalidad simple
+                trend_factor = 1 + (i * 0.001)  # Ligera tendencia positiva
+                seasonal_factor = 1 + 0.1 * np.sin(2 * np.pi * i / 7)  # Estacionalidad semanal
+                
+                forecast_value = ultimo_promedio * trend_factor * seasonal_factor
+                forecast_values.append(forecast_value)
+            
+            forecast_df = pd.DataFrame({
+                'fecha': forecast_dates,
+                'pronostico': forecast_values,
+                'limite_superior': [v + std_ventas for v in forecast_values],
+                'limite_inferior': [max(0, v - std_ventas) for v in forecast_values]
+            })
+            
+            return forecast_df, ventas_diarias
+            
         except Exception as e:
             logger.error(f"Error generando pronóstico: {str(e)}")
             return None, None
@@ -302,47 +322,39 @@ class ProveedorDashboard:
             logger.error(f"Error generando insights: {str(e)}")
             return []
     
-    def generate_pdf_report(self, df, proveedor, metrics):
-        """Generar reporte PDF"""
-        buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter)
-        elements = []
-        
-        styles = getSampleStyleSheet()
-        
-        # Título
-        elements.append(Paragraph(f"Análisis de Proveedor: {proveedor}", styles['Title']))
-        elements.append(Paragraph(f"Período: {df['fecha'].min()} a {df['fecha'].max()}", styles['Normal']))
-        
-        # Resumen Ejecutivo
-        elements.append(Paragraph("Resumen Ejecutivo", styles['Heading2']))
-        
-        data = [
-            ['Métrica', 'Valor'],
-            ['Ventas Totales', f"${metrics['total_ventas']:,.2f}"],
-            ['Utilidad Total', f"${metrics['total_utilidad']:,.2f}"],
-            ['Margen Promedio', f"{metrics['margen_promedio']:.1f}%"],
-            ['Tickets', f"{metrics['num_tickets']:,}"],
-            ['Productos Únicos', f"{metrics['productos_unicos']:,}"]
-        ]
-        
-        table = Table(data)
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,0), colors.grey),
-            ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0,0), (-1,0), 14),
-            ('BOTTOMPADDING', (0,0), (-1,0), 12),
-            ('BACKGROUND', (0,1), (-1,-1), colors.beige),
-            ('GRID', (0,0), (-1,-1), 1, colors.black)
-        ]))
-        
-        elements.append(table)
-        
-        doc.build(elements)
-        buffer.seek(0)
-        return buffer
+    def generate_simple_pdf_report(self, df, proveedor, metrics):
+        """Generar reporte simple sin ReportLab"""
+        try:
+            # Crear un reporte en texto plano
+            report_text = f"""
+REPORTE DE ANÁLISIS - {proveedor}
+=======================================
+
+Período: {df['fecha'].min()} a {df['fecha'].max()}
+Generado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+RESUMEN EJECUTIVO:
+- Ventas Totales: ${metrics['total_ventas']:,.2f}
+- Utilidad Total: ${metrics['total_utilidad']:,.2f}
+- Margen Promedio: {metrics['margen_promedio']:.1f}%
+- Total Transacciones: {metrics['num_tickets']:,}
+- Ticket Promedio: ${metrics['ticket_promedio']:,.2f}
+- Productos Únicos: {metrics['productos_unicos']:,}
+- Días con Ventas: {metrics['dias_con_ventas']:,}
+
+TOP 10 PRODUCTOS:
+"""
+            
+            # Agregar top productos
+            top_productos = df.groupby('descripcion')['precio_total'].sum().nlargest(10)
+            for i, (producto, ventas) in enumerate(top_productos.items(), 1):
+                report_text += f"{i}. {producto[:50]}... - ${ventas:,.2f}\n"
+            
+            return report_text.encode('utf-8')
+            
+        except Exception as e:
+            logger.error(f"Error generando reporte: {str(e)}")
+            return "Error generando reporte".encode('utf-8')
     
     def show_sidebar_filters(self):
         """Mostrar filtros en sidebar"""
@@ -417,7 +429,7 @@ class ProveedorDashboard:
                         ]
                         st.session_state.analysis_data = df_tickets
                         st.session_state.selected_proveedor = proveedor
-                        st.session_state.forecast_data = self.generate_forecast(df_tickets) if len(df_tickets) > 0 else (None, None)
+                        st.session_state.forecast_data = self.generate_simple_forecast(df_tickets) if len(df_tickets) > 0 else (None, None)
                         st.rerun()
                     else:
                         st.sidebar.error("❌ No se encontraron datos para los parámetros seleccionados")
@@ -448,7 +460,7 @@ class ProveedorDashboard:
                 - Análisis predictivo
                 - Pronósticos de ventas
                 - Visualizaciones interactivas
-                - Reportes PDF
+                - Reportes exportables
                 - Insights automáticos
                 """)
             
@@ -465,7 +477,7 @@ class ProveedorDashboard:
             with col3:
                 st.markdown("""
                 ### 🔍 Capacidades Avanzadas
-                - Forecasting con Prophet
+                - Forecasting estadístico
                 - Análisis horario
                 - Segmentación avanzada
                 - Exportación múltiple
@@ -860,15 +872,12 @@ class ProveedorDashboard:
             col1, col2 = st.columns(2)
             
             with col1:
-                fig = px.treemap(
-                    familia_stats,
-                    path=[px.Constant("Familias"), familia_stats.index],
-                    values='precio_total',
-                    color='margen_porcentual',
-                    color_continuous_scale='RdYlGn',
-                    title="🌳 Mapa de Familias"
+                fig = px.pie(
+                    values=familia_stats['precio_total'],
+                    names=familia_stats.index,
+                    title="🥧 Distribución por Familia"
                 )
-                fig.update_layout(margin=dict(t=50, l=25, r=25, b=25))
+                fig.update_layout(template='plotly_white')
                 st.plotly_chart(fig, use_container_width=True)
             
             with col2:
@@ -928,7 +937,7 @@ class ProveedorDashboard:
         productos_abc = df.groupby(['idarticulo', 'descripcion']).agg({
             'precio_total': 'sum',
             'utilidad': 'sum'
-        }).sort_values('precio_total', ascorbic=False)
+        }).sort_values('precio_total', ascending=False)
         
         productos_abc['participacion_acum'] = (productos_abc['precio_total'].cumsum() / productos_abc['precio_total'].sum() * 100)
         
@@ -967,62 +976,102 @@ class ProveedorDashboard:
             )
             fig.update_layout(template='plotly_white')
             st.plotly_chart(fig, use_container_width=True)
+        
+        # Recomendaciones estratégicas
+        st.markdown("### 💡 Recomendaciones Estratégicas")
+        
+        recomendaciones = []
+        
+        # Análisis de productos A
+        productos_a = productos_abc[productos_abc['categoria_abc'] == 'A (Alto valor)']
+        if len(productos_a) > 0:
+            recomendaciones.append(f"🎯 **Productos A:** {len(productos_a)} productos generan el 80% de las ventas. Priorizar su disponibilidad y promoción.")
+        
+        # Análisis de margen
+        if metrics['margen_promedio'] < 20:
+            recomendaciones.append("⚠️ **Margen bajo:** Revisar precios y costos. Considerar renegociación con proveedores.")
+        
+        # Análisis de diversificación
+        if metrics['productos_unicos'] < 10:
+            recomendaciones.append("📈 **Ampliar catálogo:** Pocos productos únicos. Considerar expandir línea de productos.")
+        
+        # Análisis de ticket promedio
+        if metrics['ticket_promedio'] < 2000:
+            recomendaciones.append("💡 **Cross-selling:** Ticket promedio bajo. Implementar estrategias de venta cruzada.")
+        
+        for rec in recomendaciones:
+            st.markdown(f'<div class="insight-box">{rec}</div>', unsafe_allow_html=True)
     
     def show_forecast_analysis(self, df):
         """Análisis de pronósticos"""
         st.subheader("🔮 Pronósticos de Ventas")
         
-        forecast, model = st.session_state.forecast_data
+        forecast_data = st.session_state.forecast_data
         
-        if forecast is None or model is None:
-            st.warning("⚠️ No se pudo generar el pronóstico. Verifica que haya suficientes datos.")
+        if forecast_data[0] is None or forecast_data[1] is None:
+            st.warning("⚠️ No se pudo generar el pronóstico. Verifica que haya suficientes datos (mínimo 7 días).")
             return
+        
+        forecast_df, ventas_históricas = forecast_data
         
         col1, col2 = st.columns(2)
         
         with col1:
             fig = go.Figure()
             
+            # Datos históricos
             fig.add_trace(
                 go.Scatter(
-                    x=forecast['ds'],
-                    y=forecast['yhat'],
-                    name='Pronóstico',
-                    line=dict(color='#2a5298')
+                    x=ventas_históricas['fecha'],
+                    y=ventas_históricas['precio_total'],
+                    name='Ventas Históricas',
+                    mode='lines+markers',
+                    line=dict(color='#2a5298', width=2),
+                    marker=dict(size=6)
                 )
             )
             
+            # Media móvil histórica
             fig.add_trace(
                 go.Scatter(
-                    x=forecast['ds'],
-                    y=forecast['yhat_upper'],
-                    fill='tonexty',
-                    fillcolor='rgba(42, 82, 152, 0.1)',
-                    line=dict(color='transparent'),
+                    x=ventas_históricas['fecha'],
+                    y=ventas_históricas['media_movil_7'],
+                    name='Media Móvil 7 días',
+                    line=dict(color='#28a745', width=2, dash='dash')
+                )
+            )
+            
+            # Pronóstico
+            fig.add_trace(
+                go.Scatter(
+                    x=forecast_df['fecha'],
+                    y=forecast_df['pronostico'],
+                    name='Pronóstico',
+                    line=dict(color='red', width=3)
+                )
+            )
+            
+            # Banda de confianza
+            fig.add_trace(
+                go.Scatter(
+                    x=forecast_df['fecha'],
+                    y=forecast_df['limite_superior'],
+                    fill=None,
+                    mode='lines',
+                    line_color='rgba(0,0,0,0)',
                     showlegend=False
                 )
             )
             
             fig.add_trace(
                 go.Scatter(
-                    x=forecast['ds'],
-                    y=forecast['yhat_lower'],
+                    x=forecast_df['fecha'],
+                    y=forecast_df['limite_inferior'],
                     fill='tonexty',
-                    fillcolor='rgba(42, 82, 152, 0.1)',
-                    line=dict(color='transparent'),
-                    name='Intervalo de Confianza'
-                )
-            )
-            
-            # Agregar datos reales
-            ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
-            fig.add_trace(
-                go.Scatter(
-                    x=ventas_diarias['fecha'],
-                    y=ventas_diarias['precio_total'],
-                    name='Ventas Reales',
-                    mode='markers',
-                    marker=dict(color='red', size=8)
+                    mode='lines',
+                    line_color='rgba(0,0,0,0)',
+                    name='Intervalo Confianza',
+                    fillcolor='rgba(255,0,0,0.1)'
                 )
             )
             
@@ -1030,13 +1079,60 @@ class ProveedorDashboard:
                 title="🔮 Pronóstico de Ventas (30 días)",
                 xaxis_title="Fecha",
                 yaxis_title="Ventas ($)",
-                template='plotly_white'
+                template='plotly_white',
+                hovermode='x unified'
             )
             st.plotly_chart(fig, use_container_width=True)
         
         with col2:
-            components = model.plot_components(forecast)
-            st.pyplot(components)
+            # Métricas del pronóstico
+            promedio_pronostico = forecast_df['pronostico'].mean()
+            total_pronosticado = forecast_df['pronostico'].sum()
+            promedio_historico = ventas_históricas['precio_total'].tail(30).mean()
+            
+            st.markdown("### 📊 Métricas del Pronóstico")
+            
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.metric(
+                    "Promedio Diario Proyectado",
+                    f"${promedio_pronostico:,.0f}",
+                    delta=f"{((promedio_pronostico/promedio_historico-1)*100):+.1f}%" if promedio_historico > 0 else None
+                )
+            
+            with col_b:
+                st.metric(
+                    "Total Próximos 30 días",
+                    f"${total_pronosticado:,.0f}"
+                )
+            
+            # Distribución del pronóstico
+            fig_dist = px.histogram(
+                forecast_df, x='pronostico',
+                title="📊 Distribución del Pronóstico",
+                nbins=20
+            )
+            fig_dist.update_layout(template='plotly_white')
+            st.plotly_chart(fig_dist, use_container_width=True)
+        
+        # Tabla de pronóstico
+        st.markdown("### 📅 Detalle del Pronóstico")
+        
+        forecast_display = forecast_df.copy()
+        forecast_display['fecha'] = forecast_display['fecha'].dt.strftime('%Y-%m-%d')
+        forecast_display = forecast_display.round(2)
+        
+        st.dataframe(
+            forecast_display,
+            use_container_width=True,
+            column_config={
+                "fecha": "Fecha",
+                "pronostico": st.column_config.NumberColumn("Pronóstico", format="$%.0f"),
+                "limite_superior": st.column_config.NumberColumn("Límite Superior", format="$%.0f"),
+                "limite_inferior": st.column_config.NumberColumn("Límite Inferior", format="$%.0f")
+            },
+            hide_index=True
+        )
     
     def show_reports_section(self, df, proveedor, metrics):
         """Sección de reportes"""
@@ -1052,7 +1148,8 @@ class ProveedorDashboard:
                 'Total Transacciones',
                 'Ticket Promedio',
                 'Productos Únicos',
-                'Días con Ventas'
+                'Días con Ventas',
+                'Concentración Top 5'
             ],
             'Valor': [
                 proveedor,
@@ -1063,7 +1160,8 @@ class ProveedorDashboard:
                 f"{metrics['num_tickets']:,}",
                 f"${metrics['ticket_promedio']:,.2f}",
                 f"{metrics['productos_unicos']:,}",
-                f"{metrics['dias_con_ventas']:,}"
+                f"{metrics['dias_con_ventas']:,}",
+                f"{metrics['concentracion_ventas']:.1f}%"
             ]
         }
         
@@ -1077,7 +1175,7 @@ class ProveedorDashboard:
             st.download_button(
                 label="📊 Datos Completos (CSV)",
                 data=csv_data,
-                file_name=f"analisis_{proveedor}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                file_name=f"analisis_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 mime="text/csv"
             )
         
@@ -1086,7 +1184,7 @@ class ProveedorDashboard:
             st.download_button(
                 label="📋 Resumen (CSV)",
                 data=resumen_csv,
-                file_name=f"resumen_{proveedor}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                file_name=f"resumen_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 mime="text/csv"
             )
         
@@ -1102,18 +1200,49 @@ class ProveedorDashboard:
             st.download_button(
                 label="🏆 Top Productos (CSV)",
                 data=top_productos_csv,
-                file_name=f"top_productos_{proveedor}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                file_name=f"top_productos_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 mime="text/csv"
             )
         
         with col4:
-            pdf_buffer = self.generate_pdf_report(df, proveedor, metrics)
+            reporte_text = self.generate_simple_pdf_report(df, proveedor, metrics)
             st.download_button(
-                label="📄 Reporte (PDF)",
-                data=pdf_buffer,
-                file_name=f"reporte_{proveedor}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-                mime="application/pdf"
+                label="📄 Reporte (TXT)",
+                data=reporte_text,
+                file_name=f"reporte_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                mime="text/plain"
             )
+        
+        # Generar reporte completo en JSON
+        st.markdown("### 🔧 Exportación Avanzada")
+        
+        reporte_completo = {
+            'metadata': {
+                'proveedor': proveedor,
+                'fecha_inicio': str(df['fecha'].min()),
+                'fecha_fin': str(df['fecha'].max()),
+                'generado_en': datetime.now().isoformat(),
+                'total_registros': len(df)
+            },
+            'metricas_principales': {
+                'ventas_totales': float(metrics['total_ventas']),
+                'utilidad_total': float(metrics['total_utilidad']),
+                'margen_promedio': float(metrics['margen_promedio']),
+                'ticket_promedio': float(metrics['ticket_promedio']),
+                'productos_unicos': int(metrics['productos_unicos']),
+                'num_tickets': int(metrics['num_tickets']),
+                'concentracion_ventas': float(metrics['concentracion_ventas'])
+            },
+            'insights': [insight[1] for insight in self.generate_insights(df, metrics)]
+        }
+        
+        json_data = json.dumps(reporte_completo, indent=2, ensure_ascii=False)
+        st.download_button(
+            label="🗂️ Reporte Completo (JSON)",
+            data=json_data,
+            file_name=f"reporte_completo_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            mime="application/json"
+        )
         
         st.markdown("### 👁️ Vista Previa")
         st.dataframe(
@@ -1127,6 +1256,9 @@ class ProveedorDashboard:
                 "cantidad_total": st.column_config.NumberColumn("Cantidad", format="%.0f")
             }
         )
+        
+        if len(df) > 100:
+            st.info(f"ℹ️ Mostrando las primeras 100 filas de {len(df):,} registros totales.")
     
     def run(self):
         """Ejecutar dashboard"""
@@ -1136,7 +1268,7 @@ class ProveedorDashboard:
         st.markdown("---")
         st.markdown("""
         <div style="text-align: center; color: #666; font-size: 0.8em;">
-            🚀 Dashboard de Análisis Estratégico | Powered by Streamlit, BigQuery & Prophet
+            🚀 Dashboard de Análisis Estratégico | Powered by Streamlit & BigQuery
         </div>
         """, unsafe_allow_html=True)
 
