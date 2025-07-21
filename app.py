@@ -20,7 +20,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# === CSS PERSONALIZADO ===
 st.markdown("""
 <style>
     .main-header {
@@ -66,8 +65,18 @@ st.markdown("""
         background: #f1f3f4;
     }
 
+    /* Ocultar header */
+    header {
+        display: none !important;
+    }
+
+    /* Quitar padding-top del contenido principal */
+    section.main > div.block-container {
+        padding-top: 0rem !important;
+    }
 </style>
 """, unsafe_allow_html=True)
+
     # /* 🎯 Estilo personalizado para el contenedor principal */
     # .block-container {
     #     width: 100% !important;
