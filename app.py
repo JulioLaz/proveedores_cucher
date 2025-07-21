@@ -117,7 +117,7 @@ import pandas as pd
 import os
 import json
 from datetime import datetime
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import gspread
 from google.cloud import bigquery
 from google.oauth2.service_account import Credentials
