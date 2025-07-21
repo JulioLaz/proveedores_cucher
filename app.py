@@ -98,6 +98,16 @@ st.markdown("""
         left: 1rem;
         z-index: 1001;
     }
+            
+    /* 🎨 Establece un fondo beige claro para toda la app */
+    body {
+        background-color: #f5f5dc !important; /* beige */
+    }
+
+    /* O si querés solo el fondo del contenedor principal */
+    .appview-container {
+        background-color: #f5f5dc !important;
+    }            
         
 </style>
 """, unsafe_allow_html=True)
@@ -336,9 +346,9 @@ class ProveedorDashboard:
         
         # Información del proveedor si está seleccionado
         if proveedor:
-            st.sidebar.markdown("### 📊 Información del Proveedor")
+            # st.sidebar.markdown("### 📊 Información del Proveedor")
             num_articulos = len(self.df_proveedores[self.df_proveedores['proveedor'] == proveedor])
-            st.sidebar.metric("Artículos en catálogo", num_articulos)
+            st.sidebar.metric("Cantidad de Artículos", num_articulos)
         
         return proveedor, fecha_inicio, fecha_fin
     
