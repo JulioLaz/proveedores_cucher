@@ -77,6 +77,11 @@ st.markdown("""
     .st-emotion-cache-16txtl3 {
         padding: 2rem 1rem !important;
     }
+    /* Ocultar el header superior de Streamlit */
+    header {
+        display: none !important;            
+
+
 </style>
 """, unsafe_allow_html=True)
 
