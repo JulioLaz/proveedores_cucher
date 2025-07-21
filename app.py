@@ -240,24 +240,38 @@ class ProveedorDashboard:
     
     def show_sidebar_filters(self):
         """Mostrar filtros en sidebar"""
-        st.sidebar.markdown("## 🎛️ Configuración de Análisis")
+        st.sidebar.markdown("""
+            <style>
+             .sidebar-logo-box img {
+                max-width: 100%;
+                border-radius: 8px;
+                margin-bottom: 0.5rem;
+            }
+
+            </style>
+
+            <div class="sidebar-logo-box">
+                <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
+            </div>
+        """, unsafe_allow_html=True)
+        # st.sidebar.markdown("## 🎛️ Configuración de Análisis")
         
         # Cargar proveedores
         if self.df_proveedores is None:
             with st.spinner("Cargando proveedores..."):
                 self.df_proveedores = self.load_proveedores()
         
-        st.sidebar.markdown("### 🏪 Selección de Proveedor")
+        # st.sidebar.markdown("### 🏪 Selección de Proveedor")
         proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())
         
         proveedor = st.sidebar.selectbox(
-            "Proveedor:",
+            "🏪 Selección de Proveedor:",
             options=proveedores,
             index=None,
             placeholder="Seleccionar proveedor..."
         )
         
-        st.sidebar.markdown("### 📅 Período de Análisis")
+        # st.sidebar.markdown("### 📅 Período de Análisis")
         
         # Opciones de rango predefinidas
         rango_opciones = {
@@ -269,7 +283,7 @@ class ProveedorDashboard:
         }
         
         rango_seleccionado = st.sidebar.selectbox(
-            "Rango de fechas:",
+            "📅 Período de Análisis:",
             options=list(rango_opciones.keys()),
             index=2  # Por defecto últimos 6 meses
         )
