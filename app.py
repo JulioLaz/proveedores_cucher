@@ -108,7 +108,13 @@ st.markdown("""
     .appview-container {
         background-color: #f5f5dc !important;
     }            
-        
+
+    img {
+        background-color: #f5f5dc !important;  /* Beige */
+        border-radius: 8px; /* Opcional: bordes suaves */
+        padding: 4px; /* Opcional: espacio alrededor */
+    }            
+
 </style>
 """, unsafe_allow_html=True)
 
