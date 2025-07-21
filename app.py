@@ -66,25 +66,23 @@ st.markdown("""
         background: #f1f3f4;
     }
 
-    /* 🎯 Estilo personalizado para el contenedor principal */
-    .block-container {
-        width: 100% !important;
-        padding: .5rem 1rem !important;
-        min-width: auto !important;
-        max-width: initial !important;
-    }
-    /* Estilo personalizado al contenedor específico */
-    .st-emotion-cache-16txtl3 {
-        padding: 2rem 1rem !important;
-    }
-    /* Ocultar el header superior de Streamlit */
-    header {
-        display: none !important
-        }         
-
-
 </style>
 """, unsafe_allow_html=True)
+    # /* 🎯 Estilo personalizado para el contenedor principal */
+    # .block-container {
+    #     width: 100% !important;
+    #     padding: .5rem 1rem !important;
+    #     min-width: auto !important;
+    #     max-width: initial !important;
+    # }
+    # /* Estilo personalizado al contenedor específico */
+    # .st-emotion-cache-16txtl3 {
+    #     padding: 2rem 1rem !important;
+    # }
+    # /* Ocultar el header superior de Streamlit */
+    # header {
+    #     display: none !important
+    #     }         
 
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
