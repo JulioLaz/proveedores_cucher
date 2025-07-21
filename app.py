@@ -73,25 +73,12 @@ st.markdown("""
         min-width: auto !important;
         max-width: initial !important;
     }
+    /* Estilo personalizado al contenedor específico */
+    .st-emotion-cache-16txtl3 {
+        padding: 2rem 1rem !important;
+    }
 </style>
 """, unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-.st-emotion-cache-595tnf.eu6y2f94::before {
-    content: "";
-    display: block;
-    background-image: url('https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png');
-    background-repeat: no-repeat;
-    background-size: contain;
-    background-position: center;
-    height: 120px;
-    margin-bottom: 1rem;
-}
-</style>
-""", unsafe_allow_html=True)
-
-
 
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
@@ -246,24 +233,40 @@ class ProveedorDashboard:
     
     def show_sidebar_filters(self):
         """Mostrar filtros en sidebar"""
-        st.sidebar.markdown("## 🎛️ Configuración de Análisis")
+        st.sidebar.markdown("""
+            <style>
+             .sidebar-logo-box img {
+                max-width: 100%;
+                border-radius: 8px;
+                margin-bottom: 0.5rem;
+            }
+
+            </style>
+
+            <div class="sidebar-logo-box">
+                <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
+            </div>
+        """, unsafe_allow_html=True)
+
+
+        # st.sidebar.markdown("Configuración de Análisis")
         
         # Cargar proveedores
         if self.df_proveedores is None:
             with st.spinner("Cargando proveedores..."):
                 self.df_proveedores = self.load_proveedores()
         
-        st.sidebar.markdown("### 🏪 Selección de Proveedor")
+        # st.sidebar.markdown("### 🏪 Selección de Proveedor")
         proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())
         
         proveedor = st.sidebar.selectbox(
-            "Proveedor:",
+            "🏪 Selección de Proveedor:",
             options=proveedores,
             index=None,
             placeholder="Seleccionar proveedor..."
         )
         
-        st.sidebar.markdown("### 📅 Período de Análisis")
+        # st.sidebar.markdown("### 📅 Período de Análisis")
         
         # Opciones de rango predefinidas
         rango_opciones = {
@@ -275,7 +278,7 @@ class ProveedorDashboard:
         }
         
         rango_seleccionado = st.sidebar.selectbox(
-            "Rango de fechas:",
+            "📅 Período de Análisis:",
             options=list(rango_opciones.keys()),
             index=2  # Por defecto últimos 6 meses
         )
