@@ -79,7 +79,8 @@ st.markdown("""
     }
     /* Ocultar el header superior de Streamlit */
     header {
-        display: none !important;            
+        display: none !important
+        }         
 
 
 </style>
