@@ -83,11 +83,22 @@ st.markdown("""
     }
     /* Ocultar el header superior de Streamlit */
     header {
-        z-index: 1;
-        height: 2rem;
-        min-height: 2rem;
-;
-        }              
+        height: 2rem !important;
+        min-height: 2rem !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        overflow: hidden !important;
+        }
+
+    /* ✅ Asegura que el botón de sidebar esté visible */
+    [data-testid="collapsedControl"] {
+        display: block !important;
+        position: fixed !important;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1001;
+    }
+        
 </style>
 """, unsafe_allow_html=True)
 
