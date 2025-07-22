@@ -464,6 +464,12 @@ class ProveedorDashboard:
             .stButton > button:hover {
                 background-color: #c82333 !important;
             }
+                            
+            /* Oculta el label específico apuntando al selector detallado */
+            #root > div:nth-child(1) > div.withScreencast > div > div.stAppViewContainer.appview-container.st-emotion-cache-1yiq2ps.e4man110 > section > div.hideScrollbar.st-emotion-cache-jx6q2s.eu6y2f92 > div.st-emotion-cache-ja5xo9.eu6y2f91 > div > div > div:nth-child(3) > div > label {
+                display: none !important;
+            }
+
             </style>
             <div class="sidebar-logo-box">
                 <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
