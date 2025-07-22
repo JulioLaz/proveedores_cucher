@@ -517,7 +517,7 @@ class ProveedorDashboard:
             dias = rango_opciones[rango_seleccionado]
             fecha_fin = datetime.now().date()
             fecha_inicio = fecha_fin - timedelta(days=dias)
-            st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio} a {fecha_fin}")
+            st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio} / {fecha_fin}")
 
         # --- Botón ---
         if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
