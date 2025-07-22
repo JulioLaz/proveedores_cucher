@@ -433,33 +433,21 @@ class ProveedorDashboard:
 #########################################################
         if st.session_state.get("analysis_data") is not None:
             df_tickets = st.session_state.analysis_data
-
             df_tickets['fecha'] = pd.to_datetime(df_tickets['fecha'])
 
-            # Calcular todas las métricas
             productos_unicos = df_tickets['idarticulo'].nunique() if 'idarticulo' in df_tickets else 0
             familias = df_tickets['familia'].nunique() if 'familia' in df_tickets else 0
             subfamilias = df_tickets['subfamilia'].nunique() if 'subfamilia' in df_tickets else 0
             dia_top = df_tickets['fecha'].dt.day_name().value_counts().idxmax()
             mes_top = df_tickets['fecha'].dt.strftime('%B').value_counts().idxmax()
 
-            # Mostrar como bloque estilizado
-            html_sidebar = f"""
-            <div class="sidebar-box">
-                <div class="sidebar-metric-title">🧩 Familias</div>
-                <div class="sidebar-metric-value">{familias}</div>
+            st.sidebar.markdown("### 📊 Resumen del Período")
+            st.sidebar.markdown(f"🛒 **Productos Únicos:** `{productos_unicos}`")
+            st.sidebar.markdown(f"🧩 **Familias:** `{familias}`")
+            st.sidebar.markdown(f"🧬 **Subfamilias:** `{subfamilias}`")
+            st.sidebar.markdown(f"📅 **Día más vendido:** `{dia_top}`")
+            st.sidebar.markdown(f"📆 **Mes más vendido:** `{mes_top}`")
 
-                <div class="sidebar-metric-title">🧬 Subfamilias</div>
-                <div class="sidebar-metric-value">{subfamilias}</div>
-
-                <div class="sidebar-metric-title">📅 Día más vendido</div>
-                <div class="sidebar-metric-value">{dia_top}</div>
-
-                <div class="sidebar-metric-title">📆 Mes más vendido</div>
-                <div class="sidebar-metric-value">{mes_top}</div>
-            </div>
-            """
-            st.sidebar.markdown(html_sidebar, unsafe_allow_html=True)
 
 
 
