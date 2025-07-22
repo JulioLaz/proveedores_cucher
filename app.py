@@ -531,6 +531,48 @@ class ProveedorDashboard:
             st.plotly_chart(fig, use_container_width=True)
 
 
+        # with col2:
+        #     top_productos = (
+        #         df.groupby('descripcion', as_index=False)['precio_total']
+        #         .sum()
+        #         .sort_values('precio_total', ascending=False)
+        #         .head(5)
+        #     )
+
+        #     top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
+
+        #     # Crear degradado de color Viridis desde Plotly
+        #     viridis = px.colors.sequential.Viridis[:5]  # Primeros 5 colores degradados
+
+        #     fig = px.bar(
+        #         top_productos,
+        #         x='precio_total',
+        #         y='descripcion_corta',
+        #         orientation='h',
+        #         text='precio_total',
+        #         title="🏆 Top 5 Productos por Ventas",
+        #         # labels={'precio_total': 'Ventas ($)', 'descripcion_corta': 'Producto'}
+        #     )
+
+        #     fig.update_yaxes(categoryorder='total ascending')
+
+        #     # Aplicar colores manualmente (sin matplotlib)
+        #     for i, bar in enumerate(fig.data):
+        #         bar.marker.color = viridis[i]
+
+        #     fig.update_traces(
+        #         texttemplate='%{text:,.0f}',
+        #         textposition='outside',
+        #         cliponaxis=False
+        #     )
+
+        #     fig.update_layout(height=400, margin=dict(l=10, r=10, t=40, b=20))
+
+        #     st.plotly_chart(fig, use_container_width=True, key="top_productos")
+
+        import plotly.graph_objects as go
+        from plotly.colors import sample_colorscale
+
         with col2:
             top_productos = (
                 df.groupby('descripcion', as_index=False)['precio_total']
@@ -541,32 +583,30 @@ class ProveedorDashboard:
 
             top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
 
-            # Crear degradado de color Viridis desde Plotly
-            viridis = px.colors.sequential.Viridis[:5]  # Primeros 5 colores degradados
+            # Crear colores degradados con Viridis
+            colores = sample_colorscale("Viridis", [i/4 for i in range(5)])
 
-            fig = px.bar(
-                top_productos,
-                x='precio_total',
-                y='descripcion_corta',
-                orientation='h',
-                text='precio_total',
+            fig = go.Figure()
+
+            for i, row in top_productos.iterrows():
+                fig.add_trace(go.Bar(
+                    x=[row['precio_total']],
+                    y=[row['descripcion_corta']],
+                    orientation='h',
+                    name=row['descripcion_corta'],
+                    text=f"{row['precio_total']:,.0f}",
+                    textposition='outside',
+                    marker=dict(color=colores[i]),
+                    showlegend=False
+                ))
+
+            fig.update_layout(
                 title="🏆 Top 5 Productos por Ventas",
-                labels={'precio_total': 'Ventas ($)', 'descripcion_corta': 'Producto'}
+                xaxis_title="Ventas ($)",
+                yaxis_title="Producto",
+                height=450,
+                margin=dict(l=10, r=50, t=40, b=20),
             )
-
-            fig.update_yaxes(categoryorder='total ascending')
-
-            # Aplicar colores manualmente (sin matplotlib)
-            for i, bar in enumerate(fig.data):
-                bar.marker.color = viridis[i]
-
-            fig.update_traces(
-                texttemplate='%{text:,.0f}',
-                textposition='outside',
-                cliponaxis=False
-            )
-
-            fig.update_layout(height=400, margin=dict(l=10, r=10, t=40, b=20))
 
             st.plotly_chart(fig, use_container_width=True, key="top_productos")
 
