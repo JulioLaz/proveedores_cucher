@@ -1300,8 +1300,8 @@ class ProveedorDashboard:
     
     def run(self):
         """Ejecutar dashboard"""
-        # Sidebar con filtros
-        proveedor, fecha_inicio, fecha_fin = self.show_sidebar_filters()
+        # Sidebar con filtros (guardar en atributos de instancia)
+        self.proveedor, self.fecha_inicio, self.fecha_fin = self.show_sidebar_filters()
         
         # Dashboard principal
         self.show_main_dashboard()
@@ -1310,9 +1310,26 @@ class ProveedorDashboard:
         st.markdown("---")
         st.markdown("""
         <div style="text-align: center; color: #666; font-size: 0.8em;">
-                    Julio A. Lazarte  |  Científico de Datos & BI | Cucher Mercados
+            Julio A. Lazarte  |  Científico de Datos & BI | Cucher Mercados
         </div>
         """, unsafe_allow_html=True)
+
+
+    # def run(self):
+    #     """Ejecutar dashboard"""
+    #     # Sidebar con filtros
+    #     proveedor, fecha_inicio, fecha_fin = self.show_sidebar_filters()
+        
+    #     # Dashboard principal
+    #     self.show_main_dashboard()
+        
+    #     # Footer
+    #     st.markdown("---")
+    #     st.markdown("""
+    #     <div style="text-align: center; color: #666; font-size: 0.8em;">
+    #                 Julio A. Lazarte  |  Científico de Datos & BI | Cucher Mercados
+    #     </div>
+    #     """, unsafe_allow_html=True)
 
 def main():
     """Función principal"""
