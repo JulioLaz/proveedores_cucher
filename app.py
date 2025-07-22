@@ -398,7 +398,7 @@ class ProveedorDashboard:
         st.markdown(f"""
             <div class="main-header">
                 <h4>📈 Dashboard de Análisis por Proveedor</h4>
-                {f"<p style='margin:0; font-size:1.1rem; font-weight:bold; color:#1e3c72;'>🔍 {proveedor}</p>" if proveedor else ""}
+                {f"<p style='margin:0; font-size:1.1rem; font-weight:bold; color:#1e3c72;'>🔍 {proveedor}</p>"}
             </div>
             """, unsafe_allow_html=True)
 
