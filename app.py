@@ -413,42 +413,41 @@ class ProveedorDashboard:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
 
         # Información del proveedor si está seleccionado
+        # if st.session_state.get("analysis_data") is not None:
+        #     df_tickets = st.session_state.analysis_data
+        #     if 'idarticulo' in df_tickets.columns:
+        #         productos_unicos = df_tickets['idarticulo'].nunique()
+        #         st.sidebar.metric("🛒 Productos Únicos", productos_unicos)
+#########################################################
         if st.session_state.get("analysis_data") is not None:
             df_tickets = st.session_state.analysis_data
+
             if 'idarticulo' in df_tickets.columns:
                 productos_unicos = df_tickets['idarticulo'].nunique()
                 st.sidebar.metric("🛒 Productos Únicos", productos_unicos)
 
+            if 'familia' in df_tickets.columns:
+                familias_unicas = df_tickets['familia'].nunique()
+                st.sidebar.metric("🧩 Familias", familias_unicas)
 
-        # if 'analysis_data' in st.session_state:
-        #     df_tickets = st.session_state.analysis_data
-        #     productos_unicos = df_tickets['idarticulo'].nunique()
-        #     st.sidebar.metric("🛒 Productos Únicos", productos_unicos)
+            if 'subfamilia' in df_tickets.columns:
+                subfamilias_unicas = df_tickets['subfamilia'].nunique()
+                st.sidebar.metric("🧬 Subfamilias", subfamilias_unicas)
 
-        # if st.sidebar.button("🔍 Realizar Análisis", type="primary", use_container_width=True):
-        #     if not proveedor:
-        #         st.sidebar.error("❌ Selecciona un proveedor")
-        #     else:
-        #         with st.spinner("🔄 Consultando datos..."):
-        #             df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
-        #             if df_tickets is not None:
-        #                 st.session_state.analysis_data = df_tickets
-        #                 st.session_state.selected_proveedor = proveedor
-        #                 st.rerun()
-        #             else:
-        #                 st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
-        
-        # # Información del proveedor si está seleccionado
+            if 'fecha' in df_tickets.columns and 'precio_total' in df_tickets.columns:
+                df_tickets['fecha'] = pd.to_datetime(df_tickets['fecha'])
 
-        # if 'analysis_data' in st.session_state:
-        #     df_tickets = st.session_state.analysis_data
-        #     productos_unicos = df_tickets['idarticulo'].nunique()
-        #     st.sidebar.metric("🛒 Productos Únicos", productos_unicos)
+                # Día de la semana con más ventas (0 = lunes)
+                df_tickets['dia_semana'] = df_tickets['fecha'].dt.day_name()
+                dia_top = df_tickets.groupby('dia_semana')['precio_total'].sum().sort_values(ascending=False).idxmax()
+                st.sidebar.metric("📅 Día más vendido", dia_top)
 
-        # if proveedor:
-        #     df_prov = self.df_proveedores[self.df_proveedores['proveedor'] == proveedor]
-        #     num_articulos = df_prov['idarticulo'].nunique()
-        #     st.sidebar.metric("🛒 Productos Únicos", num_articulos)
+                # Mes con más ventas
+                df_tickets['mes_nombre'] = df_tickets['fecha'].dt.strftime('%B')
+                mes_top = df_tickets.groupby('mes_nombre')['precio_total'].sum().sort_values(ascending=False).idxmax()
+                st.sidebar.metric("📆 Mes más vendido", mes_top)
+
+#########################################################
         
         return proveedor, fecha_inicio, fecha_fin
     
