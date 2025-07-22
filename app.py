@@ -1473,9 +1473,10 @@ class ProveedorDashboard:
         self.show_main_dashboard()
         
         # Footer
-        st.markdown("---")
+        # st.markdown("---")
         st.markdown("""
-        <div style="text-align: center; color: #666; font-size: 0.8em;">
+        <hr></hr>
+        <div style="text-align: center; color: #666; font-size: 0.8em;margin-top: 20px;">
             Julio A. Lazarte  |  Científico de Datos & BI | Cucher Mercados
         </div>
         """, unsafe_allow_html=True)
