@@ -752,24 +752,41 @@ class ProveedorDashboard:
         with col1:
             ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
 
-            fig = px.scatter(
+            fig = px.line(
                 ventas_diarias,
                 x='fecha',
                 y='precio_total',
                 title="📈 Evolución Diaria de Ventas",
-                labels={'precio_total': '', 'fecha': ''},
-                trendline="ols",  # Línea de tendencia
+                labels={'precio_total': '', 'fecha': ''}
             )
-
-            fig.update_traces(line_color='#2a5298', line_width=1)  # Personaliza los puntos
-            # fig.update_traces(marker=dict(color='#2a5298', size=3))  # Personaliza los puntos
+            fig.update_traces(line_color='#2a5298', line_width=1)
             fig.update_layout(
                 height=300,
                 margin=dict(t=60, b=20, l=10, r=10),
-                title_x=0.2,
+                title_x=0.2,  # Centrar título
                 xaxis_title=None,
                 yaxis_title=None
             )
+
+
+            # fig = px.scatter(
+            #     ventas_diarias,
+            #     x='fecha',
+            #     y='precio_total',
+            #     title="📈 Evolución Diaria de Ventas",
+            #     labels={'precio_total': '', 'fecha': ''},
+            #     trendline="ols",  # Línea de tendencia
+            # )
+
+            # # fig.update_traces(line_color='#2a5298', line_width=1)  # Personaliza los puntos
+            # fig.update_traces(marker=dict(color='#2a5298', size=3))  # Personaliza los puntos
+            # fig.update_layout(
+            #     height=300,
+            #     margin=dict(t=60, b=20, l=10, r=10),
+            #     title_x=0.2,
+            #     xaxis_title=None,
+            #     yaxis_title=None
+            # )
 
             # Personaliza la línea de tendencia
             for trace in fig.data:
