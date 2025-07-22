@@ -457,7 +457,7 @@ class ProveedorDashboard:
 
             @keyframes bounce {
                 0% { transform: translateY(0); }
-                50% { transform: translateY(-3px); }
+                50% { transform: translateY(-2px); }
                 100% { transform: translateY(0); }
             }
 
@@ -486,9 +486,11 @@ class ProveedorDashboard:
         proveedor = st.sidebar.selectbox(
             "",
             options=proveedores,
-            index=proveedores.tolist().index(proveedor_actual) if proveedor_actual in proveedores else None,
+            index=proveedores.index(proveedor_actual) if proveedor_actual in proveedores else None,
             placeholder="Seleccionar proveedor..."
         )
+
+
 
         # --- Rango de fechas ---
         rango_opciones = {
