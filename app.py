@@ -547,20 +547,6 @@ class ProveedorDashboard:
             </div>
             """, unsafe_allow_html=True)
 
-        # # col3, col4 = st.columns(2)
-        # with col3:
-        #     st.markdown(f"""
-        #     <div class="metric-box">
-        #         <div style="text-align: center;">
-        #             <div style="font-size: 1rem; color: #555;">🧾 Total Transacciones</div>
-        #             <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['num_tickets']:,}</div>
-        #         </div>
-        #         <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
-        #             ⬆️ {metrics['dias_con_ventas']} días activos
-        #         </div>
-        #     </div>
-        #     """, unsafe_allow_html=True)
-
         with col4:
             st.markdown(f"""
             <div class="metric-box">
@@ -593,7 +579,7 @@ class ProveedorDashboard:
             <div class="metric-box">
                 <div style="text-align: center;">
                     <div style="font-size: 1rem; color: #555;">🏪 Sucursales Presentes</div>
-                    <div style="font-size: 1rem; color: #1e3c72;">{metrics['sucursales_presentes']}</div>
+                    <div style="font-size: 1rem; color: #1e3c72; padding: .5rem 0rem">{metrics['sucursales_presentes']}</div>
                 </div>
                 <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
                     Sucursales activas
