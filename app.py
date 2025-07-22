@@ -551,7 +551,7 @@ class ProveedorDashboard:
                 orientation='h',
                 text='precio_total',
                 title="🏆 Top 5 Productos por Ventas",
-                # labels={'precio_total': 'Ventas ($)', 'descripcion_corta': 'Producto'}
+                labels=None
             )
 
             fig.update_yaxes(categoryorder='total ascending')
