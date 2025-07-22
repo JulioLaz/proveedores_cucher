@@ -749,17 +749,15 @@ class ProveedorDashboard:
         col1, col2 = st.columns(2)
 
         # === Evolución Diaria de Ventas ===
-        import numpy as np
-
         with col1:
             ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
 
-            # Calcular línea de tendencia
+            # Calcular línea de tendencia manual
             ventas_diarias['fecha_ordinal'] = ventas_diarias['fecha'].map(pd.Timestamp.toordinal)
             coef = np.polyfit(ventas_diarias['fecha_ordinal'], ventas_diarias['precio_total'], 1)
             ventas_diarias['tendencia'] = coef[0] * ventas_diarias['fecha_ordinal'] + coef[1]
 
-            # Crear gráfico de líneas
+            # Crear gráfico de línea de ventas
             fig = px.line(
                 ventas_diarias,
                 x='fecha',
@@ -768,16 +766,22 @@ class ProveedorDashboard:
                 labels={'precio_total': '', 'fecha': ''}
             )
 
-            # Agregar línea de tendencia
+            # Estilizar la línea principal
+            fig.update_traces(
+                line_color='#2a5298',
+                line_width=1,
+                selector=dict(name='precio_total')
+            )
+
+            # Agregar línea de tendencia como línea (sin leyenda)
             fig.add_scatter(
                 x=ventas_diarias['fecha'],
                 y=ventas_diarias['tendencia'],
                 mode='lines',
-                name='Tendencia',
-                line=dict(color='orange', width=1)
+                line=dict(color='orange', width=1),
+                showlegend=False,
+                hoverinfo='skip'
             )
-
-            fig.update_traces(line_color='#2a5298', line_width=0.5, selector=dict(name='precio_total'))
 
             fig.update_layout(
                 height=300,
@@ -789,26 +793,6 @@ class ProveedorDashboard:
 
             st.plotly_chart(fig, use_container_width=True)
 
-
-
-        # with col1:
-        #     ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
-        #     fig = px.line(
-        #         ventas_diarias,
-        #         x='fecha',
-        #         y='precio_total',
-        #         title="📈 Evolución Diaria de Ventas",
-        #         labels={'precio_total': '', 'fecha': ''}
-        #     )
-        #     fig.update_traces(line_color='#2a5298', line_width=1)
-        #     fig.update_layout(
-        #         height=300,
-        #         margin=dict(t=60, b=20, l=10, r=10),
-        #         title_x=0.2,  # Centrar título
-        #         xaxis_title=None,
-        #         yaxis_title=None
-        #     )
-        #     st.plotly_chart(fig, use_container_width=True)
 
         # === Top 5 Productos por Ventas ===
         with col2:
