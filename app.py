@@ -413,10 +413,17 @@ class ProveedorDashboard:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
 
         # Información del proveedor si está seleccionado
-        if 'analysis_data' in st.session_state:
+        if st.session_state.get("analysis_data") is not None:
             df_tickets = st.session_state.analysis_data
-            productos_unicos = df_tickets['idarticulo'].nunique()
-            st.sidebar.metric("🛒 Productos Únicos", productos_unicos)
+            if 'idarticulo' in df_tickets.columns:
+                productos_unicos = df_tickets['idarticulo'].nunique()
+                st.sidebar.metric("🛒 Productos Únicos", productos_unicos)
+
+
+        # if 'analysis_data' in st.session_state:
+        #     df_tickets = st.session_state.analysis_data
+        #     productos_unicos = df_tickets['idarticulo'].nunique()
+        #     st.sidebar.metric("🛒 Productos Únicos", productos_unicos)
 
         # if st.sidebar.button("🔍 Realizar Análisis", type="primary", use_container_width=True):
         #     if not proveedor:
