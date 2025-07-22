@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import os
 import json
+import locale
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from google.cloud import bigquery
@@ -509,6 +510,16 @@ class ProveedorDashboard:
             index=2
         )
 
+
+        # Establecer locale en español (para nombres de meses en español)
+        try:
+            locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')  # Linux/macOS
+        except:
+            try:
+                locale.setlocale(locale.LC_TIME, 'es_ES')  # Windows
+            except:
+                locale.setlocale(locale.LC_TIME, '')  # Toma el sistema por defecto
+
         if rango_seleccionado == "Personalizado":
             col1, col2 = st.sidebar.columns(2)
             fecha_inicio = col1.date_input("Desde:", value=datetime.now().date() - timedelta(days=180))
@@ -517,12 +528,13 @@ class ProveedorDashboard:
             dias = rango_opciones[rango_seleccionado]
             fecha_fin = datetime.now().date()
             fecha_inicio = fecha_fin - timedelta(days=dias)
-            
-            # ✅ Formatear fechas
-            fecha_inicio_fmt = fecha_inicio.strftime("%d %B %Y")
-            fecha_fin_fmt = fecha_fin.strftime("%d %B %Y")
-            
+
+            # 👉 Formatear fechas con mes en español
+            fecha_inicio_fmt = fecha_inicio.strftime("%d %B %Y").capitalize()
+            fecha_fin_fmt = fecha_fin.strftime("%d %B %Y").capitalize()
+
             st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio_fmt} / {fecha_fin_fmt}")
+
 
 
         # if rango_seleccionado == "Personalizado":
