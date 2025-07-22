@@ -1004,10 +1004,11 @@ class ProveedorDashboard:
                     title_x=0.2,
                     xaxis_title="Ranking de Productos",
                     yaxis_title="Participación Individual (%)",
+                    height=400,
                     legend=dict(
                         orientation="h",
                         yanchor="top",
-                        y=0.85,  # justo debajo del título
+                        y=0.97,  # justo debajo del título
                         xanchor="center",
                         x=0.2
                     )
