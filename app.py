@@ -774,7 +774,7 @@ class ProveedorDashboard:
                 y=ventas_diarias['tendencia'],
                 mode='lines',
                 name='Tendencia',
-                line=dict(color='orange', width=2)
+                line=dict(color='orange', width=1)
             )
 
             fig.update_traces(line_color='#2a5298', line_width=1, selector=dict(name='precio_total'))
