@@ -579,7 +579,7 @@ class ProveedorDashboard:
             <div class="metric-box">
                 <div style="text-align: center;">
                     <div style="font-size: 1rem; color: #555;">🏪 Sucursales Presentes</div>
-                    <div style="font-size: 1rem; color: #1e3c72; padding: .5rem 0rem">{metrics['sucursales_presentes']}</div>
+                    <div style="font-size: 1rem; color: #1e3c72; padding: .4rem 0rem">{metrics['sucursales_presentes']}</div>
                 </div>
                 <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
                     Sucursales activas
