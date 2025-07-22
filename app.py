@@ -132,6 +132,26 @@ st.markdown("""
         margin-bottom: .5rem;
     }
             
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(-8px);
+            }
+        }
+
+        .bounce-info {
+            animation: bounce 1s infinite;
+            font-weight: bold;
+            color: #1e3c72;
+            background-color: #e9f5ff;
+            border-left: 6px solid #2a5298;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-size: 1rem;
+        }
 
 </style>
 """, unsafe_allow_html=True)
@@ -399,27 +419,27 @@ class ProveedorDashboard:
         if proveedor:
             st.markdown(f"""
             <div class="main-header">
-                <p style='margin:5px; font-size:1.5rem; font-weight:semibold;'>Proveedor: {proveedor}</p>
+                <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>Proveedor: {proveedor}</p>
             </div>
             """, unsafe_allow_html=True)
         else:
             st.markdown("""
             <div class="main-header">
-                <p style='margin:5px; font-size:1.5rem; font-weight:semibold;'>📈 Dashboard de Análisis por Proveedor</p>
+                <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>📈 Dashboard de Análisis por Proveedor</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # if st.session_state.analysis_data is None:
+        #     st.info("👈 **Selecciona un proveedor en el panel lateral para comenzar el análisis**")
+
+        if st.session_state.analysis_data is None:
+            st.markdown("""
+            <div class="bounce-info">
+                👈 <strong>Selecciona un proveedor en el panel lateral para comenzar el análisis</strong>
             </div>
             """, unsafe_allow_html=True)
 
 
-
-        # st.markdown("""
-        # <div class="main-header">
-        #     <h4>📈 Dashboard de Análisis por Porveedor</h1>
-        # </div>
-        # """, unsafe_allow_html=True)
-        
-        if st.session_state.analysis_data is None:
-            st.info("👈 **Selecciona un proveedor en el panel lateral para comenzar el análisis**")
-            
             # Mostrar información general
             col1, col2, col3 = st.columns(3)
             with col1:
