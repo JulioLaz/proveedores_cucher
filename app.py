@@ -937,7 +937,7 @@ class ProveedorDashboard:
                     y='Margen %',
                     size='Cantidad',
                     color='Cantidad',  # Para aplicar gradiente de color
-                    color_continuous_scale='inferno',
+                    color_continuous_scale='viridis',
                     hover_name='producto_corto',
                     hover_data={'Utilidad': ':,.0f'},
                     title="💹 Ventas vs Margen (TOP 20)",
@@ -946,7 +946,7 @@ class ProveedorDashboard:
 
                 fig.update_traces(marker=dict(opacity=0.8, line=dict(width=0)))
                 fig.update_layout(
-                    height=350,
+                    height=400,
                     title_x=0.2,  # Centrar título
                     coloraxis_colorbar=dict(title='Cantidad'),
                     margin=dict(t=60, b=20, l=10, r=10)
