@@ -264,23 +264,7 @@ class ProveedorDashboard:
             'familias': num_familias
         }
 
-
-    # def calculate_metrics(self, df):
-    #     """Calcular métricas principales"""
-    #     return {
-    #         'total_ventas': df['precio_total'].sum(),
-    #         'total_costos': df['costo_total'].sum(),
-    #         'total_utilidad': df['utilidad'].sum(),
-    #         'margen_promedio': df['margen_porcentual'].mean(),
-    #         'total_cantidad': df['cantidad_total'].sum(),
-    #         'num_tickets': len(df),
-    #         'ticket_promedio': df['precio_total'].sum() / len(df) if len(df) > 0 else 0,
-    #         'productos_unicos': df['idarticulo'].nunique(),
-    #         'dias_con_ventas': df['fecha'].nunique(),
-    #         'sucursales': df['sucursal'].nunique() if 'sucursal' in df.columns else 0,
-    #         'familias': df['familia'].nunique() if 'familia' in df.columns else 0
-    #     }
-    
+   
     def generate_insights(self, df, metrics):
         """Generar insights automáticos"""
         insights = []
@@ -411,11 +395,18 @@ class ProveedorDashboard:
     def show_main_dashboard(self):
         """Mostrar dashboard principal"""
         # Header
-        st.markdown("""
-        <div class="main-header">
-            <h4>📈 Dashboard de Análisis por Porveedor</h1>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"""
+            <div class="main-header">
+                <h4>📈 Dashboard de Análisis por Proveedor</h4>
+                {f"<p style='margin:0; font-size:1.1rem; font-weight:bold; color:#1e3c72;'>🔍 {proveedor}</p>" if proveedor else ""}
+            </div>
+            """, unsafe_allow_html=True)
+
+        # st.markdown("""
+        # <div class="main-header">
+        #     <h4>📈 Dashboard de Análisis por Porveedor</h1>
+        # </div>
+        # """, unsafe_allow_html=True)
         
         if st.session_state.analysis_data is None:
             st.info("👈 **Selecciona un proveedor en el panel lateral para comenzar el análisis**")
@@ -587,10 +578,8 @@ class ProveedorDashboard:
             </div>
             """, unsafe_allow_html=True)
 
-
-
         # === Insights automáticos ===
-        st.subheader("💡 Insights Clave")
+        # st.subheader("💡 Insights Clave")
         insights = self.generate_insights(df, metrics)
 
         # Grilla 2 columnas
@@ -1319,10 +1308,7 @@ class ProveedorDashboard:
         st.markdown("---")
         st.markdown("""
         <div style="text-align: center; color: #666; font-size: 0.8em;">
-                    Julio A. Lazarte
-Científico de Datos & BI | Cucher Mercados
-WhatsApp Icon
-+54 9 381 5260176
+                    Julio A. Lazarte  |  Científico de Datos & BI | Cucher Mercados
         </div>
         """, unsafe_allow_html=True)
 
