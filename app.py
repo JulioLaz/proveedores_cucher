@@ -629,12 +629,7 @@ class ProveedorDashboard:
             if (idx + 1) % 2 == 0 and idx + 1 < len(insights):
                 cols = st.columns(2)
 
-
-        # === Gráficas de resumen ===
-        # col1, col2 = st.columns(2)
-        import plotly.express as px
-
-        # === Gráficas de resumen ===
+       # === Gráficas de resumen ===
         col1, col2 = st.columns(2)
 
         # === Evolución Diaria de Ventas ===
@@ -649,9 +644,9 @@ class ProveedorDashboard:
             )
             fig.update_traces(line_color='#2a5298', line_width=2)
             fig.update_layout(
-                height=400,
+                height=350,
                 margin=dict(t=60, b=20, l=10, r=10),
-                title_x=0.5,  # Centrar título
+                title_x=0.2,  # Centrar título
                 xaxis_title=None,
                 yaxis_title=None
             )
@@ -698,9 +693,9 @@ class ProveedorDashboard:
             )
 
             fig.update_layout(
-                height=400,
+                height=350,
                 margin=dict(t=60, b=20, l=10, r=80),
-                title_x=0.5,  # Centrar título
+                title_x=0.2,  # Centrar título
                 xaxis_title=None,
                 yaxis_title=None
             )
