@@ -393,14 +393,15 @@ class ProveedorDashboard:
         return proveedor, fecha_inicio, fecha_fin
     
     def show_main_dashboard(self):
-        """Mostrar dashboard principal"""
-        # Header
+        proveedor = getattr(self, 'proveedor', None)
+
         st.markdown(f"""
             <div class="main-header">
                 <h4>📈 Dashboard de Análisis por Proveedor</h4>
-                {f"<p style='margin:0; font-size:1.1rem; font-weight:bold; color:#1e3c72;'>🔍 {proveedor}</p>"}
+                {"<p style='margin:0; font-size:1.1rem; font-weight:bold; color:#1e3c72;'>🔍 " + proveedor + "</p>" if proveedor else ""}
             </div>
             """, unsafe_allow_html=True)
+
 
         # st.markdown("""
         # <div class="main-header">
