@@ -134,7 +134,7 @@ st.markdown("""
             }
 
     .metric-box {
-        background-color: #ffffff;
+        background-color: #e8f7fd;
         border-radius: 12px;
         padding: .5rem;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
