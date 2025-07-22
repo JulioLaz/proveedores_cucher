@@ -525,11 +525,11 @@ class ProveedorDashboard:
             fecha_inicio = fecha_fin - timedelta(days=dias)
 
         # Formateo en español con Babel
-        fecha_inicio_fmt = format_date(fecha_inicio, format="d 'de' MMMM 'de' y", locale=locale_es).capitalize()
-        fecha_fin_fmt = format_date(fecha_fin, format="d 'de' MMMM 'de' y", locale=locale_es).capitalize()
+        fecha_inicio_fmt = format_date(fecha_inicio, format="d MMMM y", locale=locale_es).capitalize()
+        fecha_fin_fmt = format_date(fecha_fin, format="d MMMM y", locale=locale_es).capitalize()
 
         # Mostrar resumen en el sidebar
-        st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio_fmt} / {fecha_fin_fmt}")
+        st.sidebar.info(f"📅 **{rango_seleccionado}**\n{fecha_inicio_fmt} / {fecha_fin_fmt}")
 
         
         # if rango_seleccionado == "Personalizado":
