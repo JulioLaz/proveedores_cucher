@@ -416,7 +416,9 @@ class ProveedorDashboard:
                 color: #721c24;
                 background: linear-gradient(90deg, #f8d7da, #f5c6cb);
                 padding: 0.5rem 1rem;
-                border-left: 5px solid #dc3545;
+            color: #1e3c72;
+            background-color: #e9f5ff;
+            border-left: 6px solid #2a5298;                            
                 animation: pulse 1.5s infinite;
                 border-radius: 5px;
                 margin-bottom: .5rem;
@@ -485,7 +487,7 @@ class ProveedorDashboard:
         proveedor_actual = st.session_state.get("selected_proveedor")
         
         if not proveedor_actual:
-            st.sidebar.markdown('<div class="animated-title">🏪 Selecciona un proveedor</div>', unsafe_allow_html=True)
+            st.sidebar.markdown('<div class="animated-title">Seleccior un proveedor</div>', unsafe_allow_html=True)
         else:
             st.sidebar.markdown("#### 🏪 Selección de Proveedor")
 
@@ -495,7 +497,6 @@ class ProveedorDashboard:
             index=proveedores.index(proveedor_actual) if proveedor_actual in proveedores else None,
             placeholder="Seleccionar proveedor..."
         )
-
 
 
         # --- Rango de fechas ---
@@ -670,11 +671,11 @@ class ProveedorDashboard:
             """, unsafe_allow_html=True)
         
         if st.session_state.analysis_data is None:
-            st.markdown("""
-            <div class="bounce-info">
-                👈 <strong>Selecciona un proveedor en el panel lateral para comenzar el análisis</strong>
-            </div>
-            """, unsafe_allow_html=True)
+            # st.markdown("""
+            # <div class="bounce-info">
+            #     👈 <strong>Selecciona un proveedor en el panel lateral para comenzar el análisis</strong>
+            # </div>
+            # """, unsafe_allow_html=True)
 
 
             # Mostrar información general
@@ -929,107 +930,107 @@ class ProveedorDashboard:
 
             st.plotly_chart(fig, use_container_width=True, key="top_productos")
 
-    def show_executive_summary00(self, df, proveedor, metrics):
-        """Mostrar resumen ejecutivo"""
-        st.subheader(f"📈 Resumen Ejecutivo - {proveedor}")
+    # def show_executive_summary00(self, df, proveedor, metrics):
+    #     """Mostrar resumen ejecutivo"""
+    #     st.subheader(f"📈 Resumen Ejecutivo - {proveedor}")
         
-        # KPIs principales
-        col1, col2, col3, col4 = st.columns(4)
+    #     # KPIs principales
+    #     col1, col2, col3, col4 = st.columns(4)
         
-        with col1:
-            st.metric(
-                "💰 Ventas Totales",
-                f"${metrics['total_ventas']:,.0f}",
-                delta=f"{metrics['margen_promedio']:.1f}% margen"
-            )
+    #     with col1:
+    #         st.metric(
+    #             "💰 Ventas Totales",
+    #             f"${metrics['total_ventas']:,.0f}",
+    #             delta=f"{metrics['margen_promedio']:.1f}% margen"
+    #         )
         
-        with col2:
-            st.metric(
-                "📈 Utilidad Total",
-                f"${metrics['total_utilidad']:,.0f}",
-                delta=f"${metrics['ticket_promedio']:,.0f} ticket prom."
-            )
+    #     with col2:
+    #         st.metric(
+    #             "📈 Utilidad Total",
+    #             f"${metrics['total_utilidad']:,.0f}",
+    #             delta=f"${metrics['ticket_promedio']:,.0f} ticket prom."
+    #         )
         
-        with col3:
-            st.metric(
-                "🧾 Total Transacciones",
-                f"{metrics['num_tickets']:,}",
-                delta=f"{metrics['dias_con_ventas']} días activos"
-            )
+    #     with col3:
+    #         st.metric(
+    #             "🧾 Total Transacciones",
+    #             f"{metrics['num_tickets']:,}",
+    #             delta=f"{metrics['dias_con_ventas']} días activos"
+    #         )
         
-        with col4:
-            st.metric(
-                "📦 Cantidad Vendida",
-                f"{metrics['total_cantidad']:,.0f}",
-                delta=f"{metrics['productos_unicos']} productos únicos"
-            )
+    #     with col4:
+    #         st.metric(
+    #             "📦 Cantidad Vendida",
+    #             f"{metrics['total_cantidad']:,.0f}",
+    #             delta=f"{metrics['productos_unicos']} productos únicos"
+    #         )
         
-        # Insights automáticos
-        st.subheader("💡 Insights Clave")
-        insights = self.generate_insights(df, metrics)
+    #     # Insights automáticos
+    #     st.subheader("💡 Insights Clave")
+    #     insights = self.generate_insights(df, metrics)
         
-        for tipo, mensaje in insights:
-            if tipo == "success":
-                st.markdown(f'<div class="success-box">{mensaje}</div>', unsafe_allow_html=True)
-            elif tipo == "warning":
-                st.markdown(f'<div class="warning-box">{mensaje}</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="insight-box">{mensaje}</div>', unsafe_allow_html=True)
+    #     for tipo, mensaje in insights:
+    #         if tipo == "success":
+    #             st.markdown(f'<div class="success-box">{mensaje}</div>', unsafe_allow_html=True)
+    #         elif tipo == "warning":
+    #             st.markdown(f'<div class="warning-box">{mensaje}</div>', unsafe_allow_html=True)
+    #         else:
+    #             st.markdown(f'<div class="insight-box">{mensaje}</div>', unsafe_allow_html=True)
         
-        # Gráficas de resumen
-        col1, col2 = st.columns(2)
+    #     # Gráficas de resumen
+    #     col1, col2 = st.columns(2)
         
-        with col1:
-            # Distribución de ventas por día
-            ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
-            fig = px.line(
-                ventas_diarias, x='fecha', y='precio_total',
-                title="📈 Evolución Diaria de Ventas",
-                labels={'precio_total': 'Ventas ($)', 'fecha': 'Fecha'}
-            )
-            fig.update_traces(line_color='#2a5298', line_width=2)
-            fig.update_layout(height=400)
-            st.plotly_chart(fig, use_container_width=True)
+    #     with col1:
+    #         # Distribución de ventas por día
+    #         ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
+    #         fig = px.line(
+    #             ventas_diarias, x='fecha', y='precio_total',
+    #             title="📈 Evolución Diaria de Ventas",
+    #             labels={'precio_total': 'Ventas ($)', 'fecha': 'Fecha'}
+    #         )
+    #         fig.update_traces(line_color='#2a5298', line_width=2)
+    #         fig.update_layout(height=400)
+    #         st.plotly_chart(fig, use_container_width=True)
 
 
-        with col2:
-            top_productos = (
-                df.groupby('descripcion', as_index=False)['precio_total']
-                .sum()
-                .sort_values('precio_total', ascending=False)
-                .head(5)
-            )
+    #     with col2:
+    #         top_productos = (
+    #             df.groupby('descripcion', as_index=False)['precio_total']
+    #             .sum()
+    #             .sort_values('precio_total', ascending=False)
+    #             .head(5)
+    #         )
 
-            top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
+    #         top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
 
-            # Crear degradado de color Viridis desde Plotly
-            viridis = px.colors.sequential.Viridis[:5]  # Primeros 5 colores degradados
+    #         # Crear degradado de color Viridis desde Plotly
+    #         viridis = px.colors.sequential.Viridis[:5]  # Primeros 5 colores degradados
 
-            fig = px.bar(
-                top_productos,
-                x='precio_total',
-                y='descripcion_corta',
-                orientation='h',
-                text='precio_total',
-                title="🏆 Top 5 Productos por Ventas",
-                labels=None
-            )
+    #         fig = px.bar(
+    #             top_productos,
+    #             x='precio_total',
+    #             y='descripcion_corta',
+    #             orientation='h',
+    #             text='precio_total',
+    #             title="🏆 Top 5 Productos por Ventas",
+    #             labels=None
+    #         )
 
-            fig.update_yaxes(categoryorder='total ascending')
+    #         fig.update_yaxes(categoryorder='total ascending')
 
-            # Aplicar colores manualmente (sin matplotlib)
-            for i, bar in enumerate(fig.data):
-                bar.marker.color = viridis[i]
+    #         # Aplicar colores manualmente (sin matplotlib)
+    #         for i, bar in enumerate(fig.data):
+    #             bar.marker.color = viridis[i]
 
-            fig.update_traces(
-                texttemplate='%{text:,.0f}',
-                textposition='outside',
-                cliponaxis=False
-            )
+    #         fig.update_traces(
+    #             texttemplate='%{text:,.0f}',
+    #             textposition='outside',
+    #             cliponaxis=False
+    #         )
 
-            fig.update_layout(height=400, margin=dict(l=10, r=10, t=40, b=20))
+    #         fig.update_layout(height=400, margin=dict(l=10, r=10, t=40, b=20))
 
-            st.plotly_chart(fig, use_container_width=True, key="top_productos")
+    #         st.plotly_chart(fig, use_container_width=True, key="top_productos")
    
     def show_products_analysis(self, df):
         """Análisis detallado de productos"""
