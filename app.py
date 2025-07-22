@@ -29,7 +29,6 @@ st.markdown("""
     .main-header {
         background: linear-gradient(90deg, #1e3c72, #2a5298);
         border-radius: 5px;
-        margin: 1rem;
         text-align: center;
         color: white;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -147,9 +146,9 @@ st.markdown("""
             color: #1e3c72;
             background-color: #e9f5ff;
             border-left: 6px solid #2a5298;
-            padding: 1rem;
+            padding: .5rem;
             border-radius: 8px;
-            margin-top: 1rem;
+            margin-top: .5rem;
             font-size: 1rem;
         }
 
