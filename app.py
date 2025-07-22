@@ -129,6 +129,33 @@ st.markdown("""
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
 
+import pandas as pd
+import numpy as np
+
+# Función auxiliar para limpiar datos
+def limpiar_datos(df):
+    columnas_clave = ['cantidad_total', 'precio_total', 'costo_total', 'utilidad']
+    
+    # Eliminar filas con NaNs en columnas clave
+    df = df.dropna(subset=columnas_clave)
+    
+    # Convertir a numérico por seguridad
+    for col in columnas_clave:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+    
+    # Filtrar valores negativos o 0 donde no corresponden
+    df = df[(df['cantidad_total'] > 0) & (df['precio_total'] >= 0) & (df['costo_total'] >= 0)]
+    
+    # Limpieza de strings
+    df['sucursal'] = df['sucursal'].astype(str).str.strip().str.upper()
+    df['familia'] = df['familia'].astype(str).str.strip().str.upper()
+    df['subfamilia'] = df['subfamilia'].astype(str).str.strip().str.upper()
+    df['descripcion'] = df['descripcion'].fillna("SIN DESCRIPCIÓN")
+    
+    return df
+
+
+
 class ProveedorDashboard:
     def __init__(self):
         self.df_proveedores = None
@@ -209,7 +236,8 @@ class ProveedorDashboard:
             df['fecha'] = df['fecha_comprobante'].dt.date
             df['mes_año'] = df['fecha_comprobante'].dt.to_period('M').astype(str)
             df['dia_semana'] = df['fecha_comprobante'].dt.day_name()
-            
+            # 🔍 Limpieza final
+            df = limpiar_datos(df)
             return df
             
         except Exception as e:
@@ -1028,7 +1056,10 @@ class ProveedorDashboard:
         st.markdown("---")
         st.markdown("""
         <div style="text-align: center; color: #666; font-size: 0.8em;">
-            🚀 Dashboard de Análisis Empresarial | Powered by Streamlit + BigQuery
+                    Julio A. Lazarte
+Científico de Datos & BI | Cucher Mercados
+WhatsApp Icon
++54 9 381 5260176
         </div>
         """, unsafe_allow_html=True)
 
