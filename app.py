@@ -79,10 +79,16 @@ st.markdown("""
         min-width: auto !important;
         max-width: initial !important;
     }
+            
     /* Estilo personalizado al contenedor específico */
     .st-emotion-cache-16txtl3 {
         padding: 1rem 1rem !important;
     }
+    /* Estilo personalizado al contenedor específico */
+    .st-emotion-cache-595tnf {
+            height: .5rem !important;
+    }
+            
     /* Ocultar el header superior de Streamlit */
     header {
         height: 2rem !important;
