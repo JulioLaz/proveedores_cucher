@@ -756,6 +756,7 @@ class ProveedorDashboard:
                     showgrid=False,        # opcional: oculta líneas de grilla
                     zeroline=False         # opcional: oculta línea cero
                     )
+                    )
 
             st.plotly_chart(fig, use_container_width=True, key="top_productos")
 
