@@ -398,8 +398,8 @@ class ProveedorDashboard:
 
         st.markdown(f"""
             <div class="main-header">
-                <h4>📈 Dashboard de Análisis por Proveedor</h4>
-                {"<p style='margin:0; font-size:1.1rem; font-weight:bold; color:#1e3c72;'>🔍 " + proveedor + "</p>" if proveedor else ""}
+                <p>📈 Dashboard de Análisis por Proveedor</p>
+                {"<p style='margin:0; font-size:1.5rem; font-weight:bold;'>" + proveedor + "</p>" if proveedor else ""}
             </div>
             """, unsafe_allow_html=True)
 
@@ -1313,23 +1313,6 @@ class ProveedorDashboard:
             Julio A. Lazarte  |  Científico de Datos & BI | Cucher Mercados
         </div>
         """, unsafe_allow_html=True)
-
-
-    # def run(self):
-    #     """Ejecutar dashboard"""
-    #     # Sidebar con filtros
-    #     proveedor, fecha_inicio, fecha_fin = self.show_sidebar_filters()
-        
-    #     # Dashboard principal
-    #     self.show_main_dashboard()
-        
-    #     # Footer
-    #     st.markdown("---")
-    #     st.markdown("""
-    #     <div style="text-align: center; color: #666; font-size: 0.8em;">
-    #                 Julio A. Lazarte  |  Científico de Datos & BI | Cucher Mercados
-    #     </div>
-    #     """, unsafe_allow_html=True)
 
 def main():
     """Función principal"""
