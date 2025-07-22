@@ -42,28 +42,28 @@ st.markdown("""
         border-left: 4px solid #2a5298;
     }
     .insight-box {
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: .2rem;
-        margin: 0.4rem 0;
-        border-left: 4px solid #28a745;
+        background: #f8f9fa !important;
+        border: 1px solid #e9ecef !important;
+        border-radius: 8px !important;
+        padding: .2rem  !important;
+        margin: 0.4rem 0 !important;
+        border-left: 4px solid #28a745 !important;
     }
     .warning-box {
-        background: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 8px;
-        padding: .2rem;
-        margin: 0.4rem 0;
-        border-left: 4px solid #ffc107;
+        background: #fff3cd !important;
+        border: 1px solid #ffeaa7 !important;
+        border-radius: 8px !important;
+        padding: .2rem !important;
+        margin: 0.4rem 0 !important;
+        border-left: 4px solid #ffc107 !important;
     }
     .success-box {
-        background: #d4edda;
-        border: 1px solid #c3e6cb;
-        border-radius: 8px;
-        padding: .2rem;
-        margin: 0.4rem 0;
-        border-left: 4px solid #28a745;
+        background: #d4edda !important;
+        border: 1px solid #c3e6cb !important;
+        border-radius: 8px !important;
+        padding: .2rem !important;
+        margin: 0.4rem 0 !important;
+        border-left: 4px solid #28a745 !important;
     }
     .sidebar .sidebar-content {
         background: #f1f3f4;
