@@ -444,11 +444,8 @@ class ProveedorDashboard:
             mes_top = df_tickets['fecha'].dt.strftime('%B').value_counts().idxmax()
 
             # Mostrar como bloque estilizado
-            st.sidebar.markdown(f"""
+            html_sidebar = f"""
             <div class="sidebar-box">
-                <div class="sidebar-metric-title">🛒 Productos Únicos</div>
-                <div class="sidebar-metric-value">{productos_unicos}</div>
-
                 <div class="sidebar-metric-title">🧩 Familias</div>
                 <div class="sidebar-metric-value">{familias}</div>
 
@@ -461,7 +458,10 @@ class ProveedorDashboard:
                 <div class="sidebar-metric-title">📆 Mes más vendido</div>
                 <div class="sidebar-metric-value">{mes_top}</div>
             </div>
-            """, unsafe_allow_html=True)
+            """
+
+            st.sidebar.markdown(html_sidebar, unsafe_allow_html=True)
+
 
         # if st.session_state.get("analysis_data") is not None:
         #     df_tickets = st.session_state.analysis_data
