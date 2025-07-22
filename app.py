@@ -532,7 +532,6 @@ class ProveedorDashboard:
 
 
         with col2:
-            # Top 5 productos
             top_productos = (
                 df.groupby('descripcion', as_index=False)['precio_total']
                 .sum()
@@ -542,13 +541,8 @@ class ProveedorDashboard:
 
             top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
 
-            # Asignar colores degradados (de más oscuro a más claro)
-            from matplotlib import cm
-            import plotly.colors as pc
-
-            cmap = cm.get_cmap('Viridis')
-            colores = [pc.convert_colors_to_same_type([cmap(i/4)]) for i in range(5)]  # 5 colores degradados
-            colores = [pc.hex_to_rgb_string(c[0]) for c in colores]
+            # Crear degradado de color Viridis desde Plotly
+            viridis = px.colors.sequential.Viridis[:5]  # Primeros 5 colores degradados
 
             fig = px.bar(
                 top_productos,
@@ -560,26 +554,22 @@ class ProveedorDashboard:
                 labels={'precio_total': 'Ventas ($)', 'descripcion_corta': 'Producto'}
             )
 
-            # Reordenar para que se vea mayor a menor de arriba hacia abajo
             fig.update_yaxes(categoryorder='total ascending')
 
-            # Aplicar colores degradados manuales
-            for i, color in enumerate(colores):
-                fig.data[i].marker.color = color
+            # Aplicar colores manualmente (sin matplotlib)
+            for i, bar in enumerate(fig.data):
+                bar.marker.color = viridis[i]
 
-            # Etiquetas al final de las barras
             fig.update_traces(
                 texttemplate='%{text:,.0f}',
                 textposition='outside',
                 cliponaxis=False
             )
 
-            fig.update_layout(
-                height=400,
-                margin=dict(l=10, r=10, t=40, b=20)
-            )
+            fig.update_layout(height=400, margin=dict(l=10, r=10, t=40, b=20))
 
             st.plotly_chart(fig, use_container_width=True, key="top_productos")
+
 
 
         # with col2:
