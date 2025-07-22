@@ -777,7 +777,7 @@ class ProveedorDashboard:
                 line=dict(color='orange', width=1)
             )
 
-            fig.update_traces(line_color='#2a5298', line_width=1, selector=dict(name='precio_total'))
+            fig.update_traces(line_color='#2a5298', line_width=0.5, selector=dict(name='precio_total'))
 
             fig.update_layout(
                 height=300,
