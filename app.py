@@ -126,10 +126,10 @@ st.markdown("""
     .metric-box {
         background-color: #ffffff;
         border-radius: 12px;
-        padding: 1rem;
+        padding: .5rem;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         border-left: 5px solid #2a5298;
-        margin-bottom: 1rem;
+        margin-bottom: .5rem;
     }
             
 
@@ -488,36 +488,50 @@ class ProveedorDashboard:
         with col1:
             st.markdown(f"""
             <div class="metric-box">
-                <div style="font-size: 1.2rem; color: #555;">💰 Ventas Totales</div>
-                <div style="font-size: 2rem; font-weight: bold; color: #1e3c72;">${metrics['total_ventas']:,.0f}</div>
-                <div style="color: green; font-size: 0.9rem; margin-top: 0.2rem;">⬆️ {metrics['margen_promedio']:.1f}% margen</div>
+                <div style="font-size: 1rem; color: #555;">💰 Ventas Totales</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${metrics['total_ventas']:,.0f}</div>
+                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">⬆️ {metrics['margen_promedio']:.1f}% margen</div>
             </div>
             """, unsafe_allow_html=True)
 
         with col2:
             st.markdown(f"""
             <div class="metric-box">
-                <div style="font-size: 1.2rem; color: #555;">📈 Utilidad Total</div>
-                <div style="font-size: 2rem; font-weight: bold; color: #1e3c72;">${metrics['total_utilidad']:,.0f}</div>
-                <div style="color: green; font-size: 0.9rem; margin-top: 0.2rem;">⬆️ ${metrics['ticket_promedio']:,.0f} ticket prom.</div>
+                <div style="text-align: center;">
+                    <div style="font-size: 1rem; color: #555;">📈 Utilidad Total</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${metrics['total_utilidad']:,.0f}</div>
+                </div>
+                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
+                    ⬆️ ${metrics['ticket_promedio']:,.0f} ticket prom.
+                </div>
             </div>
             """, unsafe_allow_html=True)
+
+
+        # with col2:
+        #     st.markdown(f"""
+        #     <div class="metric-box">
+        #         <div style="font-size: 1rem; color: #555;">📈 Utilidad Total</div>
+        #         <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${metrics['total_utilidad']:,.0f}</div>
+        #         <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">⬆️ ${metrics['ticket_promedio']:,.0f} ticket prom.</div>
+        #     </div>
+        #     """, unsafe_allow_html=True)
 
         with col3:
             st.markdown(f"""
             <div class="metric-box">
-                <div style="font-size: 1.2rem; color: #555;">🧾 Total Transacciones</div>
-                <div style="font-size: 2rem; font-weight: bold; color: #1e3c72;">{metrics['num_tickets']:,}</div>
-                <div style="color: green; font-size: 0.9rem; margin-top: 0.2rem;">⬆️ {metrics['dias_con_ventas']} días activos</div>
+                <div style="font-size: 1rem; color: #555;">🧾 Total Transacciones</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['num_tickets']:,}</div>
+                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">⬆️ {metrics['dias_con_ventas']} días activos</div>
             </div>
             """, unsafe_allow_html=True)
 
         with col4:
             st.markdown(f"""
             <div class="metric-box">
-                <div style="font-size: 1.2rem; color: #555;">📦 Cantidad Vendida</div>
-                <div style="font-size: 2rem; font-weight: bold; color: #1e3c72;">{metrics['total_cantidad']:,.0f}</div>
-                <div style="color: green; font-size: 0.9rem; margin-top: 0.2rem;">⬆️ {metrics['productos_unicos']} productos únicos</div>
+                <div style="font-size: 1rem; color: #555;">📦 Cantidad Vendida</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['total_cantidad']:,.0f}</div>
+                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">⬆️ {metrics['productos_unicos']} productos únicos</div>
             </div>
             """, unsafe_allow_html=True)
 
