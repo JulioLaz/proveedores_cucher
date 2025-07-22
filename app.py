@@ -413,9 +413,14 @@ class ProveedorDashboard:
         
         # Información del proveedor si está seleccionado
         if proveedor:
-            # st.sidebar.markdown("### 📊 Información del Proveedor")
-            num_articulos = len(self.df_proveedores[self.df_proveedores['proveedor'] == proveedor])
-            st.sidebar.metric("Cantidad de Artículos", num_articulos)
+            df_prov = self.df_proveedores[self.df_proveedores['proveedor'] == proveedor]
+            num_articulos = df_prov['idarticulo'].nunique()
+            st.sidebar.metric("🛒 Productos Únicos", num_articulos)
+
+        # if proveedor:
+        #     # st.sidebar.markdown("### 📊 Información del Proveedor")
+        #     num_articulos = len(self.df_proveedores[self.df_proveedores['proveedor'] == proveedor])
+        #     st.sidebar.metric("Cantidad de Artículos", num_articulos)
         
         return proveedor, fecha_inicio, fecha_fin
     
