@@ -396,12 +396,19 @@ class ProveedorDashboard:
     def show_main_dashboard(self):
         proveedor = self.proveedor if hasattr(self, 'proveedor') else None
 
-        st.markdown(f"""
+        if proveedor:
+            st.markdown(f"""
             <div class="main-header">
-                <p>📈 Dashboard de Análisis por Proveedor</p>
-                {"<p style='margin:0; font-size:1.5rem; font-weight:bold;'>" + proveedor + "</p>" if proveedor else ""}
+                <p style='margin:0; font-size:1.5rem; font-weight:bold;'>Proveedor: {proveedor}</p>
             </div>
             """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="main-header">
+                <h4>📈 Dashboard de Análisis por Proveedor</h4>
+            </div>
+            """, unsafe_allow_html=True)
+
 
 
         # st.markdown("""
