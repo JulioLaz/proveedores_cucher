@@ -525,8 +525,8 @@ class ProveedorDashboard:
             fecha_inicio = fecha_fin - timedelta(days=dias)
 
         # Formateo en español con Babel
-        fecha_inicio_fmt = format_date(fecha_inicio, format="dMMMMy", locale=locale_es).capitalize()
-        fecha_fin_fmt = format_date(fecha_fin, format="dMMMMy", locale=locale_es).capitalize()
+        fecha_inicio_fmt = format_date(fecha_inicio, format="d MMMM y", locale=locale_es).capitalize()
+        fecha_fin_fmt = format_date(fecha_fin, format="d MMMM y", locale=locale_es).capitalize()
 
         # Mostrar resumen en el sidebar
         st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio_fmt} / {fecha_fin_fmt}")
@@ -1540,7 +1540,7 @@ class ProveedorDashboard:
         st.markdown("""
         <hr style="margin: 0; border: none; border-top: 1px solid #ccc;" />
         <div style="text-align: center; color: #666; font-size: 0.8em;margin-top: 20px;">
-            Julio A. Lazarte  |  Científico de Datos & BI | Cucher Mercados
+            Julio A. Lazarte    |    Científico de Datos & BI   |   Cucher Mercados
         </div>
         """, unsafe_allow_html=True)
 
