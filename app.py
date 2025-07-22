@@ -447,19 +447,12 @@ class ProveedorDashboard:
             }
 
             .stButton > button {
-                animation: bounce 2s infinite;
                 background-color: #4368d6 !important;
                 color: white !important;
                 font-weight: bold;
                 border-radius: 8px;
                 border: none;
                 padding: 0.6rem 1rem;
-            }
-
-            @keyframes bounce {
-                0% { transform: translateY(0); }
-                50% { transform: translateY(-2px); }
-                100% { transform: translateY(0); }
             }
 
             .stButton > button:hover {
