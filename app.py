@@ -750,117 +750,14 @@ class ProveedorDashboard:
                 margin=dict(t=60, b=20, l=10, r=80),
                 title_x=0.2,  # Centrar título
                 xaxis_title=None,
-                yaxis_title=None
-            )
+                yaxis_title=None,
+                xaxis=dict(
+                    showticklabels=False,  # ⛔ oculta los valores del eje x
+                    showgrid=False,        # opcional: oculta líneas de grilla
+                    zeroline=False         # opcional: oculta línea cero
+                    )
 
             st.plotly_chart(fig, use_container_width=True, key="top_productos")
-
-
-
-        # === Evolución Diaria de Ventas ===
-        # with col1:
-        #     ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
-        #     fig = px.line(
-        #         ventas_diarias,
-        #         x='fecha',
-        #         y='precio_total',
-        #         title="📈 Evolución Diaria de Ventas",
-        #         labels={'precio_total': '', 'fecha': ''}
-        #     )
-        #     fig.update_traces(line_color='#2a5298', line_width=2)
-        #     fig.update_layout(
-        #         height=400,
-        #         margin=dict(t=40, b=20, l=10, r=10),
-        #         xaxis_title=None,
-        #         yaxis_title=None
-        #     )
-        #     st.plotly_chart(fig, use_container_width=True)
-
-        # # === Top 5 Productos por Ventas ===
-        # with col2:
-        #     top_productos = (
-        #         df.groupby('descripcion', as_index=False)['precio_total']
-        #         .sum()
-        #         .sort_values('precio_total', ascending=False)
-        #         .head(5)
-        #     )
-        #     top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
-        #     viridis = px.colors.sequential.Viridis[::-1][:5]  # aplicar degradado descendente
-
-        #     fig = px.bar(
-        #         top_productos,
-        #         x='precio_total',
-        #         y='descripcion_corta',
-        #         orientation='h',
-        #         text='precio_total',
-        #         title="🏆 Top 5 Productos por Ventas",
-        #         labels={'precio_total': '', 'descripcion_corta': ''}
-        #     )
-        #     fig.update_yaxes(categoryorder='total ascending')
-
-        #     # Asignar colores degradados correctamente
-        #     for i, bar in enumerate(fig.data):
-        #         bar.marker.color = viridis[i]
-
-        #     fig.update_traces(
-        #         texttemplate='%{text:,.0f}',
-        #         textposition='outside',
-        #         cliponaxis=False,
-        #         insidetextanchor='start'
-        #     )
-
-        #     fig.update_layout(
-        #         height=400,
-        #         margin=dict(t=40, b=20, l=10, r=60),  # margen derecho ampliado para evitar corte de números
-        #         xaxis_title=None,
-        #         yaxis_title=None
-        #     )
-
-        #     st.plotly_chart(fig, use_container_width=True, key="top_productos")
-
-        # # === Gráficas de resumen ===
-        # col1, col2 = st.columns(2)
-
-        # with col1:
-        #     ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
-        #     fig = px.line(
-        #         ventas_diarias, x='fecha', y='precio_total',
-        #         title="📈 Evolución Diaria de Ventas",
-        #         labels={'precio_total': 'Ventas ($)', 'fecha': 'Fecha'}
-        #     )
-        #     fig.update_traces(line_color='#2a5298', line_width=2)
-        #     fig.update_layout(height=400)
-        #     st.plotly_chart(fig, use_container_width=True)
-
-        # with col2:
-        #     top_productos = (
-        #         df.groupby('descripcion', as_index=False)['precio_total']
-        #         .sum()
-        #         .sort_values('precio_total', ascending=False)
-        #         .head(5)
-        #     )
-        #     top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
-        #     viridis = px.colors.sequential.Viridis[:5]
-
-        #     fig = px.bar(
-        #         top_productos,
-        #         x='precio_total',
-        #         y='descripcion_corta',
-        #         orientation='h',
-        #         text='precio_total',
-        #         title="🏆 Top 5 Productos por Ventas",
-        #     )
-        #     fig.update_yaxes(categoryorder='total ascending')
-        #     for i, bar in enumerate(fig.data):
-        #         bar.marker.color = viridis[i]
-        #     fig.update_traces(
-        #         texttemplate='%{text:,.0f}',
-        #         textposition='outside',
-        #         cliponaxis=False
-        #     )
-        #     fig.update_layout(height=400, margin=dict(l=10, r=10, t=40, b=20))
-        #     st.plotly_chart(fig, use_container_width=True, key="top_productos")
-
 
     def show_executive_summary00(self, df, proveedor, metrics):
         """Mostrar resumen ejecutivo"""
