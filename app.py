@@ -156,6 +156,10 @@ st.markdown("""
         padding-top: 0rem !important;
         }
 
+        .st-an {
+            padding-top: 0rem !important;
+        }            
+
 </style>
 """, unsafe_allow_html=True)
     # /* O si preferís que no tenga fondo visible: */
