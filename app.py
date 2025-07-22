@@ -486,7 +486,7 @@ class ProveedorDashboard:
         proveedor_actual = st.session_state.get("selected_proveedor")
         
         if not proveedor_actual:
-            st.sidebar.markdown('<div class="animated-title">🔎 proveedor</div>', unsafe_allow_html=True)
+            st.sidebar.markdown('<div class="animated-title">🔎 proveedor ⬇️</div>', unsafe_allow_html=True)
         else:
             st.sidebar.markdown("#### 🏪 Selección de Proveedor")
 
@@ -527,7 +527,7 @@ class ProveedorDashboard:
             st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio} a {fecha_fin}")
 
         # --- Botón ---
-        if st.sidebar.button("🔍 Realizar Análisis", type="primary", use_container_width=True):
+        if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
             else:
