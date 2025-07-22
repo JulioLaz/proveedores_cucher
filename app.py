@@ -570,7 +570,7 @@ class ProveedorDashboard:
 
         #     st.plotly_chart(fig, use_container_width=True, key="top_productos")
 
-        import plotly.graph_objects as go
+
         from plotly.colors import sample_colorscale
 
         with col2:
@@ -578,13 +578,14 @@ class ProveedorDashboard:
                 df.groupby('descripcion', as_index=False)['precio_total']
                 .sum()
                 .sort_values('precio_total', ascending=False)
-                .head(5)
+                .head(5)  # o cambiá este número a lo que necesites
             )
 
             top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
 
-            # Crear colores degradados con Viridis
-            colores = sample_colorscale("Viridis", [i/4 for i in range(5)])
+            # Generar degradado dinámico según cantidad de productos
+            n = len(top_productos)
+            colores = sample_colorscale("Viridis", [i/(n - 1) if n > 1 else 0 for i in range(n)])
 
             fig = go.Figure()
 
@@ -609,6 +610,7 @@ class ProveedorDashboard:
             )
 
             st.plotly_chart(fig, use_container_width=True, key="top_productos")
+
 
 
 
