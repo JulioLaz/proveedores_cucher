@@ -231,6 +231,23 @@ class ProveedorDashboard:
     
     def calculate_metrics(self, df):
         """Calcular métricas principales"""
+        
+        # Sucursales únicas (si existe la columna)
+        if 'sucursal' in df.columns:
+            sucursales_unicas = df['sucursal'].dropna().unique()
+            num_sucursales = len(sucursales_unicas)
+            sucursales_str = ", ".join(sorted(map(str, sucursales_unicas)))
+        else:
+            num_sucursales = 0
+            sucursales_str = "N/A"
+
+        # Familias únicas (opcional)
+        if 'familia' in df.columns:
+            familias_unicas = df['familia'].dropna().unique()
+            num_familias = len(familias_unicas)
+        else:
+            num_familias = 0
+
         return {
             'total_ventas': df['precio_total'].sum(),
             'total_costos': df['costo_total'].sum(),
@@ -241,9 +258,27 @@ class ProveedorDashboard:
             'ticket_promedio': df['precio_total'].sum() / len(df) if len(df) > 0 else 0,
             'productos_unicos': df['idarticulo'].nunique(),
             'dias_con_ventas': df['fecha'].nunique(),
-            'sucursales': df['sucursal'].nunique() if 'sucursal' in df.columns else 0,
-            'familias': df['familia'].nunique() if 'familia' in df.columns else 0
+            'sucursales': num_sucursales,
+            'sucursales_presentes': sucursales_str,
+            'familias': num_familias
         }
+
+
+    # def calculate_metrics(self, df):
+    #     """Calcular métricas principales"""
+    #     return {
+    #         'total_ventas': df['precio_total'].sum(),
+    #         'total_costos': df['costo_total'].sum(),
+    #         'total_utilidad': df['utilidad'].sum(),
+    #         'margen_promedio': df['margen_porcentual'].mean(),
+    #         'total_cantidad': df['cantidad_total'].sum(),
+    #         'num_tickets': len(df),
+    #         'ticket_promedio': df['precio_total'].sum() / len(df) if len(df) > 0 else 0,
+    #         'productos_unicos': df['idarticulo'].nunique(),
+    #         'dias_con_ventas': df['fecha'].nunique(),
+    #         'sucursales': df['sucursal'].nunique() if 'sucursal' in df.columns else 0,
+    #         'familias': df['familia'].nunique() if 'familia' in df.columns else 0
+    #     }
     
     def generate_insights(self, df, metrics):
         """Generar insights automáticos"""
@@ -483,14 +518,18 @@ class ProveedorDashboard:
         st.subheader(f"📈 Resumen Ejecutivo - {proveedor}")
 
         # === KPIs principales (manuales dentro de cajas HTML) ===
-        col1, col2, col3, col4 = st.columns(4)
-
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        # col1, col2 = st.columns(2)
         with col1:
             st.markdown(f"""
             <div class="metric-box">
-                <div style="font-size: 1rem; color: #555;">💰 Ventas Totales</div>
-                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${metrics['total_ventas']:,.0f}</div>
-                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">⬆️ {metrics['margen_promedio']:.1f}% margen</div>
+                <div style="text-align: center;">
+                    <div style="font-size: 1rem; color: #555;">💰 Ventas Totales</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${metrics['total_ventas']:,.0f}</div>
+                </div>
+                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
+                    ⬆️ {metrics['margen_promedio']:.1f}% margen
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -507,33 +546,60 @@ class ProveedorDashboard:
             </div>
             """, unsafe_allow_html=True)
 
-
-        # with col2:
-        #     st.markdown(f"""
-        #     <div class="metric-box">
-        #         <div style="font-size: 1rem; color: #555;">📈 Utilidad Total</div>
-        #         <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${metrics['total_utilidad']:,.0f}</div>
-        #         <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">⬆️ ${metrics['ticket_promedio']:,.0f} ticket prom.</div>
-        #     </div>
-        #     """, unsafe_allow_html=True)
-
+        # col3, col4 = st.columns(2)
         with col3:
             st.markdown(f"""
             <div class="metric-box">
-                <div style="font-size: 1rem; color: #555;">🧾 Total Transacciones</div>
-                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['num_tickets']:,}</div>
-                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">⬆️ {metrics['dias_con_ventas']} días activos</div>
+                <div style="text-align: center;">
+                    <div style="font-size: 1rem; color: #555;">🧾 Total Transacciones</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['num_tickets']:,}</div>
+                </div>
+                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
+                    ⬆️ {metrics['dias_con_ventas']} días activos
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
         with col4:
             st.markdown(f"""
             <div class="metric-box">
-                <div style="font-size: 1rem; color: #555;">📦 Cantidad Vendida</div>
-                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['total_cantidad']:,.0f}</div>
-                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">⬆️ {metrics['productos_unicos']} productos únicos</div>
+                <div style="text-align: center;">
+                    <div style="font-size: 1rem; color: #555;">📦 Cantidad Vendida</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['total_cantidad']:,.0f}</div>
+                </div>
+                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
+                    ⬆️ {metrics['productos_unicos']} productos únicos
+                </div>
             </div>
             """, unsafe_allow_html=True)
+
+        # col5, col6 = st.columns(2)
+        with col5:
+            st.markdown(f"""
+            <div class="metric-box">
+                <div style="text-align: center;">
+                    <div style="font-size: 1rem; color: #555;">📅 Días únicos con ventas</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['dias_con_ventas']}</div>
+                </div>
+                <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
+                    Período analizado
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col6:
+            st.markdown(f"""
+            <div class="metric-box">
+                <div style="text-align: center;">
+                    <div style="font-size: 1rem; color: #555;">🏪 Sucursales Presentes</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['sucursales_presentes']}</div>
+                </div>
+                <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
+                    Sucursales activas
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
 
 
         # === Insights automáticos ===
