@@ -236,7 +236,8 @@ class ProveedorDashboard:
         if 'sucursal' in df.columns:
             sucursales_unicas = df['sucursal'].dropna().unique()
             num_sucursales = len(sucursales_unicas)
-            sucursales_str = ", ".join(sorted(map(str, sucursales_unicas)))
+            sucursales_str = ", ".join(sorted(s[:4].upper() for s in sucursales_unicas))
+            # sucursales_str = ", ".join(sorted(map(str, sucursales_unicas)))
         else:
             num_sucursales = 0
             sucursales_str = "N/A"
