@@ -13,10 +13,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from limpiar_datos import limpiar_datos
-from show_executive_summary import ExecutiveSummary
 
-# instanciás la clase
-summary = ExecutiveSummary()
 
 # === CONFIGURACION DE PAGINA ===
 st.set_page_config(
@@ -425,7 +422,7 @@ class ProveedorDashboard:
         ])
         
         with tab1:
-            summary.show_executive_summary(df, proveedor, metrics)
+            self.show_executive_summary(df, proveedor, metrics)
         
         with tab2:
             self.show_products_analysis(df)
@@ -439,7 +436,7 @@ class ProveedorDashboard:
         with tab5:
             self.show_reports_section(df, proveedor, metrics)
     
-    def show_executive_summary00(self, df, proveedor, metrics):
+    def show_executive_summary(self, df, proveedor, metrics):
         """Mostrar resumen ejecutivo"""
         st.subheader(f"📈 Resumen Ejecutivo - {proveedor}")
         
