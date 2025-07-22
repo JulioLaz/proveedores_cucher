@@ -414,7 +414,6 @@ class ProveedorDashboard:
             .animated-title {
                 font-weight: bold;
                 color: #721c24;
-                background: linear-gradient(90deg, #f8d7da, #f5c6cb);
                 padding: 0.5rem 1rem;
             color: #1e3c72;
             background-color: #e9f5ff;
@@ -487,7 +486,7 @@ class ProveedorDashboard:
         proveedor_actual = st.session_state.get("selected_proveedor")
         
         if not proveedor_actual:
-            st.sidebar.markdown('<div class="animated-title">Seleccior un proveedor</div>', unsafe_allow_html=True)
+            st.sidebar.markdown('<div class="animated-title">🔎 proveedor</div>', unsafe_allow_html=True)
         else:
             st.sidebar.markdown("#### 🏪 Selección de Proveedor")
 
