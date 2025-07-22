@@ -535,7 +535,7 @@ class ProveedorDashboard:
         </style>
         """, unsafe_allow_html=True)
 
-        st.subheader(f"📈 Resumen Ejecutivo - {proveedor}")
+        # st.subheader(f"📈 Resumen Ejecutivo - {proveedor}")
 
         # === KPIs principales (manuales dentro de cajas HTML) ===
         col1, col2, col4, col5, col6 = st.columns(5)
