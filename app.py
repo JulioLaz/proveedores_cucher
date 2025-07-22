@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from google.cloud import bigquery
 import warnings
+
 warnings.filterwarnings('ignore')
 
 from limpiar_datos import limpiar_datos
@@ -397,36 +398,99 @@ class ProveedorDashboard:
             insights.append(("info", "💡 Oportunidad de cross-selling para aumentar ticket promedio"))
         
         return insights
-    
+
+
     def show_sidebar_filters(self):
-        """Mostrar filtros en sidebar"""
+        """Mostrar filtros en sidebar con animaciones y lógica UX mejorada"""
+        # --- CSS & LOGO ---
         st.sidebar.markdown("""
             <style>
-             .sidebar-logo-box img {
+            .sidebar-logo-box img {
                 max-width: 100%;
                 border-radius: 8px;
                 margin-bottom: 0.5rem;
+            }
+
+            .animated-title {
+                font-weight: bold;
+                color: #721c24;
+                background: linear-gradient(90deg, #f8d7da, #f5c6cb);
+                padding: 0.5rem 1rem;
+                border-left: 5px solid #dc3545;
+                animation: pulse 1.5s infinite;
+                border-radius: 5px;
+                margin-bottom: .5rem;
+            }
+
+            .highlight-period {
+                font-weight: bold;
+                color: #856404;
+                background: linear-gradient(90deg, #fff3cd, #ffeeba);
+                padding: 0.5rem 1rem;
+                border-left: 5px solid #ffc107;
+                animation: blink 1.2s infinite;
+                border-radius: 5px;
+                margin-bottom: .5rem;
+            }
+
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.04); }
+                100% { transform: scale(1); }
+            }
+
+            @keyframes blink {
+                0% { opacity: 1; }
+                50% { opacity: 0.6; }
+                100% { opacity: 1; }
+            }
+
+            .stButton > button {
+                animation: bounce 2s infinite;
+                background-color: #dc3545 !important;
+                color: white !important;
+                font-weight: bold;
+                border-radius: 8px;
+                border: none;
+                padding: 0.6rem 1rem;
+            }
+
+            @keyframes bounce {
+                0% { transform: translateY(0); }
+                50% { transform: translateY(-3px); }
+                100% { transform: translateY(0); }
+            }
+
+            .stButton > button:hover {
+                background-color: #c82333 !important;
             }
             </style>
             <div class="sidebar-logo-box">
                 <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
             </div>
         """, unsafe_allow_html=True)
-        
-        # Cargar proveedores
+
+        # --- Cargar proveedores ---
         if self.df_proveedores is None:
             with st.spinner("Cargando proveedores..."):
                 self.df_proveedores = self.load_proveedores()
-        
+
         proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())
+        proveedor_actual = st.session_state.get("selected_proveedor")
+        
+        if not proveedor_actual:
+            st.sidebar.markdown('<div class="animated-title">🏪 Selecciona un proveedor para comenzar</div>', unsafe_allow_html=True)
+        else:
+            st.sidebar.markdown("#### 🏪 Selección de Proveedor")
+
         proveedor = st.sidebar.selectbox(
-            "🏪 Selección de Proveedor:",
+            "",
             options=proveedores,
-            index=None,
+            index=proveedores.tolist().index(proveedor_actual) if proveedor_actual in proveedores else None,
             placeholder="Seleccionar proveedor..."
         )
-                
-        # Opciones de rango predefinidas
+
+        # --- Rango de fechas ---
         rango_opciones = {
             "Último mes": 30,
             "Últimos 3 meses": 90,
@@ -434,30 +498,27 @@ class ProveedorDashboard:
             "Último año": 365,
             "Personalizado": None
         }
-        
+
+        if proveedor and "analysis_data" not in st.session_state:
+            st.sidebar.markdown('<div class="highlight-period">📅 Elige un período de análisis</div>', unsafe_allow_html=True)
+
         rango_seleccionado = st.sidebar.selectbox(
             "📅 Período de Análisis:",
             options=list(rango_opciones.keys()),
-            index=2  # Por defecto últimos 6 meses
+            index=2
         )
-        
+
         if rango_seleccionado == "Personalizado":
             col1, col2 = st.sidebar.columns(2)
-            fecha_inicio = col1.date_input(
-                "Desde:",
-                value=datetime.now().date() - timedelta(days=180)
-            )
-            fecha_fin = col2.date_input(
-                "Hasta:",
-                value=datetime.now().date()
-            )
+            fecha_inicio = col1.date_input("Desde:", value=datetime.now().date() - timedelta(days=180))
+            fecha_fin = col2.date_input("Hasta:", value=datetime.now().date())
         else:
             dias = rango_opciones[rango_seleccionado]
             fecha_fin = datetime.now().date()
             fecha_inicio = fecha_fin - timedelta(days=dias)
             st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio} a {fecha_fin}")
-        
-        # Botón de análisis
+
+        # --- Botón ---
         if st.sidebar.button("🔍 Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
@@ -471,7 +532,7 @@ class ProveedorDashboard:
                     else:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
 
-#########################################################
+        # --- Resumen del período ---
         if st.session_state.get("analysis_data") is not None:
             df_tickets = st.session_state.analysis_data
             df_tickets['fecha'] = pd.to_datetime(df_tickets['fecha'])
@@ -482,7 +543,7 @@ class ProveedorDashboard:
             dia_top = df_tickets['fecha'].dt.day_name().value_counts().idxmax()
             mes_top = df_tickets['fecha'].dt.strftime('%B').value_counts().idxmax()
 
-            st.sidebar.markdown("### 📊 Resumen del Período")
+            st.sidebar.markdown("### 🧾 Resumen del Período")
             st.sidebar.markdown(f"🛒 **Productos Únicos:** `{productos_unicos}`")
             st.sidebar.markdown(f"🧩 **Familias:** `{familias}`")
             st.sidebar.markdown(f"🧬 **Subfamilias:** `{subfamilias}`")
@@ -490,6 +551,99 @@ class ProveedorDashboard:
             st.sidebar.markdown(f"📆 **Mes más vendido:** `{mes_top}`")
 
         return proveedor, fecha_inicio, fecha_fin
+
+
+    # def show_sidebar_filters(self):
+    #     """Mostrar filtros en sidebar"""
+    #     st.sidebar.markdown("""
+    #         <style>
+    #          .sidebar-logo-box img {
+    #             max-width: 100%;
+    #             border-radius: 8px;
+    #             margin-bottom: 0.5rem;
+    #         }
+    #         </style>
+    #         <div class="sidebar-logo-box">
+    #             <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
+    #         </div>
+    #     """, unsafe_allow_html=True)
+        
+    #     # Cargar proveedores
+    #     if self.df_proveedores is None:
+    #         with st.spinner("Cargando proveedores..."):
+    #             self.df_proveedores = self.load_proveedores()
+        
+    #     proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())
+    #     proveedor = st.sidebar.selectbox(
+    #         "🏪 Selección de Proveedor:",
+    #         options=proveedores,
+    #         index=None,
+    #         placeholder="Seleccionar proveedor..."
+    #     )
+                
+    #     # Opciones de rango predefinidas
+    #     rango_opciones = {
+    #         "Último mes": 30,
+    #         "Últimos 3 meses": 90,
+    #         "Últimos 6 meses": 180,
+    #         "Último año": 365,
+    #         "Personalizado": None
+    #     }
+        
+    #     rango_seleccionado = st.sidebar.selectbox(
+    #         "📅 Período de Análisis:",
+    #         options=list(rango_opciones.keys()),
+    #         index=2  # Por defecto últimos 6 meses
+    #     )
+        
+    #     if rango_seleccionado == "Personalizado":
+    #         col1, col2 = st.sidebar.columns(2)
+    #         fecha_inicio = col1.date_input(
+    #             "Desde:",
+    #             value=datetime.now().date() - timedelta(days=180)
+    #         )
+    #         fecha_fin = col2.date_input(
+    #             "Hasta:",
+    #             value=datetime.now().date()
+    #         )
+    #     else:
+    #         dias = rango_opciones[rango_seleccionado]
+    #         fecha_fin = datetime.now().date()
+    #         fecha_inicio = fecha_fin - timedelta(days=dias)
+    #         st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio} a {fecha_fin}")
+        
+    #     # Botón de análisis
+    #     if st.sidebar.button("🔍 Realizar Análisis", type="primary", use_container_width=True):
+    #         if not proveedor:
+    #             st.sidebar.error("❌ Selecciona un proveedor")
+    #         else:
+    #             with st.spinner("🔄 Consultando datos..."):
+    #                 df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
+    #                 if df_tickets is not None:
+    #                     st.session_state.analysis_data = df_tickets
+    #                     st.session_state.selected_proveedor = proveedor
+    #                     st.rerun()
+    #                 else:
+    #                     st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
+
+    #     if st.session_state.get("analysis_data") is not None:
+    #         df_tickets = st.session_state.analysis_data
+    #         df_tickets['fecha'] = pd.to_datetime(df_tickets['fecha'])
+
+    #         productos_unicos = df_tickets['idarticulo'].nunique() if 'idarticulo' in df_tickets else 0
+    #         familias = df_tickets['familia'].nunique() if 'familia' in df_tickets else 0
+    #         subfamilias = df_tickets['subfamilia'].nunique() if 'subfamilia' in df_tickets else 0
+    #         dia_top = df_tickets['fecha'].dt.day_name().value_counts().idxmax()
+    #         mes_top = df_tickets['fecha'].dt.strftime('%B').value_counts().idxmax()
+
+    #         st.sidebar.markdown("### Resumen del Período")
+    #         st.sidebar.markdown(f"🛒 **Productos Únicos:** `{productos_unicos}`")
+    #         st.sidebar.markdown(f"🧩 **Familias:** `{familias}`")
+    #         st.sidebar.markdown(f"🧬 **Subfamilias:** `{subfamilias}`")
+    #         st.sidebar.markdown(f"📅 **Día más vendido:** `{dia_top}`")
+    #         st.sidebar.markdown(f"📆 **Mes más vendido:** `{mes_top}`")
+
+    #     return proveedor, fecha_inicio, fecha_fin
     
     def show_main_dashboard(self):
         proveedor = self.proveedor if hasattr(self, 'proveedor') else None
