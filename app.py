@@ -392,8 +392,9 @@ class ProveedorDashboard:
         
         return proveedor, fecha_inicio, fecha_fin
     
+
     def show_main_dashboard(self):
-        proveedor = getattr(self, 'proveedor', None)
+        proveedor = self.proveedor if hasattr(self, 'proveedor') else None
 
         st.markdown(f"""
             <div class="main-header">
