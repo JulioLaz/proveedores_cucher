@@ -84,11 +84,18 @@ st.markdown("""
     .st-emotion-cache-16txtl3 {
         padding: 1rem 1rem !important;
     }
+            
+    /* Estilo personalizado al contenedor específico */
     /* Estilo personalizado al contenedor específico */
     .st-emotion-cache-595tnf {
             height: .5rem !important;
     }
-            
+
+    /* Estilo personalizado btn desplieque de sidebar */
+    .st-emotion-cache-595tnf.eu6y2f94 {
+        padding: 0.9rem !important;
+    }            
+
     /* Ocultar el header superior de Streamlit */
     header {
         height: 2rem !important;
