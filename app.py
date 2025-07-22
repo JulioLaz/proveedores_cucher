@@ -778,7 +778,7 @@ class ProveedorDashboard:
                 x=ventas_diarias['fecha'],
                 y=ventas_diarias['tendencia'],
                 mode='lines',
-                line=dict(color='orange', width=1),
+                line=dict(color='orange', width=1.5, dash='dash'),
                 showlegend=False,
                 hoverinfo='skip'
             )
