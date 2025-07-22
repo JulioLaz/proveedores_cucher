@@ -1008,7 +1008,7 @@ class ProveedorDashboard:
                     legend=dict(
                         orientation="h",
                         yanchor="top",
-                        y=0.97,  # justo debajo del título
+                        y=1.2,  # justo debajo del título
                         xanchor="center",
                         x=0.2
                     )
