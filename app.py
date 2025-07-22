@@ -699,7 +699,7 @@ class ProveedorDashboard:
             )
             fig.update_traces(line_color='#2a5298', line_width=1)
             fig.update_layout(
-                height=330,
+                height=300,
                 margin=dict(t=60, b=20, l=10, r=10),
                 title_x=0.2,  # Centrar título
                 xaxis_title=None,
@@ -748,7 +748,7 @@ class ProveedorDashboard:
             )
 
             fig.update_layout(
-                height=330,
+                height=300,
                 margin=dict(t=60, b=20, l=10, r=80),
                 title_x=0.2,  # Centrar título
                 xaxis_title=None,
