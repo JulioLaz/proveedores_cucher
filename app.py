@@ -192,7 +192,7 @@ st.markdown("""
 
         /* Estilo marrón vintage para el sidebar */
         section[data-testid="stSidebar"] {
-            background-color: #a9746e !important;  /* Marrón vintage */
+            background-color: #a18262 !important;  /* Marrón vintage */
             color: white;
             padding: 1rem !important;
         }
