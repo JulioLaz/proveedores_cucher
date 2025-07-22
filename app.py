@@ -517,7 +517,23 @@ class ProveedorDashboard:
             dias = rango_opciones[rango_seleccionado]
             fecha_fin = datetime.now().date()
             fecha_inicio = fecha_fin - timedelta(days=dias)
-            st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio} / {fecha_fin}")
+            
+            # ✅ Formatear fechas
+            fecha_inicio_fmt = fecha_inicio.strftime("%d %B %Y")
+            fecha_fin_fmt = fecha_fin.strftime("%d %B %Y")
+            
+            st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio_fmt} / {fecha_fin_fmt}")
+
+
+        # if rango_seleccionado == "Personalizado":
+        #     col1, col2 = st.sidebar.columns(2)
+        #     fecha_inicio = col1.date_input("Desde:", value=datetime.now().date() - timedelta(days=180))
+        #     fecha_fin = col2.date_input("Hasta:", value=datetime.now().date())
+        # else:
+        #     dias = rango_opciones[rango_seleccionado]
+        #     fecha_fin = datetime.now().date()
+        #     fecha_inicio = fecha_fin - timedelta(days=dias)
+        #     st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio} / {fecha_fin}")
 
         # --- Botón ---
         if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
