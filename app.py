@@ -749,9 +749,17 @@ class ProveedorDashboard:
         col1, col2 = st.columns(2)
 
         # === Evolución Diaria de Ventas ===
+        import numpy as np
+
         with col1:
             ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
 
+            # Calcular línea de tendencia
+            ventas_diarias['fecha_ordinal'] = ventas_diarias['fecha'].map(pd.Timestamp.toordinal)
+            coef = np.polyfit(ventas_diarias['fecha_ordinal'], ventas_diarias['precio_total'], 1)
+            ventas_diarias['tendencia'] = coef[0] * ventas_diarias['fecha_ordinal'] + coef[1]
+
+            # Crear gráfico de líneas
             fig = px.line(
                 ventas_diarias,
                 x='fecha',
@@ -759,43 +767,28 @@ class ProveedorDashboard:
                 title="📈 Evolución Diaria de Ventas",
                 labels={'precio_total': '', 'fecha': ''}
             )
-            fig.update_traces(line_color='#2a5298', line_width=1)
+
+            # Agregar línea de tendencia
+            fig.add_scatter(
+                x=ventas_diarias['fecha'],
+                y=ventas_diarias['tendencia'],
+                mode='lines',
+                name='Tendencia',
+                line=dict(color='orange', width=2)
+            )
+
+            fig.update_traces(line_color='#2a5298', line_width=1, selector=dict(name='precio_total'))
+
             fig.update_layout(
                 height=300,
                 margin=dict(t=60, b=20, l=10, r=10),
-                title_x=0.2,  # Centrar título
+                title_x=0.2,
                 xaxis_title=None,
                 yaxis_title=None
             )
 
-
-            # fig = px.scatter(
-            #     ventas_diarias,
-            #     x='fecha',
-            #     y='precio_total',
-            #     title="📈 Evolución Diaria de Ventas",
-            #     labels={'precio_total': '', 'fecha': ''},
-            #     trendline="ols",  # Línea de tendencia
-            # )
-
-            # # fig.update_traces(line_color='#2a5298', line_width=1)  # Personaliza los puntos
-            # fig.update_traces(marker=dict(color='#2a5298', size=3))  # Personaliza los puntos
-            # fig.update_layout(
-            #     height=300,
-            #     margin=dict(t=60, b=20, l=10, r=10),
-            #     title_x=0.2,
-            #     xaxis_title=None,
-            #     yaxis_title=None
-            # )
-
-            # Personaliza la línea de tendencia
-            for trace in fig.data:
-                if trace.mode == 'lines':
-                    trace.line.color = 'orange'
-                    trace.line.width = 1
-                    trace.name = 'Tendencia'
-
             st.plotly_chart(fig, use_container_width=True)
+
 
 
         # with col1:
