@@ -45,24 +45,24 @@ st.markdown("""
         background: #f8f9fa;
         border: 1px solid #e9ecef;
         border-radius: 8px;
-        padding: 1rem;
-        margin: 0.5rem 0;
+        padding: .2rem;
+        margin: 0.4rem 0;
         border-left: 4px solid #28a745;
     }
     .warning-box {
         background: #fff3cd;
         border: 1px solid #ffeaa7;
         border-radius: 8px;
-        padding: 1rem;
-        margin: 0.5rem 0;
+        padding: .2rem;
+        margin: 0.4rem 0;
         border-left: 4px solid #ffc107;
     }
     .success-box {
         background: #d4edda;
         border: 1px solid #c3e6cb;
         border-radius: 8px;
-        padding: 1rem;
-        margin: 0.5rem 0;
+        padding: .2rem;
+        margin: 0.4rem 0;
         border-left: 4px solid #28a745;
     }
     .sidebar .sidebar-content {
@@ -194,7 +194,7 @@ st.markdown("""
         section[data-testid="stSidebar"] {
             background-color: #dcc594 !important;  /* Marrón vintage */
             color: white;
-            padding: 1rem !important;
+            padding: 0rem !important;
         }
 
         /* Opcional: mejorar contraste en los textos del sidebar */
@@ -474,42 +474,8 @@ class ProveedorDashboard:
             st.sidebar.markdown(f"📅 **Día más vendido:** `{dia_top}`")
             st.sidebar.markdown(f"📆 **Mes más vendido:** `{mes_top}`")
 
-
-
-
-        # if st.session_state.get("analysis_data") is not None:
-        #     df_tickets = st.session_state.analysis_data
-
-        #     if 'idarticulo' in df_tickets.columns:
-        #         productos_unicos = df_tickets['idarticulo'].nunique()
-        #         st.sidebar.metric("🛒 Productos Únicos", productos_unicos)
-
-        #     if 'familia' in df_tickets.columns:
-        #         familias_unicas = df_tickets['familia'].nunique()
-        #         st.sidebar.metric("🧩 Familias", familias_unicas)
-
-        #     if 'subfamilia' in df_tickets.columns:
-        #         subfamilias_unicas = df_tickets['subfamilia'].nunique()
-        #         st.sidebar.metric("🧬 Subfamilias", subfamilias_unicas)
-
-        #     if 'fecha' in df_tickets.columns and 'precio_total' in df_tickets.columns:
-        #         df_tickets['fecha'] = pd.to_datetime(df_tickets['fecha'])
-
-        #         # Día de la semana con más ventas (0 = lunes)
-        #         df_tickets['dia_semana'] = df_tickets['fecha'].dt.day_name()
-        #         dia_top = df_tickets.groupby('dia_semana')['precio_total'].sum().sort_values(ascending=False).idxmax()
-        #         st.sidebar.metric("📅 Día más vendido", dia_top)
-
-        #         # Mes con más ventas
-        #         df_tickets['mes_nombre'] = df_tickets['fecha'].dt.strftime('%B')
-        #         mes_top = df_tickets.groupby('mes_nombre')['precio_total'].sum().sort_values(ascending=False).idxmax()
-        #         st.sidebar.metric("📆 Mes más vendido", mes_top)
-
-#########################################################
-        
         return proveedor, fecha_inicio, fecha_fin
     
-
     def show_main_dashboard(self):
         proveedor = self.proveedor if hasattr(self, 'proveedor') else None
 
@@ -526,9 +492,6 @@ class ProveedorDashboard:
             </div>
             """, unsafe_allow_html=True)
         
-        # if st.session_state.analysis_data is None:
-        #     st.info("👈 **Selecciona un proveedor en el panel lateral para comenzar el análisis**")
-
         if st.session_state.analysis_data is None:
             st.markdown("""
             <div class="bounce-info">
@@ -637,7 +600,6 @@ class ProveedorDashboard:
 
         # === KPIs principales (manuales dentro de cajas HTML) ===
         col1, col2, col4, col5, col6 = st.columns(5)
-        # col1, col2 = st.columns(2)
         with col1:
             st.markdown(f"""
             <div class="metric-box">
@@ -677,7 +639,6 @@ class ProveedorDashboard:
             </div>
             """, unsafe_allow_html=True)
 
-        # col5, col6 = st.columns(2)
         with col5:
             st.markdown(f"""
             <div class="metric-box">
@@ -705,7 +666,6 @@ class ProveedorDashboard:
             """, unsafe_allow_html=True)
 
         # === Insights automáticos ===
-        # st.subheader("💡 Insights Clave")
         insights = self.generate_insights(df, metrics)
 
         # Grilla 2 columnas
@@ -719,7 +679,6 @@ class ProveedorDashboard:
                     st.markdown(f'<div class="warning-box">{mensaje}</div>', unsafe_allow_html=True)
                 else:
                     st.markdown(f'<div class="insight-box">{mensaje}</div>', unsafe_allow_html=True)
-            # Cada 2 insights, reiniciar columnas para nueva fila
             if (idx + 1) % 2 == 0 and idx + 1 < len(insights):
                 cols = st.columns(2)
 
@@ -736,7 +695,7 @@ class ProveedorDashboard:
                 title="📈 Evolución Diaria de Ventas",
                 labels={'precio_total': '', 'fecha': ''}
             )
-            fig.update_traces(line_color='#2a5298', line_width=2)
+            fig.update_traces(line_color='#2a5298', line_width=1)
             fig.update_layout(
                 height=350,
                 margin=dict(t=60, b=20, l=10, r=10),
