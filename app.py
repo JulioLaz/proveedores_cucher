@@ -999,7 +999,7 @@ class ProveedorDashboard:
                     secondary_y=True
                 )
 
-                fig.update_layout(
+                fig.update_layout( 
                     title_text="📈 Análisis de Pareto - Concentración de Ventas",
                     title_x=0.2,
                     xaxis_title="Ranking de Productos",
@@ -1010,9 +1010,25 @@ class ProveedorDashboard:
                         yanchor="top",
                         y=1.15,  # justo debajo del título
                         xanchor="center",
-                        x=0.9
+                        x=0.5,
+                        bgcolor='rgba(0,0,0,0)'  # Fondo transparente
                     )
                 )
+
+                # fig.update_layout(
+                #     title_text="📈 Análisis de Pareto - Concentración de Ventas",
+                #     title_x=0.2,
+                #     xaxis_title="Ranking de Productos",
+                #     yaxis_title="Participación Individual (%)",
+                #     height=400,
+                #     legend=dict(
+                #         orientation="h",
+                #         yanchor="top",
+                #         y=1.15,  # justo debajo del título
+                #         xanchor="center",
+                #         x=0.5
+                #     )
+                # )
 
                 fig.update_yaxes(title_text="Participación Individual (%)", secondary_y=False)
                 fig.update_yaxes(title_text="Participación Acumulada (%)", secondary_y=True)
