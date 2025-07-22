@@ -104,6 +104,7 @@ st.markdown("""
     /* 🎨 Establece un fondo beige claro para toda la app */
     body {
         background-color: #f5f5dc !important; /* beige */
+        gap: 0.5rem !important;
     }
 
     /* O si querés solo el fondo del contenedor principal */
