@@ -769,7 +769,7 @@ class ProveedorDashboard:
             # Estilizar la línea principal
             fig.update_traces(
                 line_color='#2a5298',
-                line_width=1,
+                line_width=3,
                 selector=dict(name='precio_total')
             )
 
