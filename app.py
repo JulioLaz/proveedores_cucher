@@ -447,7 +447,7 @@ class ProveedorDashboard:
 
             .stButton > button {
                 animation: bounce 2s infinite;
-                background-color: #dc3545 !important;
+                background-color: #4368d6 !important;
                 color: white !important;
                 font-weight: bold;
                 border-radius: 8px;
@@ -462,7 +462,7 @@ class ProveedorDashboard:
             }
 
             .stButton > button:hover {
-                background-color: #c82333 !important;
+                background-color: #294ebc !important;
             }
                             
             /* Oculta el label específico apuntando al selector detallado */
@@ -485,7 +485,7 @@ class ProveedorDashboard:
         proveedor_actual = st.session_state.get("selected_proveedor")
         
         if not proveedor_actual:
-            st.sidebar.markdown('<div class="animated-title">🏪 Selecciona un proveedor para comenzar</div>', unsafe_allow_html=True)
+            st.sidebar.markdown('<div class="animated-title">🏪 Selecciona un proveedor</div>', unsafe_allow_html=True)
         else:
             st.sidebar.markdown("#### 🏪 Selección de Proveedor")
 
