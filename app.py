@@ -6,7 +6,8 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import os
 import json
-import locale
+from babel.dates import format_date
+from babel import Locale
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from google.cloud import bigquery
@@ -510,16 +511,10 @@ class ProveedorDashboard:
             index=2
         )
 
+        # Crear instancia de locale español
+        locale_es = Locale.parse("es")
 
-        # Establecer locale en español (para nombres de meses en español)
-        try:
-            locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')  # Linux/macOS
-        except:
-            try:
-                locale.setlocale(locale.LC_TIME, 'es_ES')  # Windows
-            except:
-                locale.setlocale(locale.LC_TIME, '')  # Toma el sistema por defecto
-
+        # Selección de fechas
         if rango_seleccionado == "Personalizado":
             col1, col2 = st.sidebar.columns(2)
             fecha_inicio = col1.date_input("Desde:", value=datetime.now().date() - timedelta(days=180))
@@ -529,14 +524,14 @@ class ProveedorDashboard:
             fecha_fin = datetime.now().date()
             fecha_inicio = fecha_fin - timedelta(days=dias)
 
-            # 👉 Formatear fechas con mes en español
-            fecha_inicio_fmt = fecha_inicio.strftime("%d %B %Y").capitalize()
-            fecha_fin_fmt = fecha_fin.strftime("%d %B %Y").capitalize()
+        # Formateo en español con Babel
+        fecha_inicio_fmt = format_date(fecha_inicio, format="d 'de' MMMM 'de' y", locale=locale_es).capitalize()
+        fecha_fin_fmt = format_date(fecha_fin, format="d 'de' MMMM 'de' y", locale=locale_es).capitalize()
 
-            st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio_fmt} / {fecha_fin_fmt}")
+        # Mostrar resumen en el sidebar
+        st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio_fmt} / {fecha_fin_fmt}")
 
-
-
+        
         # if rango_seleccionado == "Personalizado":
         #     col1, col2 = st.sidebar.columns(2)
         #     fecha_inicio = col1.date_input("Desde:", value=datetime.now().date() - timedelta(days=180))
