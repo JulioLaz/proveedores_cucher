@@ -69,9 +69,7 @@ st.markdown("""
         background: #f1f3f4;
         background: black;
     }
-    .sidebar{
-        background: black;
-    }
+
     /* 🎯 Estilo personalizado para el contenedor principal */
     .block-container {
         width: 100% !important;
@@ -191,6 +189,21 @@ st.markdown("""
             color: #1e3c72;
             margin-bottom: 0.8rem;
         }
+
+        /* Estilo marrón vintage para el sidebar */
+        section[data-testid="stSidebar"] {
+            background-color: #a9746e !important;  /* Marrón vintage */
+            color: white;
+            padding: 1rem !important;
+        }
+
+        /* Opcional: mejorar contraste en los textos del sidebar */
+        section[data-testid="stSidebar"] .css-1cpxqw2, /* texto normal */
+        section[data-testid="stSidebar"] .css-10trblm, /* encabezados */
+        section[data-testid="stSidebar"] .st-emotion-cache-1wmy9hl {
+            color: #fff !important;
+        }
+            
 
 </style>
 """, unsafe_allow_html=True)
