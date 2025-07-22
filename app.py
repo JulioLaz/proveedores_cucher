@@ -12,6 +12,12 @@ from google.cloud import bigquery
 import warnings
 warnings.filterwarnings('ignore')
 
+from limpiar_datos import limpiar_datos
+from show_executive_summary import ExecutiveSummary
+
+# instanciás la clase
+summary = ExecutiveSummary()
+
 # === CONFIGURACION DE PAGINA ===
 st.set_page_config(
     page_title="📊 Analytics Dashboard",
@@ -128,34 +134,6 @@ st.markdown("""
 
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
-
-import pandas as pd
-import numpy as np
-
-# Función auxiliar para limpiar datos
-def limpiar_datos(df):
-    columnas_clave = ['cantidad_total', 'precio_total', 'costo_total', 'utilidad']
-    
-    # Eliminar filas con NaNs en columnas clave
-    df = df.dropna(subset=columnas_clave)
-    
-    # Convertir a numérico por seguridad
-    for col in columnas_clave:
-        df[col] = pd.to_numeric(df[col], errors='coerce')
-    
-    # Filtrar valores negativos o 0 donde no corresponden
-    df = df[(df['cantidad_total'] > 0) & (df['precio_total'] >= 0) & (df['costo_total'] >= 0)]
-    
-    # Limpieza de strings
-    df['sucursal'] = df['sucursal'].astype(str).str.strip().str.upper()
-    df['familia'] = df['familia'].astype(str).str.strip().str.upper()
-    df['subfamilia'] = df['subfamilia'].astype(str).str.strip().str.upper()
-    df['descripcion'] = df['descripcion'].fillna("SIN DESCRIPCIÓN")
-    
-    return df
-
-
-
 class ProveedorDashboard:
     def __init__(self):
         self.df_proveedores = None
@@ -315,32 +293,25 @@ class ProveedorDashboard:
                 border-radius: 8px;
                 margin-bottom: 0.5rem;
             }
-
             </style>
-
             <div class="sidebar-logo-box">
                 <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
             </div>
         """, unsafe_allow_html=True)
-        # st.sidebar.markdown("## 🎛️ Configuración de Análisis")
         
         # Cargar proveedores
         if self.df_proveedores is None:
             with st.spinner("Cargando proveedores..."):
                 self.df_proveedores = self.load_proveedores()
         
-        # st.sidebar.markdown("### 🏪 Selección de Proveedor")
         proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())
-        
         proveedor = st.sidebar.selectbox(
             "🏪 Selección de Proveedor:",
             options=proveedores,
             index=None,
             placeholder="Seleccionar proveedor..."
         )
-        
-        # st.sidebar.markdown("### 📅 Período de Análisis")
-        
+                
         # Opciones de rango predefinidas
         rango_opciones = {
             "Último mes": 30,
@@ -399,7 +370,7 @@ class ProveedorDashboard:
         # Header
         st.markdown("""
         <div class="main-header">
-            <h3>📈 Dashboard de Análisis por Porveedor</h1>
+            <h4>📈 Dashboard de Análisis por Porveedor</h1>
         </div>
         """, unsafe_allow_html=True)
         
@@ -454,7 +425,7 @@ class ProveedorDashboard:
         ])
         
         with tab1:
-            self.show_executive_summary(df, proveedor, metrics)
+            summary.show_executive_summary(df, proveedor, metrics)
         
         with tab2:
             self.show_products_analysis(df)
@@ -468,7 +439,7 @@ class ProveedorDashboard:
         with tab5:
             self.show_reports_section(df, proveedor, metrics)
     
-    def show_executive_summary(self, df, proveedor, metrics):
+    def show_executive_summary00(self, df, proveedor, metrics):
         """Mostrar resumen ejecutivo"""
         st.subheader(f"📈 Resumen Ejecutivo - {proveedor}")
         
@@ -569,27 +540,7 @@ class ProveedorDashboard:
             fig.update_layout(height=400, margin=dict(l=10, r=10, t=40, b=20))
 
             st.plotly_chart(fig, use_container_width=True, key="top_productos")
-
-
-
-
-
-
-        # with col2:
-        #     # Top 5 productos
-        #     top_productos = df.groupby('descripcion')['precio_total'].sum().nlargest(5).reset_index()
-        #     top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
-            
-        #     fig = px.bar(
-        #         top_productos, x='precio_total', y='descripcion_corta',
-        #         orientation='h',
-        #         title="🏆 Top 5 Productos por Ventas",
-        #         labels={'precio_total': 'Ventas ($)', 'descripcion_corta': 'Producto'}
-        #     )
-        #     fig.update_traces(marker_color='#28a745')
-        #     fig.update_layout(height=400)
-        #     st.plotly_chart(fig, use_container_width=True)
-    
+   
     def show_products_analysis(self, df):
         """Análisis detallado de productos"""
         st.subheader("🏆 Análisis Detallado de Productos")
