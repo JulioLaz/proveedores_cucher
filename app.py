@@ -398,6 +398,7 @@ class ProveedorDashboard:
             st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio} a {fecha_fin}")
         
         # Botón de análisis
+        # Botón de análisis
         if st.sidebar.button("🔍 Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
@@ -410,18 +411,37 @@ class ProveedorDashboard:
                         st.rerun()
                     else:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
-        
-        # Información del proveedor si está seleccionado
-        # if proveedor:
-        #     df_prov = self.df_proveedores[self.df_proveedores['proveedor'] == proveedor]
-        #     num_articulos = df_prov['idarticulo'].nunique()
-        #     st.sidebar.metric("🛒 Productos Únicos", num_articulos)
 
+        # Información del proveedor si está seleccionado
         if 'analysis_data' in st.session_state:
             df_tickets = st.session_state.analysis_data
             productos_unicos = df_tickets['idarticulo'].nunique()
             st.sidebar.metric("🛒 Productos Únicos", productos_unicos)
 
+        # if st.sidebar.button("🔍 Realizar Análisis", type="primary", use_container_width=True):
+        #     if not proveedor:
+        #         st.sidebar.error("❌ Selecciona un proveedor")
+        #     else:
+        #         with st.spinner("🔄 Consultando datos..."):
+        #             df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
+        #             if df_tickets is not None:
+        #                 st.session_state.analysis_data = df_tickets
+        #                 st.session_state.selected_proveedor = proveedor
+        #                 st.rerun()
+        #             else:
+        #                 st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
+        
+        # # Información del proveedor si está seleccionado
+
+        # if 'analysis_data' in st.session_state:
+        #     df_tickets = st.session_state.analysis_data
+        #     productos_unicos = df_tickets['idarticulo'].nunique()
+        #     st.sidebar.metric("🛒 Productos Únicos", productos_unicos)
+
+        # if proveedor:
+        #     df_prov = self.df_proveedores[self.df_proveedores['proveedor'] == proveedor]
+        #     num_articulos = df_prov['idarticulo'].nunique()
+        #     st.sidebar.metric("🛒 Productos Únicos", num_articulos)
         
         return proveedor, fecha_inicio, fecha_fin
     
