@@ -518,7 +518,7 @@ class ProveedorDashboard:
         st.subheader(f"📈 Resumen Ejecutivo - {proveedor}")
 
         # === KPIs principales (manuales dentro de cajas HTML) ===
-        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        col1, col2, col4, col5, col6 = st.columns(5)
         # col1, col2 = st.columns(2)
         with col1:
             st.markdown(f"""
@@ -546,19 +546,19 @@ class ProveedorDashboard:
             </div>
             """, unsafe_allow_html=True)
 
-        # col3, col4 = st.columns(2)
-        with col3:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div style="text-align: center;">
-                    <div style="font-size: 1rem; color: #555;">🧾 Total Transacciones</div>
-                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['num_tickets']:,}</div>
-                </div>
-                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
-                    ⬆️ {metrics['dias_con_ventas']} días activos
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+        # # col3, col4 = st.columns(2)
+        # with col3:
+        #     st.markdown(f"""
+        #     <div class="metric-box">
+        #         <div style="text-align: center;">
+        #             <div style="font-size: 1rem; color: #555;">🧾 Total Transacciones</div>
+        #             <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['num_tickets']:,}</div>
+        #         </div>
+        #         <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
+        #             ⬆️ {metrics['dias_con_ventas']} días activos
+        #         </div>
+        #     </div>
+        #     """, unsafe_allow_html=True)
 
         with col4:
             st.markdown(f"""
@@ -592,7 +592,7 @@ class ProveedorDashboard:
             <div class="metric-box">
                 <div style="text-align: center;">
                     <div style="font-size: 1rem; color: #555;">🏪 Sucursales Presentes</div>
-                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['sucursales_presentes']}</div>
+                    <div style="font-size: 1rem; color: #1e3c72;">{metrics['sucursales_presentes']}</div>
                 </div>
                 <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
                     Sucursales activas
