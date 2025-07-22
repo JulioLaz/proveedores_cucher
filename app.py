@@ -552,100 +552,7 @@ class ProveedorDashboard:
             st.sidebar.markdown(f"📆 **Mes más ventas:** `{mes_top}`")
 
         return proveedor, fecha_inicio, fecha_fin
-
-
-    # def show_sidebar_filters(self):
-    #     """Mostrar filtros en sidebar"""
-    #     st.sidebar.markdown("""
-    #         <style>
-    #          .sidebar-logo-box img {
-    #             max-width: 100%;
-    #             border-radius: 8px;
-    #             margin-bottom: 0.5rem;
-    #         }
-    #         </style>
-    #         <div class="sidebar-logo-box">
-    #             <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
-    #         </div>
-    #     """, unsafe_allow_html=True)
-        
-    #     # Cargar proveedores
-    #     if self.df_proveedores is None:
-    #         with st.spinner("Cargando proveedores..."):
-    #             self.df_proveedores = self.load_proveedores()
-        
-    #     proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())
-    #     proveedor = st.sidebar.selectbox(
-    #         "🏪 Selección de Proveedor:",
-    #         options=proveedores,
-    #         index=None,
-    #         placeholder="Seleccionar proveedor..."
-    #     )
-                
-    #     # Opciones de rango predefinidas
-    #     rango_opciones = {
-    #         "Último mes": 30,
-    #         "Últimos 3 meses": 90,
-    #         "Últimos 6 meses": 180,
-    #         "Último año": 365,
-    #         "Personalizado": None
-    #     }
-        
-    #     rango_seleccionado = st.sidebar.selectbox(
-    #         "📅 Período de Análisis:",
-    #         options=list(rango_opciones.keys()),
-    #         index=2  # Por defecto últimos 6 meses
-    #     )
-        
-    #     if rango_seleccionado == "Personalizado":
-    #         col1, col2 = st.sidebar.columns(2)
-    #         fecha_inicio = col1.date_input(
-    #             "Desde:",
-    #             value=datetime.now().date() - timedelta(days=180)
-    #         )
-    #         fecha_fin = col2.date_input(
-    #             "Hasta:",
-    #             value=datetime.now().date()
-    #         )
-    #     else:
-    #         dias = rango_opciones[rango_seleccionado]
-    #         fecha_fin = datetime.now().date()
-    #         fecha_inicio = fecha_fin - timedelta(days=dias)
-    #         st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio} a {fecha_fin}")
-        
-    #     # Botón de análisis
-    #     if st.sidebar.button("🔍 Realizar Análisis", type="primary", use_container_width=True):
-    #         if not proveedor:
-    #             st.sidebar.error("❌ Selecciona un proveedor")
-    #         else:
-    #             with st.spinner("🔄 Consultando datos..."):
-    #                 df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
-    #                 if df_tickets is not None:
-    #                     st.session_state.analysis_data = df_tickets
-    #                     st.session_state.selected_proveedor = proveedor
-    #                     st.rerun()
-    #                 else:
-    #                     st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
-
-    #     if st.session_state.get("analysis_data") is not None:
-    #         df_tickets = st.session_state.analysis_data
-    #         df_tickets['fecha'] = pd.to_datetime(df_tickets['fecha'])
-
-    #         productos_unicos = df_tickets['idarticulo'].nunique() if 'idarticulo' in df_tickets else 0
-    #         familias = df_tickets['familia'].nunique() if 'familia' in df_tickets else 0
-    #         subfamilias = df_tickets['subfamilia'].nunique() if 'subfamilia' in df_tickets else 0
-    #         dia_top = df_tickets['fecha'].dt.day_name().value_counts().idxmax()
-    #         mes_top = df_tickets['fecha'].dt.strftime('%B').value_counts().idxmax()
-
-    #         st.sidebar.markdown("### Resumen del Período")
-    #         st.sidebar.markdown(f"🛒 **Productos Únicos:** `{productos_unicos}`")
-    #         st.sidebar.markdown(f"🧩 **Familias:** `{familias}`")
-    #         st.sidebar.markdown(f"🧬 **Subfamilias:** `{subfamilias}`")
-    #         st.sidebar.markdown(f"📅 **Día más vendido:** `{dia_top}`")
-    #         st.sidebar.markdown(f"📆 **Mes más vendido:** `{mes_top}`")
-
-    #     return proveedor, fecha_inicio, fecha_fin
-    
+   
     def show_main_dashboard(self):
         proveedor = self.proveedor if hasattr(self, 'proveedor') else None
 
@@ -663,12 +570,6 @@ class ProveedorDashboard:
             """, unsafe_allow_html=True)
         
         if st.session_state.analysis_data is None:
-            # st.markdown("""
-            # <div class="bounce-info">
-            #     👈 <strong>Selecciona un proveedor en el panel lateral para comenzar el análisis</strong>
-            # </div>
-            # """, unsafe_allow_html=True)
-
 
             # Mostrar información general
             col1, col2, col3 = st.columns(3)
@@ -850,22 +751,53 @@ class ProveedorDashboard:
         # === Evolución Diaria de Ventas ===
         with col1:
             ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
-            fig = px.line(
+
+            fig = px.scatter(
                 ventas_diarias,
                 x='fecha',
                 y='precio_total',
                 title="📈 Evolución Diaria de Ventas",
-                labels={'precio_total': '', 'fecha': ''}
+                labels={'precio_total': '', 'fecha': ''},
+                trendline="ols",  # Línea de tendencia
             )
-            fig.update_traces(line_color='#2a5298', line_width=1)
+
+            fig.update_traces(marker=dict(color='#2a5298', size=3))  # Personaliza los puntos
             fig.update_layout(
                 height=300,
                 margin=dict(t=60, b=20, l=10, r=10),
-                title_x=0.2,  # Centrar título
+                title_x=0.2,
                 xaxis_title=None,
                 yaxis_title=None
             )
+
+            # Personaliza la línea de tendencia
+            for trace in fig.data:
+                if trace.mode == 'lines':
+                    trace.line.color = 'orange'
+                    trace.line.width = 1
+                    trace.name = 'Tendencia'
+
             st.plotly_chart(fig, use_container_width=True)
+
+
+        # with col1:
+        #     ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
+        #     fig = px.line(
+        #         ventas_diarias,
+        #         x='fecha',
+        #         y='precio_total',
+        #         title="📈 Evolución Diaria de Ventas",
+        #         labels={'precio_total': '', 'fecha': ''}
+        #     )
+        #     fig.update_traces(line_color='#2a5298', line_width=1)
+        #     fig.update_layout(
+        #         height=300,
+        #         margin=dict(t=60, b=20, l=10, r=10),
+        #         title_x=0.2,  # Centrar título
+        #         xaxis_title=None,
+        #         yaxis_title=None
+        #     )
+        #     st.plotly_chart(fig, use_container_width=True)
 
         # === Top 5 Productos por Ventas ===
         with col2:
