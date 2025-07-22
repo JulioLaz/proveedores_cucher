@@ -971,14 +971,13 @@ class ProveedorDashboard:
             #     )
             #     fig.update_traces(marker=dict(opacity=0.7))
             #     st.plotly_chart(fig, use_container_width=True)
-            
             with col2:
                 # Análisis de Pareto
                 productos_pareto = productos_stats.head(20)
                 participacion_acum = productos_pareto['Participación %'].cumsum()
-                
+
                 fig = make_subplots(specs=[[{"secondary_y": True}]])
-                
+
                 fig.add_trace(
                     go.Bar(
                         x=list(range(1, len(productos_pareto) + 1)),
@@ -988,24 +987,71 @@ class ProveedorDashboard:
                     ),
                     secondary_y=False
                 )
-                
+
                 fig.add_trace(
                     go.Scatter(
                         x=list(range(1, len(productos_pareto) + 1)),
                         y=participacion_acum,
                         mode='lines+markers',
                         name='Participación Acumulada (%)',
-                        line=dict(color='red', width=3)
+                        line=dict(color='red', width=2)  # Línea más fina
                     ),
                     secondary_y=True
                 )
-                
-                fig.update_layout(title_text="📈 Análisis de Pareto - Concentración de Ventas")
-                fig.update_xaxes(title_text="Ranking de Productos")
+
+                fig.update_layout(
+                    title_text="📈 Análisis de Pareto - Concentración de Ventas",
+                    title_x=0.2,
+                    xaxis_title="Ranking de Productos",
+                    yaxis_title="Participación Individual (%)",
+                    legend=dict(
+                        orientation="h",
+                        yanchor="top",
+                        y=0.85,  # justo debajo del título
+                        xanchor="center",
+                        x=0.2
+                    )
+                )
+
                 fig.update_yaxes(title_text="Participación Individual (%)", secondary_y=False)
                 fig.update_yaxes(title_text="Participación Acumulada (%)", secondary_y=True)
-                
+
                 st.plotly_chart(fig, use_container_width=True)
+            
+            # with col2:
+            #     # Análisis de Pareto
+            #     productos_pareto = productos_stats.head(20)
+            #     participacion_acum = productos_pareto['Participación %'].cumsum()
+                
+            #     fig = make_subplots(specs=[[{"secondary_y": True}]])
+                
+            #     fig.add_trace(
+            #         go.Bar(
+            #             x=list(range(1, len(productos_pareto) + 1)),
+            #             y=productos_pareto['Participación %'],
+            #             name='Participación Individual (%)',
+            #             marker_color='lightblue'
+            #         ),
+            #         secondary_y=False
+            #     )
+                
+            #     fig.add_trace(
+            #         go.Scatter(
+            #             x=list(range(1, len(productos_pareto) + 1)),
+            #             y=participacion_acum,
+            #             mode='lines+markers',
+            #             name='Participación Acumulada (%)',
+            #             line=dict(color='red', width=3)
+            #         ),
+            #         secondary_y=True
+            #     )
+                
+            #     fig.update_layout(title_text="📈 Análisis de Pareto - Concentración de Ventas")
+            #     fig.update_xaxes(title_text="Ranking de Productos")
+            #     fig.update_yaxes(title_text="Participación Individual (%)", secondary_y=False)
+            #     fig.update_yaxes(title_text="Participación Acumulada (%)", secondary_y=True)
+                
+            #     st.plotly_chart(fig, use_container_width=True)
                 
         except Exception as e:
             st.error(f"❌ Error en análisis de productos: {str(e)}")
