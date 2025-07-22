@@ -160,6 +160,25 @@ st.markdown("""
             padding-top: 0rem !important;
         }            
 
+        .sidebar-box {
+            background-color: #ffffff10;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .sidebar-metric-title {
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 0.2rem;
+        }
+        .sidebar-metric-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 0.8rem;
+        }
+
 </style>
 """, unsafe_allow_html=True)
     # /* O si preferís que no tenga fondo visible: */
@@ -398,7 +417,6 @@ class ProveedorDashboard:
             st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio} a {fecha_fin}")
         
         # Botón de análisis
-        # Botón de análisis
         if st.sidebar.button("🔍 Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
@@ -412,40 +430,66 @@ class ProveedorDashboard:
                     else:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
 
-        # Información del proveedor si está seleccionado
-        # if st.session_state.get("analysis_data") is not None:
-        #     df_tickets = st.session_state.analysis_data
-        #     if 'idarticulo' in df_tickets.columns:
-        #         productos_unicos = df_tickets['idarticulo'].nunique()
-        #         st.sidebar.metric("🛒 Productos Únicos", productos_unicos)
 #########################################################
         if st.session_state.get("analysis_data") is not None:
             df_tickets = st.session_state.analysis_data
 
-            if 'idarticulo' in df_tickets.columns:
-                productos_unicos = df_tickets['idarticulo'].nunique()
-                st.sidebar.metric("🛒 Productos Únicos", productos_unicos)
+            df_tickets['fecha'] = pd.to_datetime(df_tickets['fecha'])
 
-            if 'familia' in df_tickets.columns:
-                familias_unicas = df_tickets['familia'].nunique()
-                st.sidebar.metric("🧩 Familias", familias_unicas)
+            # Calcular todas las métricas
+            productos_unicos = df_tickets['idarticulo'].nunique() if 'idarticulo' in df_tickets else 0
+            familias = df_tickets['familia'].nunique() if 'familia' in df_tickets else 0
+            subfamilias = df_tickets['subfamilia'].nunique() if 'subfamilia' in df_tickets else 0
+            dia_top = df_tickets['fecha'].dt.day_name().value_counts().idxmax()
+            mes_top = df_tickets['fecha'].dt.strftime('%B').value_counts().idxmax()
 
-            if 'subfamilia' in df_tickets.columns:
-                subfamilias_unicas = df_tickets['subfamilia'].nunique()
-                st.sidebar.metric("🧬 Subfamilias", subfamilias_unicas)
+            # Mostrar como bloque estilizado
+            st.sidebar.markdown(f"""
+            <div class="sidebar-box">
+                <div class="sidebar-metric-title">🛒 Productos Únicos</div>
+                <div class="sidebar-metric-value">{productos_unicos}</div>
 
-            if 'fecha' in df_tickets.columns and 'precio_total' in df_tickets.columns:
-                df_tickets['fecha'] = pd.to_datetime(df_tickets['fecha'])
+                <div class="sidebar-metric-title">🧩 Familias</div>
+                <div class="sidebar-metric-value">{familias}</div>
 
-                # Día de la semana con más ventas (0 = lunes)
-                df_tickets['dia_semana'] = df_tickets['fecha'].dt.day_name()
-                dia_top = df_tickets.groupby('dia_semana')['precio_total'].sum().sort_values(ascending=False).idxmax()
-                st.sidebar.metric("📅 Día más vendido", dia_top)
+                <div class="sidebar-metric-title">🧬 Subfamilias</div>
+                <div class="sidebar-metric-value">{subfamilias}</div>
 
-                # Mes con más ventas
-                df_tickets['mes_nombre'] = df_tickets['fecha'].dt.strftime('%B')
-                mes_top = df_tickets.groupby('mes_nombre')['precio_total'].sum().sort_values(ascending=False).idxmax()
-                st.sidebar.metric("📆 Mes más vendido", mes_top)
+                <div class="sidebar-metric-title">📅 Día más vendido</div>
+                <div class="sidebar-metric-value">{dia_top}</div>
+
+                <div class="sidebar-metric-title">📆 Mes más vendido</div>
+                <div class="sidebar-metric-value">{mes_top}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # if st.session_state.get("analysis_data") is not None:
+        #     df_tickets = st.session_state.analysis_data
+
+        #     if 'idarticulo' in df_tickets.columns:
+        #         productos_unicos = df_tickets['idarticulo'].nunique()
+        #         st.sidebar.metric("🛒 Productos Únicos", productos_unicos)
+
+        #     if 'familia' in df_tickets.columns:
+        #         familias_unicas = df_tickets['familia'].nunique()
+        #         st.sidebar.metric("🧩 Familias", familias_unicas)
+
+        #     if 'subfamilia' in df_tickets.columns:
+        #         subfamilias_unicas = df_tickets['subfamilia'].nunique()
+        #         st.sidebar.metric("🧬 Subfamilias", subfamilias_unicas)
+
+        #     if 'fecha' in df_tickets.columns and 'precio_total' in df_tickets.columns:
+        #         df_tickets['fecha'] = pd.to_datetime(df_tickets['fecha'])
+
+        #         # Día de la semana con más ventas (0 = lunes)
+        #         df_tickets['dia_semana'] = df_tickets['fecha'].dt.day_name()
+        #         dia_top = df_tickets.groupby('dia_semana')['precio_total'].sum().sort_values(ascending=False).idxmax()
+        #         st.sidebar.metric("📅 Día más vendido", dia_top)
+
+        #         # Mes con más ventas
+        #         df_tickets['mes_nombre'] = df_tickets['fecha'].dt.strftime('%B')
+        #         mes_top = df_tickets.groupby('mes_nombre')['precio_total'].sum().sort_values(ascending=False).idxmax()
+        #         st.sidebar.metric("📆 Mes más vendido", mes_top)
 
 #########################################################
         
