@@ -526,24 +526,76 @@ class ProveedorDashboard:
                 title="📈 Evolución Diaria de Ventas",
                 labels={'precio_total': 'Ventas ($)', 'fecha': 'Fecha'}
             )
-            fig.update_traces(line_color='#2a5298', line_width=3)
+            fig.update_traces(line_color='#2a5298', line_width=2)
             fig.update_layout(height=400)
             st.plotly_chart(fig, use_container_width=True)
-        
+
+
         with col2:
             # Top 5 productos
-            top_productos = df.groupby('descripcion')['precio_total'].sum().nlargest(5).reset_index()
+            top_productos = (
+                df.groupby('descripcion', as_index=False)['precio_total']
+                .sum()
+                .sort_values('precio_total', ascending=False)
+                .head(5)
+            )
+
             top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
-            
+
+            # Asignar colores degradados (de más oscuro a más claro)
+            from matplotlib import cm
+            import plotly.colors as pc
+
+            cmap = cm.get_cmap('Viridis')
+            colores = [pc.convert_colors_to_same_type([cmap(i/4)]) for i in range(5)]  # 5 colores degradados
+            colores = [pc.hex_to_rgb_string(c[0]) for c in colores]
+
             fig = px.bar(
-                top_productos, x='precio_total', y='descripcion_corta',
+                top_productos,
+                x='precio_total',
+                y='descripcion_corta',
                 orientation='h',
+                text='precio_total',
                 title="🏆 Top 5 Productos por Ventas",
                 labels={'precio_total': 'Ventas ($)', 'descripcion_corta': 'Producto'}
             )
-            fig.update_traces(marker_color='#28a745')
-            fig.update_layout(height=400)
-            st.plotly_chart(fig, use_container_width=True)
+
+            # Reordenar para que se vea mayor a menor de arriba hacia abajo
+            fig.update_yaxes(categoryorder='total ascending')
+
+            # Aplicar colores degradados manuales
+            for i, color in enumerate(colores):
+                fig.data[i].marker.color = color
+
+            # Etiquetas al final de las barras
+            fig.update_traces(
+                texttemplate='%{text:,.0f}',
+                textposition='outside',
+                cliponaxis=False
+            )
+
+            fig.update_layout(
+                height=400,
+                margin=dict(l=10, r=10, t=40, b=20)
+            )
+
+            st.plotly_chart(fig, use_container_width=True, key="top_productos")
+
+
+        # with col2:
+        #     # Top 5 productos
+        #     top_productos = df.groupby('descripcion')['precio_total'].sum().nlargest(5).reset_index()
+        #     top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
+            
+        #     fig = px.bar(
+        #         top_productos, x='precio_total', y='descripcion_corta',
+        #         orientation='h',
+        #         title="🏆 Top 5 Productos por Ventas",
+        #         labels={'precio_total': 'Ventas ($)', 'descripcion_corta': 'Producto'}
+        #     )
+        #     fig.update_traces(marker_color='#28a745')
+        #     fig.update_layout(height=400)
+        #     st.plotly_chart(fig, use_container_width=True)
     
     def show_products_analysis(self, df):
         """Análisis detallado de productos"""
@@ -832,51 +884,7 @@ class ProveedorDashboard:
                 fig.update_yaxes(tickformat='.1f', ticksuffix='%')
                 st.plotly_chart(fig, use_container_width=True)
             
-            # with col3:
-            #     # Scatter Tickets vs Ventas por Sucursal - CORREGIDO
-            #     # --- Preparar datos para scatter por sucursal ---
-            #     sucursal_reset = sucursal_stats.reset_index()
-            #     sucursal_reset.rename(columns={'sucursal': 'Sucursal'}, inplace=True)
-
-            #     # Validación defensiva
-            #     cols = ['tickets', 'precio_total', 'margen_porcentual']
-            #     sucursal_reset = sucursal_reset.dropna(subset=cols)
-
-            #     for col in cols:
-            #         sucursal_reset[col] = pd.to_numeric(sucursal_reset[col], errors='coerce')
-
-            #     # Eliminar valores negativos o no válidos
-            #     sucursal_reset = sucursal_reset[
-            #         (sucursal_reset['tickets'] > 0) &
-            #         (sucursal_reset['precio_total'] > 0) &
-            #         (sucursal_reset['margen_porcentual'] > 0)
-            #     ]
-
-            #     # Aplicar winsorización para `size`
-            #     if not sucursal_reset.empty:
-            #         mediana = sucursal_reset['margen_porcentual'].median()
-            #         percentil_95 = sucursal_reset['margen_porcentual'].quantile(0.95)
-            #         umbral_max = min(percentil_95, mediana * 2)
-            #         sucursal_reset['margen_plot'] = sucursal_reset['margen_porcentual'].clip(upper=umbral_max)
-
-            #         try:
-            #             fig = px.scatter(
-            #                 sucursal_reset,
-            #                 x='tickets',
-            #                 y='precio_total',
-            #                 size='margen_plot',
-            #                 hover_name='Sucursal',
-            #                 title="🎯 Tickets vs Ventas por Sucursal",
-            #                 labels={'tickets': 'Número de Tickets', 'precio_total': 'Ventas ($)'}
-            #             )
-            #             fig.update_traces(marker=dict(opacity=0.7))
-            #             st.plotly_chart(fig, use_container_width=True)
-            #         except Exception as e:
-            #             st.warning(f"⚠️ No se pudo generar el gráfico de dispersión: {e}")
-            #             st.dataframe(sucursal_reset)
-            #     else:
-            #         st.info("⚠️ No hay datos válidos para el gráfico de sucursales.")
-
+         
 #########################################################################
 
             with col3:
