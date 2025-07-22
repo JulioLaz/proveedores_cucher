@@ -544,12 +544,12 @@ class ProveedorDashboard:
             dia_top = df_tickets['fecha'].dt.day_name().value_counts().idxmax()
             mes_top = df_tickets['fecha'].dt.strftime('%B').value_counts().idxmax()
 
-            st.sidebar.markdown("### 🧾 Resumen del Período")
+            # st.sidebar.markdown("### 🧾 Resumen del Período")
             st.sidebar.markdown(f"🛒 **Productos Únicos:** `{productos_unicos}`")
             st.sidebar.markdown(f"🧩 **Familias:** `{familias}`")
             st.sidebar.markdown(f"🧬 **Subfamilias:** `{subfamilias}`")
-            st.sidebar.markdown(f"📅 **Día más vendido:** `{dia_top}`")
-            st.sidebar.markdown(f"📆 **Mes más vendido:** `{mes_top}`")
+            st.sidebar.markdown(f"📅 **Día más ventas:** `{dia_top}`")
+            st.sidebar.markdown(f"📆 **Mes más ventas:** `{mes_top}`")
 
         return proveedor, fecha_inicio, fecha_fin
 
