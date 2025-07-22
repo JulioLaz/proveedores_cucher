@@ -761,7 +761,8 @@ class ProveedorDashboard:
                 trendline="ols",  # Línea de tendencia
             )
 
-            fig.update_traces(marker=dict(color='#2a5298', size=3))  # Personaliza los puntos
+            fig.update_traces(line_color='#2a5298', line_width=1)  # Personaliza los puntos
+            # fig.update_traces(marker=dict(color='#2a5298', size=3))  # Personaliza los puntos
             fig.update_layout(
                 height=300,
                 margin=dict(t=60, b=20, l=10, r=10),
