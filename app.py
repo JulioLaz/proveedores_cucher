@@ -459,8 +459,8 @@ class ProveedorDashboard:
                 <div class="sidebar-metric-value">{mes_top}</div>
             </div>
             """
-
             st.sidebar.markdown(html_sidebar, unsafe_allow_html=True)
+
 
 
         # if st.session_state.get("analysis_data") is not None:
