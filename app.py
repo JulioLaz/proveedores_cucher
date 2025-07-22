@@ -943,8 +943,8 @@ class ProveedorDashboard:
 #########################################################################
 
 
-                fig.update_traces(marker=dict(opacity=0.7))
-                st.plotly_chart(fig, use_container_width=True)
+                # fig.update_traces(marker=dict(opacity=0.7))
+                # st.plotly_chart(fig, use_container_width=True)
         
         
         # Matriz de análisis ABC
