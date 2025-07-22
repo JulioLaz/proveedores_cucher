@@ -871,108 +871,6 @@ class ProveedorDashboard:
                     )
 
             st.plotly_chart(fig, use_container_width=True, key="top_productos")
-
-    # def show_executive_summary00(self, df, proveedor, metrics):
-    #     """Mostrar resumen ejecutivo"""
-    #     st.subheader(f"📈 Resumen Ejecutivo - {proveedor}")
-        
-    #     # KPIs principales
-    #     col1, col2, col3, col4 = st.columns(4)
-        
-    #     with col1:
-    #         st.metric(
-    #             "💰 Ventas Totales",
-    #             f"${metrics['total_ventas']:,.0f}",
-    #             delta=f"{metrics['margen_promedio']:.1f}% margen"
-    #         )
-        
-    #     with col2:
-    #         st.metric(
-    #             "📈 Utilidad Total",
-    #             f"${metrics['total_utilidad']:,.0f}",
-    #             delta=f"${metrics['ticket_promedio']:,.0f} ticket prom."
-    #         )
-        
-    #     with col3:
-    #         st.metric(
-    #             "🧾 Total Transacciones",
-    #             f"{metrics['num_tickets']:,}",
-    #             delta=f"{metrics['dias_con_ventas']} días activos"
-    #         )
-        
-    #     with col4:
-    #         st.metric(
-    #             "📦 Cantidad Vendida",
-    #             f"{metrics['total_cantidad']:,.0f}",
-    #             delta=f"{metrics['productos_unicos']} productos únicos"
-    #         )
-        
-    #     # Insights automáticos
-    #     st.subheader("💡 Insights Clave")
-    #     insights = self.generate_insights(df, metrics)
-        
-    #     for tipo, mensaje in insights:
-    #         if tipo == "success":
-    #             st.markdown(f'<div class="success-box">{mensaje}</div>', unsafe_allow_html=True)
-    #         elif tipo == "warning":
-    #             st.markdown(f'<div class="warning-box">{mensaje}</div>', unsafe_allow_html=True)
-    #         else:
-    #             st.markdown(f'<div class="insight-box">{mensaje}</div>', unsafe_allow_html=True)
-        
-    #     # Gráficas de resumen
-    #     col1, col2 = st.columns(2)
-        
-    #     with col1:
-    #         # Distribución de ventas por día
-    #         ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
-    #         fig = px.line(
-    #             ventas_diarias, x='fecha', y='precio_total',
-    #             title="📈 Evolución Diaria de Ventas",
-    #             labels={'precio_total': 'Ventas ($)', 'fecha': 'Fecha'}
-    #         )
-    #         fig.update_traces(line_color='#2a5298', line_width=2)
-    #         fig.update_layout(height=400)
-    #         st.plotly_chart(fig, use_container_width=True)
-
-
-    #     with col2:
-    #         top_productos = (
-    #             df.groupby('descripcion', as_index=False)['precio_total']
-    #             .sum()
-    #             .sort_values('precio_total', ascending=False)
-    #             .head(5)
-    #         )
-
-    #         top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
-
-    #         # Crear degradado de color Viridis desde Plotly
-    #         viridis = px.colors.sequential.Viridis[:5]  # Primeros 5 colores degradados
-
-    #         fig = px.bar(
-    #             top_productos,
-    #             x='precio_total',
-    #             y='descripcion_corta',
-    #             orientation='h',
-    #             text='precio_total',
-    #             title="🏆 Top 5 Productos por Ventas",
-    #             labels=None
-    #         )
-
-    #         fig.update_yaxes(categoryorder='total ascending')
-
-    #         # Aplicar colores manualmente (sin matplotlib)
-    #         for i, bar in enumerate(fig.data):
-    #             bar.marker.color = viridis[i]
-
-    #         fig.update_traces(
-    #             texttemplate='%{text:,.0f}',
-    #             textposition='outside',
-    #             cliponaxis=False
-    #         )
-
-    #         fig.update_layout(height=400, margin=dict(l=10, r=10, t=40, b=20))
-
-    #         st.plotly_chart(fig, use_container_width=True, key="top_productos")
    
     def show_products_analysis(self, df):
         """Análisis detallado de productos"""
@@ -1028,24 +926,51 @@ class ProveedorDashboard:
             
             # Gráficas de productos
             col1, col2 = st.columns(2)
-            
             with col1:
-                # Scatter plot Ventas vs Margen - CORREGIDO
+        # Scatter plot Ventas vs Margen - con color gradiente Inferno
                 top_20 = productos_stats.head(20).reset_index()
                 top_20['producto_corto'] = top_20['descripcion'].str[:30] + '...'
-                
+
                 fig = px.scatter(
                     top_20,
-                    x='Ventas', 
+                    x='Ventas',
                     y='Margen %',
                     size='Cantidad',
+                    color='Cantidad',  # Para aplicar gradiente de color
+                    color_continuous_scale='inferno',
                     hover_name='producto_corto',
                     hover_data={'Utilidad': ':,.0f'},
                     title="💹 Ventas vs Margen (TOP 20)",
                     labels={'Ventas': 'Ventas ($)', 'Margen %': 'Margen (%)'}
                 )
-                fig.update_traces(marker=dict(opacity=0.7))
+
+                fig.update_traces(marker=dict(opacity=0.8, line=dict(width=0)))
+                fig.update_layout(
+                    height=350,
+                    title_x=0.2,  # Centrar título
+                    coloraxis_colorbar=dict(title='Cantidad'),
+                    margin=dict(t=60, b=20, l=10, r=10)
+                )
+
                 st.plotly_chart(fig, use_container_width=True)
+
+            # with col1:
+            #     # Scatter plot Ventas vs Margen - CORREGIDO
+            #     top_20 = productos_stats.head(20).reset_index()
+            #     top_20['producto_corto'] = top_20['descripcion'].str[:30] + '...'
+                
+            #     fig = px.scatter(
+            #         top_20,
+            #         x='Ventas', 
+            #         y='Margen %',
+            #         size='Cantidad',
+            #         hover_name='producto_corto',
+            #         hover_data={'Utilidad': ':,.0f'},
+            #         title="💹 Ventas vs Margen (TOP 20)",
+            #         labels={'Ventas': 'Ventas ($)', 'Margen %': 'Margen (%)'}
+            #     )
+            #     fig.update_traces(marker=dict(opacity=0.7))
+            #     st.plotly_chart(fig, use_container_width=True)
             
             with col2:
                 # Análisis de Pareto
