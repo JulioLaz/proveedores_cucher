@@ -512,10 +512,10 @@ class ProveedorDashboard:
             .metric-box {
                 background-color: #ffffff;
                 border-radius: 12px;
-                padding: 1rem;
+                padding: .5rem;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 border-left: 5px solid #2a5298;
-                margin-bottom: 1rem;
+                margin-bottom: .5rem;
             }
             .insight-box, .success-box, .warning-box {
                 border-radius: 10px;
