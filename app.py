@@ -832,9 +832,55 @@ class ProveedorDashboard:
                 fig.update_yaxes(tickformat='.1f', ticksuffix='%')
                 st.plotly_chart(fig, use_container_width=True)
             
+            # with col3:
+            #     # Scatter Tickets vs Ventas por Sucursal - CORREGIDO
+            #     # --- Preparar datos para scatter por sucursal ---
+            #     sucursal_reset = sucursal_stats.reset_index()
+            #     sucursal_reset.rename(columns={'sucursal': 'Sucursal'}, inplace=True)
+
+            #     # Validación defensiva
+            #     cols = ['tickets', 'precio_total', 'margen_porcentual']
+            #     sucursal_reset = sucursal_reset.dropna(subset=cols)
+
+            #     for col in cols:
+            #         sucursal_reset[col] = pd.to_numeric(sucursal_reset[col], errors='coerce')
+
+            #     # Eliminar valores negativos o no válidos
+            #     sucursal_reset = sucursal_reset[
+            #         (sucursal_reset['tickets'] > 0) &
+            #         (sucursal_reset['precio_total'] > 0) &
+            #         (sucursal_reset['margen_porcentual'] > 0)
+            #     ]
+
+            #     # Aplicar winsorización para `size`
+            #     if not sucursal_reset.empty:
+            #         mediana = sucursal_reset['margen_porcentual'].median()
+            #         percentil_95 = sucursal_reset['margen_porcentual'].quantile(0.95)
+            #         umbral_max = min(percentil_95, mediana * 2)
+            #         sucursal_reset['margen_plot'] = sucursal_reset['margen_porcentual'].clip(upper=umbral_max)
+
+            #         try:
+            #             fig = px.scatter(
+            #                 sucursal_reset,
+            #                 x='tickets',
+            #                 y='precio_total',
+            #                 size='margen_plot',
+            #                 hover_name='Sucursal',
+            #                 title="🎯 Tickets vs Ventas por Sucursal",
+            #                 labels={'tickets': 'Número de Tickets', 'precio_total': 'Ventas ($)'}
+            #             )
+            #             fig.update_traces(marker=dict(opacity=0.7))
+            #             st.plotly_chart(fig, use_container_width=True)
+            #         except Exception as e:
+            #             st.warning(f"⚠️ No se pudo generar el gráfico de dispersión: {e}")
+            #             st.dataframe(sucursal_reset)
+            #     else:
+            #         st.info("⚠️ No hay datos válidos para el gráfico de sucursales.")
+
+#########################################################################
+
             with col3:
                 # Scatter Tickets vs Ventas por Sucursal - CORREGIDO
-                # --- Preparar datos para scatter por sucursal ---
                 sucursal_reset = sucursal_stats.reset_index()
                 sucursal_reset.rename(columns={'sucursal': 'Sucursal'}, inplace=True)
 
@@ -870,14 +916,14 @@ class ProveedorDashboard:
                             labels={'tickets': 'Número de Tickets', 'precio_total': 'Ventas ($)'}
                         )
                         fig.update_traces(marker=dict(opacity=0.7))
-                        st.plotly_chart(fig, use_container_width=True)
+
+                        # 🚀 CORRECCIÓN CLAVE: evitar error de elementos duplicados
+                        st.plotly_chart(fig, use_container_width=True, key="scatter_sucursal")
                     except Exception as e:
                         st.warning(f"⚠️ No se pudo generar el gráfico de dispersión: {e}")
                         st.dataframe(sucursal_reset)
                 else:
                     st.info("⚠️ No hay datos válidos para el gráfico de sucursales.")
-
-
 
 #########################################################################
 
