@@ -1214,10 +1214,9 @@ class ProveedorDashboard:
         
         # # Tabla resumen mensual
         # st.markdown("### 📋 Resumen Mensual")
-
         st.markdown("### 📋 Resumen Mensual")
 
-        # Copia y renombra columnas
+        # Copiar, renombrar y seleccionar columnas clave
         mensual_display = mensual.copy()
         mensual_display.rename(columns={
             "mes_año": "Mes",
@@ -1227,25 +1226,23 @@ class ProveedorDashboard:
             "margen_porcentual": "Margen %"
         }, inplace=True)
 
-        # Filtrar solo columnas deseadas
-        columnas_finales = ["Mes", "Ventas", "Utilidad", "Cantidad", "Margen %"]
-        mensual_display = mensual_display[columnas_finales]
+        mensual_display = mensual_display[["Mes", "Ventas", "Utilidad", "Cantidad", "Margen %"]]
 
-        # Mostrar tabla con formato profesional
+        # Mostrar tabla con formato adecuado y profesional
         st.dataframe(
             mensual_display,
             use_container_width=True,
             column_config={
                 "Mes": st.column_config.TextColumn("Mes", width="small"),
-                "Ventas": st.column_config.NumberColumn("Ventas", format="$ {:,.0f}", width="medium"),
-                "Utilidad": st.column_config.NumberColumn("Utilidad", format="$ {:,.0f}", width="medium"),
-                "Cantidad": st.column_config.NumberColumn("Cantidad", format="{:,}", width="medium"),
-                "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%", width="small")
+                "Ventas": st.column_config.NumberColumn("Ventas", format="$%.0f", width="medium"),
+                "Utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f", width="medium"),
+                "Cantidad": st.column_config.NumberColumn("Cantidad", format="%.0f", width="medium"),
+                "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%", width="small"),
             },
             hide_index=True
         )
 
-        # Centrar columnas con CSS
+        # Centrado de títulos y columna Mes
         st.markdown("""
         <style>
         thead tr th {
@@ -1256,6 +1253,7 @@ class ProveedorDashboard:
         }
         </style>
         """, unsafe_allow_html=True)
+
 
 
         # # Copiar y renombrar columnas clave
