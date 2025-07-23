@@ -864,7 +864,7 @@ class ProveedorDashboard:
     def show_products_analysis(self, df):
         """Análisis detallado de productos"""
         # st.subheader("🏆 Análisis Detallado de Productos")
-            st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
+        st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
         
         try:
                # === PREPARAR DATA AGRUPADA POR PRODUCTO ===
