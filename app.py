@@ -1212,9 +1212,10 @@ class ProveedorDashboard:
                 st.plotly_chart(fig, use_container_width=True)
 
         
-        # Tabla resumen mensual
+        # # Tabla resumen mensual
         st.markdown("### 📋 Resumen Mensual")
-        
+
+        # Copiar y renombrar columnas clave
         mensual_display = mensual.copy()
         mensual_display.rename(columns={
             "mes_año": "Mes",
@@ -1224,6 +1225,11 @@ class ProveedorDashboard:
             "margen_porcentual": "Margen %"
         }, inplace=True)
 
+        # Seleccionar solo las columnas que querés mostrar
+        columnas_finales = ["Mes", "Ventas", "Utilidad", "Cantidad", "Margen %"]
+        mensual_display = mensual_display[columnas_finales]
+
+        # Mostrar tabla limpia y formateada
         st.dataframe(
             mensual_display,
             use_container_width=True,
@@ -1231,9 +1237,32 @@ class ProveedorDashboard:
                 "Ventas": st.column_config.NumberColumn("Ventas", format="$%.0f"),
                 "Utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f"),
                 "Cantidad": st.column_config.NumberColumn("Cantidad", format="%.0f"),
-                "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%")            },
+                "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%")
+            },
             hide_index=True
         )
+
+        # st.markdown("### 📋 Resumen Mensual")
+        
+        # mensual_display = mensual.copy()
+        # mensual_display.rename(columns={
+        #     "mes_año": "Mes",
+        #     "precio_total": "Ventas",
+        #     "utilidad": "Utilidad",
+        #     "cantidad_total": "Cantidad",
+        #     "margen_porcentual": "Margen %"
+        # }, inplace=True)
+
+        # st.dataframe(
+        #     mensual_display,
+        #     use_container_width=True,
+        #     column_config={
+        #         "Ventas": st.column_config.NumberColumn("Ventas", format="$%.0f"),
+        #         "Utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f"),
+        #         "Cantidad": st.column_config.NumberColumn("Cantidad", format="%.0f"),
+        #         "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%")            },
+        #     hide_index=True
+        # )
     
     def show_advanced_analysis(self, df, metrics):
         """Análisis avanzado"""
