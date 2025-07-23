@@ -864,29 +864,10 @@ class ProveedorDashboard:
     def show_products_analysis(self, df):
         """Análisis detallado de productos"""
         # st.subheader("🏆 Análisis Detallado de Productos")
+            st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
         
         try:
-            # Métricas de productos
-            # productos_stats = df.groupby(['idarticulo', 'descripcion']).agg({
-            #     'precio_total': 'sum',
-            #     'costo_total': 'sum',
-            #     'utilidad': 'sum',
-            #     'cantidad_total': 'sum',
-            #     'margen_porcentual': 'mean'
-            # }).round(2)
-            
-            # productos_stats.columns = ['Ventas', 'Costos', 'Utilidad', 'Cantidad', 'Margen %']
-            # productos_stats['Participación %'] = (productos_stats['Ventas'] / productos_stats['Ventas'].sum() * 100).round(2)
-            # productos_stats['Tickets'] = df.groupby(['idarticulo', 'descripcion']).size()
-            
-            # # Ordenar por ventas
-            # productos_stats = productos_stats.sort_values('Ventas', ascending=False)
-            
-###########################################################
-
-            st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
-
-            # === PREPARAR DATA AGRUPADA POR PRODUCTO ===
+               # === PREPARAR DATA AGRUPADA POR PRODUCTO ===
             productos_stats = df.groupby("descripcion").agg({
                 "precio_total": "sum",
                 "costo_total": "sum",
@@ -907,7 +888,7 @@ class ProveedorDashboard:
             col1, col2 = st.columns([3, 1])
             with col2:
                 orden_por = st.selectbox(
-                    "📊 Ordenar por:",
+                    "",
                     ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"]
                 )
 
@@ -964,37 +945,7 @@ class ProveedorDashboard:
 
             if top_n < 5:
                 st.warning(f"⚠️ Solo hay {top_n} productos disponibles con datos en '{orden_por}'.")
-
-
-
-            # # Filtros para la tabla
-            # col1, col2 = st.columns([3, 1])
-            # with col2:
-            #     orden_por = st.selectbox(
-            #         "Ordenar por:",
-            #         ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"]
-            #     )
-            
-            # productos_ordenados = productos_stats.sort_values(orden_por, ascending=False).head(20)
-            
-            # # Formatear para mostrar
-            # productos_display = productos_ordenados.copy()
-            # productos_display.index = [f"{desc[:40]}..." if len(desc) > 40 else desc for _, desc in productos_display.index]
-            
-            # st.dataframe(
-            #     productos_display,
-            #     use_container_width=True,
-            #     column_config={
-            #         "Ventas": st.column_config.NumberColumn("Ventas", format="$%.0f"),
-            #         "Costos": st.column_config.NumberColumn("Costos", format="$%.0f"),
-            #         "Utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f"),
-            #         "Cantidad": st.column_config.NumberColumn("Cantidad", format="%.0f"),
-            #         "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%"),
-            #         "Participación %": st.column_config.NumberColumn("Participación %", format="%.1f%%"),
-            #         "Tickets": st.column_config.NumberColumn("Tickets", format="%d")
-            #     }
-            # )
-            
+           
             # Gráficas de productos
             col1, col2 = st.columns(2)
             with col1:
