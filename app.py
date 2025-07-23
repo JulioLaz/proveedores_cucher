@@ -923,7 +923,7 @@ class ProveedorDashboard:
             )
 
             fig.update_layout(
-                title_font=dict(size=18, color='#454448', family='Arial Black'),
+                title_font=dict(size=22, color='#454448', family='Arial Black'),
                 title_x=0.3,
                 height=400,
                 margin=dict(t=80, b=120),
@@ -963,7 +963,7 @@ class ProveedorDashboard:
                 fig.update_layout(
                     height=600,
                     title_font=dict(size=18, color='#454448', family='Arial Black'),
-                    title_x=0.8,                    coloraxis_colorbar=dict(title='Cantidad'),
+                    title_x=0.08,                    coloraxis_colorbar=dict(title='Cantidad'),
                     margin=dict(t=60, b=20, l=10, r=10)
                 )
                 st.plotly_chart(fig, use_container_width=True)
@@ -1013,7 +1013,7 @@ class ProveedorDashboard:
                 fig.update_layout(
                     title_text="📈 Análisis de Pareto - Concentración de Ventas",
                     title_font=dict(size=18, color='#454448', family='Arial Black'),
-                    title_x=0.8,
+                    title_x=0.08,
                     xaxis_title="Ranking de Productos",
                     yaxis_title="Participación Individual (%)",
                     height=600,
