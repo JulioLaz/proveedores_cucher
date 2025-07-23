@@ -1080,7 +1080,7 @@ class ProveedorDashboard:
             fig.update_traces(
                 line_color='#2a5298',
                 line_width=1,
-                marker_size=8,
+                marker_size=5,
                 textposition="top center"
             )
             fig.update_layout(
@@ -1108,22 +1108,19 @@ class ProveedorDashboard:
             fig.update_traces(
                 line_color='#28a745',
                 line_width=1,
-                marker_size=8,
+                marker_size=5,
                 textposition="top center"
             )
             fig.update_layout(
                 title_font=dict(size=18, color='#454448', family='Arial Black'),
-                title_x=0.08,
+                title_x=0.15,
                 xaxis_title=None,
                 yaxis_title=None,
                 margin=dict(t=70, b=40, l=30, r=20),
             )
             fig.update_yaxes(showticklabels=False)
             st.plotly_chart(fig, use_container_width=True)
-       
-
-
-        
+              
         # Análisis por día de la semana
         if 'dia_semana' in df.columns:
             st.markdown("### 📅 Análisis por Día de la Semana")
@@ -1148,25 +1145,90 @@ class ProveedorDashboard:
             semanal = semanal.reset_index()
             
             col1, col2 = st.columns(2)
-            
             with col1:
+                # Formato para mostrar valores
+                semanal["ventas_fmt"] = semanal["precio_total"].apply(lambda x: f"${x/1e6:.1f}M")
+
                 fig = px.bar(
-                    semanal, x='dia_semana_es', y='precio_total',
+                    semanal,
+                    x='dia_semana_es',
+                    y='precio_total',
+                    text='ventas_fmt',  # Mostrar valores arriba
                     title="📊 Ventas por Día de la Semana",
                     color='precio_total',
                     color_continuous_scale='Blues'
                 )
+
+                fig.update_traces(
+                    textposition='outside',
+                    hovertemplate="<b>%{x}</b><br>Ventas: %{text}<extra></extra>"
+                )
+
+                fig.update_layout(
+                    title_font=dict(size=18, color='#454448', family='Arial Black'),
+                    title_x=0.08,
+                    xaxis_title=None,
+                    yaxis_title=None,
+                    margin=dict(t=70, b=40, l=30, r=20),
+                    coloraxis_showscale=False  # 👈 Oculta la leyenda de color
+                )
+
+                fig.update_yaxes(showticklabels=False)
                 st.plotly_chart(fig, use_container_width=True)
-            
+
             with col2:
+                semanal["margen_fmt"] = semanal["margen_porcentual"].map("{:.1f}%".format)
+
                 fig = px.bar(
-                    semanal, x='dia_semana_es', y='margen_porcentual',
+                    semanal,
+                    x='dia_semana_es',
+                    y='margen_porcentual',
+                    text='margen_fmt',
                     title="📈 Margen por Día de la Semana",
                     color='margen_porcentual',
                     color_continuous_scale='Greens'
                 )
-                fig.update_yaxes(tickformat='.1f', ticksuffix='%')
+
+                fig.update_traces(
+                    textposition='outside',
+                    hovertemplate="<b>%{x}</b><br>Margen: %{text}<extra></extra>"
+                )
+
+                fig.update_layout(
+                    title_font=dict(size=18, color='#454448', family='Arial Black'),
+                    title_x=0.08,
+                    xaxis_title=None,
+                    yaxis_title=None,
+                    margin=dict(t=70, b=40, l=30, r=20),
+                    coloraxis_showscale=False
+                )
+
+                fig.update_yaxes(
+                    tickformat='.1f',
+                    ticksuffix='%',
+                    showticklabels=False
+                )
+
                 st.plotly_chart(fig, use_container_width=True)
+            
+            # with col1:
+            #     fig = px.bar(
+            #         semanal, x='dia_semana_es', y='precio_total',
+            #         title="📊 Ventas por Día de la Semana",
+            #         color='precio_total',
+            #         color_continuous_scale='Blues'
+            #     )
+            #     st.plotly_chart(fig, use_container_width=True)
+            
+            # with col2:
+            #     fig = px.bar(
+            #         semanal, x='dia_semana_es', y='margen_porcentual',
+            #         title="📈 Margen por Día de la Semana",
+            #         color='margen_porcentual',
+            #         color_continuous_scale='Greens'
+            #     )
+            #     fig.update_yaxes(tickformat='.1f', ticksuffix='%')
+            #     st.plotly_chart(fig, use_container_width=True)
         
         # Tabla resumen mensual
         st.markdown("### 📋 Resumen Mensual")
