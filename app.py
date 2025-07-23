@@ -923,7 +923,8 @@ class ProveedorDashboard:
             )
 
             fig.update_layout(
-                title_x=0.2,
+                title_font=dict(size=18, color='#454448', family='Arial Black'),
+                title_x=0.3,
                 height=400,
                 margin=dict(t=80, b=120),
                 xaxis_tickangle=-45,
@@ -961,8 +962,8 @@ class ProveedorDashboard:
                 fig.update_traces(marker=dict(opacity=0.8, line=dict(width=0)))
                 fig.update_layout(
                     height=600,
-                    title_x=0.2,
-                    coloraxis_colorbar=dict(title='Cantidad'),
+                    title_font=dict(size=18, color='#454448', family='Arial Black'),
+                    title_x=0.8,                    coloraxis_colorbar=dict(title='Cantidad'),
                     margin=dict(t=60, b=20, l=10, r=10)
                 )
                 st.plotly_chart(fig, use_container_width=True)
@@ -1012,7 +1013,7 @@ class ProveedorDashboard:
                 fig.update_layout(
                     title_text="📈 Análisis de Pareto - Concentración de Ventas",
                     title_font=dict(size=18, color='#454448', family='Arial Black'),
-                    title_x=0.05,
+                    title_x=0.8,
                     xaxis_title="Ranking de Productos",
                     yaxis_title="Participación Individual (%)",
                     height=600,
@@ -1029,57 +1030,7 @@ class ProveedorDashboard:
 
                 fig.update_yaxes(title_text="Participación Individual (%)", secondary_y=False)
                 fig.update_yaxes(title_text="Participación Acumulada (%)", secondary_y=True)
-
                 st.plotly_chart(fig, use_container_width=True)
-
-
-            # with col2:
-            #     # Análisis de Pareto
-            #     productos_pareto = productos_stats.sort_values("Ventas", ascending=False).head(20).copy()
-            #     participacion_acum = productos_pareto['Participación %'].cumsum()
-
-            #     fig = make_subplots(specs=[[{"secondary_y": True}]])
-
-            #     fig.add_trace(
-            #         go.Bar(
-            #             x=list(range(1, len(productos_pareto) + 1)),
-            #             y=productos_pareto['Participación %'],
-            #             name='Participación Individual (%)',
-            #             marker_color='lightblue'
-            #         ),
-            #         secondary_y=False
-            #     )
-
-            #     fig.add_trace(
-            #         go.Scatter(
-            #             x=list(range(1, len(productos_pareto) + 1)),
-            #             y=participacion_acum,
-            #             mode='lines+markers',
-            #             name='Participación Acumulada (%)',
-            #             line=dict(color='red', width=1)
-            #         ),
-            #         secondary_y=True
-            #     )
-
-            #     fig.update_layout(
-            #         title_text="📈 Análisis de Pareto - Concentración de Ventas",
-            #         title_x=0.2,
-            #         xaxis_title="Ranking de Productos",
-            #         yaxis_title="Participación Individual (%)",
-            #         height=400,
-            #         legend=dict(
-            #             orientation="h",
-            #             yanchor="top",
-            #             y=1.15,
-            #             xanchor="center",
-            #             x=0.5,
-            #             bgcolor='rgba(0,0,0,0)'
-            #         )
-            #     )
-            #     fig.update_yaxes(title_text="Participación Individual (%)", secondary_y=False)
-            #     fig.update_yaxes(title_text="Participación Acumulada (%)", secondary_y=True)
-
-            #     st.plotly_chart(fig, use_container_width=True)
 
         except Exception as e:
             st.error(f"❌ Error en análisis de productos: {str(e)}")
