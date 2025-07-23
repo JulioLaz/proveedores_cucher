@@ -1231,7 +1231,7 @@ class ProveedorDashboard:
         mensual_display["Margen %"] = mensual_display["Margen %"].map("{:.1f}%".format)
 
         # Convertir a HTML con estilos personalizados
-        html = mensual_display.to_html(index=False, escape=False)o
+        html = mensual_display.to_html(index=False, escape=False)
 
         # === TÍTULO Y BOTÓN EN MISMA FILA ===
         col1, col2 = st.columns([6, 1])
