@@ -1216,7 +1216,7 @@ class ProveedorDashboard:
         # st.markdown("### 📋 Resumen Mensual")
         st.markdown("### 📋 Resumen Mensual")
 
-        # Copiar, renombrar y seleccionar columnas clave
+        # Copiar y renombrar
         mensual_display = mensual.copy()
         mensual_display.rename(columns={
             "mes_año": "Mes",
@@ -1226,33 +1226,21 @@ class ProveedorDashboard:
             "margen_porcentual": "Margen %"
         }, inplace=True)
 
+        # Selección de columnas deseadas
         mensual_display = mensual_display[["Mes", "Ventas", "Utilidad", "Cantidad", "Margen %"]]
 
-        # Mostrar tabla con formato adecuado y profesional
-        st.dataframe(
-            mensual_display,
-            use_container_width=True,
-            column_config={
-                "Mes": st.column_config.TextColumn("Mes", width="small"),
-                "Ventas": st.column_config.NumberColumn("Ventas", format="$%.0f", width="medium"),
-                "Utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f", width="medium"),
-                "Cantidad": st.column_config.NumberColumn("Cantidad", format="%.0f", width="medium"),
-                "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%", width="small"),
-            },
-            hide_index=True
-        )
+        # Aplicar formateo manual
+        mensual_display["Ventas"] = mensual_display["Ventas"].apply(lambda x: f"${x:,.0f}")
+        mensual_display["Utilidad"] = mensual_display["Utilidad"].apply(lambda x: f"${x:,.0f}")
+        mensual_display["Cantidad"] = mensual_display["Cantidad"].apply(lambda x: f"{x:,.0f}")
+        mensual_display["Margen %"] = mensual_display["Margen %"].map("{:.1f}%".format)
 
-        # Centrado de títulos y columna Mes
-        st.markdown("""
-        <style>
-        thead tr th {
-            text-align: center !important;
-        }
-        tbody td:nth-child(1) {
-            text-align: center !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        # Mostrar como tabla estática con formato aplicado
+        st.table(mensual_display.style.set_table_styles([
+            {'selector': 'th', 'props': [('text-align', 'center')]},
+            {'selector': 'td', 'props': [('text-align', 'center')]}
+        ]))
+
 
 
 
