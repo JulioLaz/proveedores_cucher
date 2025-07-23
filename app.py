@@ -17,6 +17,13 @@ warnings.filterwarnings('ignore')
 
 from limpiar_datos import limpiar_datos
 
+def format_abbr(x):
+                if x >= 1_000_000:
+                    return f"${x/1_000_000:.1f}M"
+                elif x >= 1_000:
+                    return f"${x/1_000:.0f}K"
+                else:
+                    return f"${x:.0f}"
 
 # === CONFIGURACION DE PAGINA ===
 st.set_page_config(
@@ -668,6 +675,11 @@ class ProveedorDashboard:
                 background-color: #d1ecf1;
                 border-left-color: #17a2b8;
             }
+            #tabs-bui171-tabpanel-1 > div > div:nth-child(1) > div.stColumn > div > div > div > label {
+                display: none !important;
+            }
+
+
         </style>
         """, unsafe_allow_html=True)
 
@@ -768,12 +780,14 @@ class ProveedorDashboard:
             ventas_diarias['fecha_ordinal'] = ventas_diarias['fecha'].map(pd.Timestamp.toordinal)
             coef = np.polyfit(ventas_diarias['fecha_ordinal'], ventas_diarias['precio_total'], 1)
             ventas_diarias['tendencia'] = coef[0] * ventas_diarias['fecha_ordinal'] + coef[1]
-
+            ventas_diarias['precio'] = ventas_diarias['precio_total'].apply(format_abbr)
             # Crear gráfico de línea de ventas
             fig = px.line(
                 ventas_diarias,
                 x='fecha',
                 y='precio_total',
+                text='precio',
+                markers=True,
                 title="📈 Evolución Diaria de Ventas",
                 labels={'precio_total': '', 'fecha': ''}
             )
@@ -817,22 +831,22 @@ class ProveedorDashboard:
             top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
 
             # Función para formato $K / $M
-            def format_abbr(x):
-                if x >= 1_000_000:
-                    return f"${x/1_000_000:.1f}M"
-                elif x >= 1_000:
-                    return f"${x/1_000:.0f}K"
-                else:
-                    return f"${x:.0f}"
+            # def format_abbr(x):
+            #     if x >= 1_000_000:
+            #         return f"${x/1_000_000:.1f}M"
+            #     elif x >= 1_000:
+            #         return f"${x/1_000:.0f}K"
+            #     else:
+            #         return f"${x:.0f}"
 
-            top_productos['precio_texto'] = top_productos['precio_total'].apply(format_abbr)
+            top_productos['precio'] = top_productos['precio_total'].apply(format_abbr)
 
             fig = px.bar(
                 top_productos,
                 x='precio_total',
                 y='descripcion_corta',
                 orientation='h',
-                text='precio_texto',
+                text='precio',
                 title="🏆 Top 5 Productos por Ventas",
                 labels={'precio_total': '', 'descripcion_corta': ''}
             )
@@ -882,14 +896,6 @@ class ProveedorDashboard:
                 "costo_total": "Costos",
                 "cantidad_total": "Cantidad"
             }, inplace=True)
-
-            # === Selector de métrica ===
-            # col1, col2 = st.columns([3, 1])
-            # with col2:
-            #     orden_por = st.selectbox(
-            #         "",
-            #         ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"]
-            #     )
 
             # === Título y selector alineados en una fila ===
             col1, col2 = st.columns([5, 1])  # Ajusta proporción según el espacio que desees
