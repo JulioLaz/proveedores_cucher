@@ -1036,8 +1036,6 @@ class ProveedorDashboard:
             st.error(f"❌ Error en análisis de productos: {str(e)}")
             st.info("💡 Intenta con un rango de fechas diferente o verifica los datos del proveedor.")
 
-###########################################################################################
-
     def show_temporal_analysis(self, df):
         """Análisis temporal"""
         st.subheader("📅 Análisis de Evolución Temporal")
@@ -1054,7 +1052,6 @@ class ProveedorDashboard:
         mensual = mensual.reset_index()
         
         # Gráficas temporales
-        # Gráficas temporales
         col1, col2 = st.columns(2)
 
         with col1:
@@ -1067,6 +1064,7 @@ class ProveedorDashboard:
             fig.update_layout(
                 title_font=dict(size=18, color='#454448', family='Arial Black'),
                 title_x=0.08,
+                margin=dict(t=60, b=20, l=10, r=10)
                 xaxis_title=None,
                 yaxis_title=None
             )
@@ -1087,27 +1085,6 @@ class ProveedorDashboard:
             )
             fig.update_yaxes(tickformat='.1f', ticksuffix='%')
             st.plotly_chart(fig, use_container_width=True)
-
-        # col1, col2 = st.columns(2)
-        
-        # with col1:
-        #     fig = px.line(
-        #         mensual, x='mes_año', y='precio_total',
-        #         title="📈 Evolución Mensual de Ventas",
-        #         markers=True
-        #     )
-        #     fig.update_traces(line_color='#2a5298', line_width=4, marker_size=8)
-        #     st.plotly_chart(fig, use_container_width=True)
-        
-        # with col2:
-        #     fig = px.line(
-        #         mensual, x='mes_año', y='margen_porcentual',
-        #         title="📊 Evolución del Margen Promedio",
-        #         markers=True
-        #     )
-        #     fig.update_traces(line_color='#28a745', line_width=4, marker_size=8)
-        #     fig.update_yaxes(tickformat='.1f', ticksuffix='%')
-        #     st.plotly_chart(fig, use_container_width=True)
         
         # Análisis por día de la semana
         if 'dia_semana' in df.columns:
