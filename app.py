@@ -863,24 +863,24 @@ class ProveedorDashboard:
    
     def show_products_analysis(self, df):
         """Análisis detallado de productos"""
-        st.subheader("🏆 Análisis Detallado de Productos")
+        # st.subheader("🏆 Análisis Detallado de Productos")
         
         try:
             # Métricas de productos
-            productos_stats = df.groupby(['idarticulo', 'descripcion']).agg({
-                'precio_total': 'sum',
-                'costo_total': 'sum',
-                'utilidad': 'sum',
-                'cantidad_total': 'sum',
-                'margen_porcentual': 'mean'
-            }).round(2)
+            # productos_stats = df.groupby(['idarticulo', 'descripcion']).agg({
+            #     'precio_total': 'sum',
+            #     'costo_total': 'sum',
+            #     'utilidad': 'sum',
+            #     'cantidad_total': 'sum',
+            #     'margen_porcentual': 'mean'
+            # }).round(2)
             
-            productos_stats.columns = ['Ventas', 'Costos', 'Utilidad', 'Cantidad', 'Margen %']
-            productos_stats['Participación %'] = (productos_stats['Ventas'] / productos_stats['Ventas'].sum() * 100).round(2)
-            productos_stats['Tickets'] = df.groupby(['idarticulo', 'descripcion']).size()
+            # productos_stats.columns = ['Ventas', 'Costos', 'Utilidad', 'Cantidad', 'Margen %']
+            # productos_stats['Participación %'] = (productos_stats['Ventas'] / productos_stats['Ventas'].sum() * 100).round(2)
+            # productos_stats['Tickets'] = df.groupby(['idarticulo', 'descripcion']).size()
             
-            # Ordenar por ventas
-            productos_stats = productos_stats.sort_values('Ventas', ascending=False)
+            # # Ordenar por ventas
+            # productos_stats = productos_stats.sort_values('Ventas', ascending=False)
             
 ###########################################################
 
