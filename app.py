@@ -963,7 +963,10 @@ class ProveedorDashboard:
                 fig.update_layout(
                     height=600,
                     title_font=dict(size=18, color='#454448', family='Arial Black'),
-                    title_x=0.08,                    coloraxis_colorbar=dict(title='Cantidad'),
+                    title_x=0.08,
+                    xaxis_title=None,
+                # yaxis_title=None,
+                    coloraxis_colorbar=dict(title='Cantidad'),
                     margin=dict(t=60, b=20, l=10, r=10)
                 )
                 st.plotly_chart(fig, use_container_width=True)
