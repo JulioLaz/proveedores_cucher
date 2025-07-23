@@ -1210,38 +1210,18 @@ class ProveedorDashboard:
                 )
 
                 st.plotly_chart(fig, use_container_width=True)
-            
-            # with col1:
-            #     fig = px.bar(
-            #         semanal, x='dia_semana_es', y='precio_total',
-            #         title="📊 Ventas por Día de la Semana",
-            #         color='precio_total',
-            #         color_continuous_scale='Blues'
-            #     )
-            #     st.plotly_chart(fig, use_container_width=True)
-            
-            # with col2:
-            #     fig = px.bar(
-            #         semanal, x='dia_semana_es', y='margen_porcentual',
-            #         title="📈 Margen por Día de la Semana",
-            #         color='margen_porcentual',
-            #         color_continuous_scale='Greens'
-            #     )
-            #     fig.update_yaxes(tickformat='.1f', ticksuffix='%')
-            #     st.plotly_chart(fig, use_container_width=True)
+
         
         # Tabla resumen mensual
         st.markdown("### 📋 Resumen Mensual")
         
         mensual_display = mensual.copy()
-        # mensual_display.columns = ['Mes', 'Ventas', 'Utilidad', 'Cantidad', 'Margen %', 'Tickets']
         mensual_display.rename(columns={
             "mes_año": "Mes",
             "precio_total": "Ventas",
             "utilidad": "Utilidad",
             "cantidad_total": "Cantidad",
-            "margen_porcentual": "Margen %",
-            "tickets": "Tickets"
+            "margen_porcentual": "Margen %"
         }, inplace=True)
 
         st.dataframe(
@@ -1251,9 +1231,7 @@ class ProveedorDashboard:
                 "Ventas": st.column_config.NumberColumn("Ventas", format="$%.0f"),
                 "Utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f"),
                 "Cantidad": st.column_config.NumberColumn("Cantidad", format="%.0f"),
-                "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%"),
-                "Tickets": st.column_config.NumberColumn("Tickets", format="%d")
-            },
+                "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%")            },
             hide_index=True
         )
     
