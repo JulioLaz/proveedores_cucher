@@ -1019,7 +1019,7 @@ class ProveedorDashboard:
                     legend=dict(
                         orientation="h",
                         yanchor="top",
-                        y=1,
+                        y=1.1,
                         xanchor="center",
                         x=0.5,
                         bgcolor='rgba(0,0,0,0)'
