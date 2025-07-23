@@ -849,7 +849,7 @@ class ProveedorDashboard:
                 textposition='outside',
                 cliponaxis=False,
                 insidetextanchor='start',
-                hovertemplate='<b>Artículo:</b> %{y}<br><b>Precio:</b> %{customdata[0]}<extra></extra>'
+                hovertemplate='<b>Artículo:</b> %{y}<br><b>Venta:</b> %{customdata[0]}<extra></extra>'
 
             )
 
@@ -900,7 +900,6 @@ class ProveedorDashboard:
                     ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"]
     )
 
-
             # === Obtener top ordenado ===
             productos_top = productos_stats[productos_stats[orden_por].notna()].copy()
             productos_top = productos_top.sort_values(orden_por, ascending=False).head(20).copy()
@@ -934,7 +933,7 @@ class ProveedorDashboard:
                 paper_bgcolor='rgba(0,0,0,0)',
                 font=dict(size=12)
             )
-            fig.update_traces(marker_color='indigo')
+            fig.update_traces(marker_color='#8966c6')
             st.plotly_chart(fig, use_container_width=True)
 
             if len(productos_top) < 5:
