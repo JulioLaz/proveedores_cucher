@@ -1064,9 +1064,9 @@ class ProveedorDashboard:
             fig.update_layout(
                 title_font=dict(size=18, color='#454448', family='Arial Black'),
                 title_x=0.08,
-                margin=dict(t=60, b=20, l=10, r=10)
                 xaxis_title=None,
-                yaxis_title=None
+                yaxis_title=None,
+                margin=dict(t=70, b=40, l=30, r=20)  # Ajustado
             )
             st.plotly_chart(fig, use_container_width=True)
 
@@ -1077,14 +1077,48 @@ class ProveedorDashboard:
                 markers=True
             )
             fig.update_traces(line_color='#28a745', line_width=1, marker_size=8)
+            fig.update_yaxes(tickformat='.1f', ticksuffix='%')
             fig.update_layout(
                 title_font=dict(size=18, color='#454448', family='Arial Black'),
                 title_x=0.08,
                 xaxis_title=None,
-                yaxis_title=None
+                yaxis_title=None,
+                margin=dict(t=70, b=40, l=30, r=20)  # Ajustado igual
             )
-            fig.update_yaxes(tickformat='.1f', ticksuffix='%')
             st.plotly_chart(fig, use_container_width=True)
+
+        # col1, col2 = st.columns(2)
+
+        # with col1:
+        #     fig = px.line(
+        #         mensual, x='mes_año', y='precio_total',
+        #         title="📈 Evolución Mensual de Ventas",
+        #         markers=True
+        #     )
+        #     fig.update_traces(line_color='#2a5298', line_width=1, marker_size=8)
+        #     fig.update_layout(
+        #         title_font=dict(size=18, color='#454448', family='Arial Black'),
+        #         title_x=0.08,
+        #         xaxis_title=None,
+        #         yaxis_title=None
+        #     )
+        #     st.plotly_chart(fig, use_container_width=True)
+
+        # with col2:
+        #     fig = px.line(
+        #         mensual, x='mes_año', y='margen_porcentual',
+        #         title="📊 Evolución del Margen Promedio",
+        #         markers=True
+        #     )
+        #     fig.update_traces(line_color='#28a745', line_width=1, marker_size=8)
+        #     fig.update_layout(
+        #         title_font=dict(size=18, color='#454448', family='Arial Black'),
+        #         title_x=0.08,
+        #         xaxis_title=None,
+        #         yaxis_title=None
+        #     )
+        #     fig.update_yaxes(tickformat='.1f', ticksuffix='%')
+        #     st.plotly_chart(fig, use_container_width=True)
         
         # Análisis por día de la semana
         if 'dia_semana' in df.columns:
