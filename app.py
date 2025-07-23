@@ -786,7 +786,7 @@ class ProveedorDashboard:
                 ventas_diarias,
                 x='fecha',
                 y='precio_total',
-                # text='precio',
+                text='precio',
                 # markers=True,
                 title="📈 Evolución Diaria de Ventas",
                 labels={'precio': '', 'fecha': ''}
@@ -829,16 +829,6 @@ class ProveedorDashboard:
                 .head(5)
             )
             top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
-
-            # Función para formato $K / $M
-            # def format_abbr(x):
-            #     if x >= 1_000_000:
-            #         return f"${x/1_000_000:.1f}M"
-            #     elif x >= 1_000:
-            #         return f"${x/1_000:.0f}K"
-            #     else:
-            #         return f"${x:.0f}"
-
             top_productos['precio'] = top_productos['precio_total'].apply(format_abbr)
 
             fig = px.bar(
