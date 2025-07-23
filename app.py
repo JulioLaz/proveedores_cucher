@@ -1226,20 +1226,27 @@ class ProveedorDashboard:
             "margen_porcentual": "Margen %"
         }, inplace=True)
 
-        # Selección de columnas deseadas
+        # Selección de columnas
         mensual_display = mensual_display[["Mes", "Ventas", "Utilidad", "Cantidad", "Margen %"]]
 
-        # Aplicar formateo manual
+        # Formateo de valores
         mensual_display["Ventas"] = mensual_display["Ventas"].apply(lambda x: f"${x:,.0f}")
         mensual_display["Utilidad"] = mensual_display["Utilidad"].apply(lambda x: f"${x:,.0f}")
         mensual_display["Cantidad"] = mensual_display["Cantidad"].apply(lambda x: f"{x:,.0f}")
         mensual_display["Margen %"] = mensual_display["Margen %"].map("{:.1f}%".format)
 
-        # Mostrar como tabla estática con formato aplicado
-        st.table(mensual_display.style.set_table_styles([
-            {'selector': 'th', 'props': [('text-align', 'center')]},
-            {'selector': 'td', 'props': [('text-align', 'center')]}
-        ]))
+        # Estilo: centrar solo "Mes", alinear a la derecha el resto
+        styled_table = mensual_display.style.set_table_styles([
+            {'selector': 'th', 'props': [('text-align', 'center')]},  # Títulos centrados
+        ]).set_properties(
+            **{'text-align': 'right'}
+        ).set_properties(
+            subset=["Mes"], **{'text-align': 'center'}  # Solo Mes centrado
+        )
+
+        # Mostrar sin índice
+        st.table(styled_table.hide(axis="index"))
+
 
 
 
