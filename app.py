@@ -1011,6 +1011,7 @@ class ProveedorDashboard:
 
                 fig.update_layout(
                     title_text="📈 Análisis de Pareto - Concentración de Ventas",
+                    title_font=dict(size=20, color='#454448', family='Arial Black'),
                     title_x=0.2,
                     xaxis_title="Ranking de Productos",
                     yaxis_title="Participación Individual (%)",
@@ -1019,9 +1020,9 @@ class ProveedorDashboard:
                     legend=dict(
                         orientation="h",
                         yanchor="top",
-                        y=1.07,
+                        y=1.075,
                         xanchor="center",
-                        x=0.4,
+                        x=0.45,
                         bgcolor='rgba(0,0,0,0)'
                     )
                 )
