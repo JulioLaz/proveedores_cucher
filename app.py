@@ -787,9 +787,9 @@ class ProveedorDashboard:
                 x='fecha',
                 y='precio_total',
                 text='precio',
-                markers=True,
+                # markers=True,
                 title="📈 Evolución Diaria de Ventas",
-                labels={'precio_total': '', 'fecha': ''}
+                labels={'precio': '', 'fecha': ''}
             )
 
             # Estilizar la línea principal
