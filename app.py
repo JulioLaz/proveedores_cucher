@@ -1069,15 +1069,18 @@ class ProveedorDashboard:
             mensual["ventas_fmt"] = mensual["precio_total"].apply(lambda x: f"{x/1e6:.0f}M")
 
             fig = px.line(
-                mensual, x='mes_año', y='precio_total',
+                mensual,
+                x='mes_año',
+                y='precio_total',
+                text='ventas_fmt',  # 👈 PASAR TEXT AQUÍ
                 title="📈 Evolución Mensual de Ventas",
                 markers=True
             )
+
             fig.update_traces(
                 line_color='#2a5298',
                 line_width=1,
                 marker_size=8,
-                text=mensual["ventas_fmt"],
                 textposition="top center"
             )
             fig.update_layout(
@@ -1087,8 +1090,33 @@ class ProveedorDashboard:
                 yaxis_title=None,
                 margin=dict(t=70, b=40, l=30, r=20),
             )
-            fig.update_yaxes(showticklabels=False)  # Ocultar valores eje Y
+            fig.update_yaxes(showticklabels=False)
             st.plotly_chart(fig, use_container_width=True)
+
+        # with col1:
+        #     mensual["ventas_fmt"] = mensual["precio_total"].apply(lambda x: f"{x/1e6:.0f}M")
+
+        #     fig = px.line(
+        #         mensual, x='mes_año', y='precio_total',
+        #         title="📈 Evolución Mensual de Ventas",
+        #         markers=True
+        #     )
+        #     fig.update_traces(
+        #         line_color='#2a5298',
+        #         line_width=1,
+        #         marker_size=8,
+        #         text=mensual["ventas_fmt"],
+        #         textposition="top center"
+        #     )
+        #     fig.update_layout(
+        #         title_font=dict(size=18, color='#454448', family='Arial Black'),
+        #         title_x=0.08,
+        #         xaxis_title=None,
+        #         yaxis_title=None,
+        #         margin=dict(t=70, b=40, l=30, r=20),
+        #     )
+        #     fig.update_yaxes(showticklabels=False)  # Ocultar valores eje Y
+        #     st.plotly_chart(fig, use_container_width=True)
 
         with col2:
             mensual["margen_fmt"] = mensual["margen_porcentual"].map("{:.1f}%".format)
