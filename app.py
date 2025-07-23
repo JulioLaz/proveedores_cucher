@@ -1238,7 +1238,22 @@ class ProveedorDashboard:
         html = mensual_display.to_html(index=False, escape=False)
 
         # Agregar estilo CSS
-        st.markdown("### 📋 Resumen Mensual")
+        import io
+
+        # === TÍTULO Y BOTÓN EN MISMA FILA ===
+        col1, col2 = st.columns([6, 1])
+        with col1:
+            st.markdown("### 📋 Resumen Mensual")
+        with col2:
+            # Convertir a CSV en memoria
+            csv_buffer = io.StringIO()
+            mensual_display.to_csv(csv_buffer, index=False)
+            st.download_button(
+                label="⬇️ Descargar CSV",
+                data=csv_buffer.getvalue(),
+                file_name="resumen_mensual.csv",
+                mime="text/csv"
+            )
         st.markdown("""
         <style>
             table {
