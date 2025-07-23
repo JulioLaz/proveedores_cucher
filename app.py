@@ -926,11 +926,19 @@ class ProveedorDashboard:
                 title_font=dict(size=22, color='#454448', family='Arial Black'),
                 title_x=0.3,
                 height=400,
+                xaxis_title=None,
+                yaxis_title=None,
                 margin=dict(t=80, b=120),
                 xaxis_tickangle=-45,
                 plot_bgcolor='rgba(0,0,0,0)',
                 paper_bgcolor='rgba(0,0,0,0)',
-                font=dict(size=12)
+                font=dict(size=12),
+                yaxis=dict(
+                    showticklabels=False,  # ⛔ oculta los valores del eje x
+                    showgrid=False,        # opcional: oculta líneas de grilla
+                    zeroline=False         # opcional: oculta línea cero
+                    
+                    )
             )
             fig.update_traces(marker_color='#8966c6')
             st.plotly_chart(fig, use_container_width=True)
@@ -964,7 +972,7 @@ class ProveedorDashboard:
                     height=600,
                     title_font=dict(size=18, color='#454448', family='Arial Black'),
                     title_x=0.08,
-                    xaxis_title=None,
+                    # xaxis_title=None,
                 # yaxis_title=None,
                     coloraxis_colorbar=dict(title='Cantidad'),
                     margin=dict(t=60, b=20, l=10, r=10)
