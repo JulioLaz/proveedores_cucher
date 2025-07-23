@@ -782,22 +782,40 @@ class ProveedorDashboard:
             ventas_diarias['tendencia'] = coef[0] * ventas_diarias['fecha_ordinal'] + coef[1]
             ventas_diarias['precio'] = ventas_diarias['precio_total'].apply(format_abbr)
             # Crear gráfico de línea de ventas
+            # Crear gráfico de línea de ventas con tooltip personalizado
             fig = px.line(
                 ventas_diarias,
                 x='fecha',
                 y='precio_total',
-                # text='precio',
-                # markers=True,
+                custom_data=['precio'],  # Enlazamos el valor formateado
                 title="📈 Evolución Diaria de Ventas",
-                labels={'precio': '', 'fecha': ''}
+                labels={'fecha': '', 'precio_total': 'Ventas'}
             )
 
-            # Estilizar la línea principal
+            # Estilizar la línea principal con tooltip
             fig.update_traces(
                 line_color='#2a5298',
                 line_width=3,
-                selector=dict(name='precio')
+                hovertemplate='<b>Fecha:</b> %{x}<br><b>Ventas:</b> %{customdata[0]}<extra></extra>'
             )
+
+
+            # fig = px.line(
+            #     ventas_diarias,
+            #     x='fecha',
+            #     y='precio_total',
+            #     # text='precio',
+            #     # markers=True,
+            #     title="📈 Evolución Diaria de Ventas",
+            #     labels={'precio': '', 'fecha': ''}
+            # )
+
+            # # Estilizar la línea principal
+            # fig.update_traces(
+            #     line_color='#2a5298',
+            #     line_width=3,
+            #     selector=dict(name='precio_total')
+            # )
 
             # Agregar línea de tendencia como línea (sin leyenda)
             fig.add_scatter(
