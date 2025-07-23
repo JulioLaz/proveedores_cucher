@@ -971,7 +971,10 @@ class ProveedorDashboard:
             with col2:
                 # === Análisis de Pareto con tooltips personalizados ===
                 productos_pareto = productos_stats.sort_values("Ventas", ascending=False).head(20).copy()
-                productos_pareto["descripcion_corta"] = productos_pareto["descripcion"].str[:40] + "..."
+                # productos_pareto["descripcion_corta"] = productos_pareto["descripcion"].str[:40] + "..."
+                # Generar nombres con ranking y descripción abreviada
+                productos_pareto["descripcion_corta"] = [f"{i+1} - {desc[:24]}..." for i, desc in enumerate(productos_pareto["descripcion"])]
+
                 productos_pareto["acumulado"] = productos_pareto["Participación %"].cumsum()
                 productos_pareto["individual_fmt"] = productos_pareto["Participación %"].map("{:.1f}%".format)
                 productos_pareto["acumulado_fmt"] = productos_pareto["acumulado"].map("{:.1f}%".format)
