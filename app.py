@@ -887,11 +887,27 @@ class ProveedorDashboard:
 
 ###########################################################
 
-            import streamlit as st
-            import plotly.express as px
-            import pandas as pd
 
-            # === SELECTBOX PARA MÉTRICA ===
+            st.subheader("🏆 Análisis Detallado de Productos")
+
+            # === PREPARAR DATA AGRUPADA POR PRODUCTO ===
+            productos_stats = df.groupby("descripcion").agg({
+                "precio_total": "sum",
+                "costo_total": "sum",
+                "cantidad_total": "sum"
+            })
+
+            productos_stats["Utilidad"] = productos_stats["precio_total"] - productos_stats["costo_total"]
+            productos_stats["Margen %"] = 100 * productos_stats["Utilidad"] / productos_stats["precio_total"].replace(0, pd.NA)
+            productos_stats["Participación %"] = 100 * productos_stats["precio_total"] / productos_stats["precio_total"].sum()
+
+            productos_stats.rename(columns={
+                "precio_total": "Ventas",
+                "costo_total": "Costos",
+                "cantidad_total": "Cantidad"
+            }, inplace=True)
+
+            # === SELECT MÉTRICA ===
             col1, col2 = st.columns([3, 1])
             with col2:
                 orden_por = st.selectbox(
@@ -899,7 +915,25 @@ class ProveedorDashboard:
                     ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"]
                 )
 
-            # === TÍTULOS PERSONALIZADOS ===
+            # === MANEJO DE INDICE Y FORMATEO ===
+            if isinstance(productos_stats.index, pd.MultiIndex):
+                productos_stats["producto_str"] = productos_stats.index.to_flat_index().map(lambda x: " - ".join(map(str, x)))
+                productos_stats = productos_stats.reset_index(drop=True)
+            else:
+                productos_stats["producto_str"] = productos_stats.index.astype(str)
+                productos_stats = productos_stats.reset_index(drop=True)
+
+            # === FILTRAR TOP 20 POR MÉTRICA ===
+            df_filtrado = productos_stats[productos_stats[orden_por].notna()].copy()
+            top_n = min(20, len(df_filtrado))
+            df_top = df_filtrado.sort_values(orden_por, ascending=False).head(top_n)
+
+            df_top["Producto"] = [
+                nombre[:40] + "..." if len(nombre) > 40 else nombre
+                for nombre in df_top["producto_str"]
+            ]
+
+            # === TÍTULO PERSONALIZADO ===
             titulo_dict = {
                 "Ventas": "Top 20 Productos por Ventas 💰",
                 "Utilidad": "Top 20 Productos por Utilidad 📈",
@@ -908,28 +942,7 @@ class ProveedorDashboard:
                 "Participación %": "Top 20 por Participación (%) del Total 🧭"
             }
 
-            # === MANEJAR MULTIINDEX: convertir a string legible ===
-            if isinstance(productos_stats.index, pd.MultiIndex):
-                productos_stats = productos_stats.copy()
-                productos_stats["producto_str"] = productos_stats.index.to_flat_index().map(lambda x: " - ".join(map(str, x)))
-                productos_stats = productos_stats.reset_index(drop=True)
-            else:
-                productos_stats = productos_stats.copy()
-                productos_stats["producto_str"] = productos_stats.index.astype(str)
-                productos_stats = productos_stats.reset_index(drop=True)
-
-            # === FILTRADO DINÁMICO POR MÉTRICA SELECCIONADA ===
-            df_filtrado = productos_stats[productos_stats[orden_por].notna()].copy()
-            top_n = min(20, len(df_filtrado))
-            df_top = df_filtrado.sort_values(orden_por, ascending=False).head(top_n)
-
-            # === FORMATEO DE NOMBRES DE PRODUCTO PARA EJE X ===
-            df_top["Producto"] = [
-                nombre[:40] + "..." if len(nombre) > 40 else nombre
-                for nombre in df_top["producto_str"]
-            ]
-
-            # === GRÁFICO CON PLOTLY ===
+            # === GRAFICO ===
             fig = px.bar(
                 df_top,
                 x="Producto",
@@ -951,10 +964,8 @@ class ProveedorDashboard:
 
             fig.update_traces(marker_color='indigo')
 
-            # === MOSTRAR EN STREAMLIT ===
             st.plotly_chart(fig, use_container_width=True)
 
-            # === MENSAJE PROFESIONAL SI HAY POCOS DATOS ===
             if top_n < 5:
                 st.warning(f"⚠️ Solo hay {top_n} productos disponibles con datos en '{orden_por}'.")
 
