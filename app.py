@@ -1153,8 +1153,16 @@ class ProveedorDashboard:
         st.markdown("### 📋 Resumen Mensual")
         
         mensual_display = mensual.copy()
-        mensual_display.columns = ['Mes', 'Ventas', 'Utilidad', 'Cantidad', 'Margen %', 'Tickets']
-        
+        # mensual_display.columns = ['Mes', 'Ventas', 'Utilidad', 'Cantidad', 'Margen %', 'Tickets']
+        mensual_display.rename(columns={
+            "mes_año": "Mes",
+            "precio_total": "Ventas",
+            "utilidad": "Utilidad",
+            "cantidad_total": "Cantidad",
+            "margen_porcentual": "Margen %",
+            "tickets": "Tickets"
+        }, inplace=True)
+
         st.dataframe(
             mensual_display,
             use_container_width=True,
