@@ -795,27 +795,9 @@ class ProveedorDashboard:
             # Estilizar la línea principal con tooltip
             fig.update_traces(
                 line_color='#2a5298',
-                line_width=3,
+                line_width=1,
                 hovertemplate='<b>Fecha:</b> %{x}<br><b>Ventas:</b> %{customdata[0]}<extra></extra>'
             )
-
-
-            # fig = px.line(
-            #     ventas_diarias,
-            #     x='fecha',
-            #     y='precio_total',
-            #     # text='precio',
-            #     # markers=True,
-            #     title="📈 Evolución Diaria de Ventas",
-            #     labels={'precio': '', 'fecha': ''}
-            # )
-
-            # # Estilizar la línea principal
-            # fig.update_traces(
-            #     line_color='#2a5298',
-            #     line_width=3,
-            #     selector=dict(name='precio_total')
-            # )
 
             # Agregar línea de tendencia como línea (sin leyenda)
             fig.add_scatter(
@@ -855,6 +837,7 @@ class ProveedorDashboard:
                 y='descripcion_corta',
                 orientation='h',
                 text='precio',
+                custom_data=['precio'],  # Enlazamos el valor formateado
                 title="🏆 Top 5 Productos por Ventas",
                 labels={'precio_total': '', 'descripcion_corta': ''}
             )
@@ -865,7 +848,9 @@ class ProveedorDashboard:
                 marker_color='#4682B4',
                 textposition='outside',
                 cliponaxis=False,
-                insidetextanchor='start'
+                insidetextanchor='start',
+                hovertemplate='<b>Artículo:</b> %{y}<br><b>Precio:</b> %{customdata[0]}<extra></extra>'
+
             )
 
             fig.update_layout(
