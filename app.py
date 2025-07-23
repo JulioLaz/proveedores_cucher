@@ -786,7 +786,7 @@ class ProveedorDashboard:
                 ventas_diarias,
                 x='fecha',
                 y='precio_total',
-                text='precio',
+                # text='precio',
                 # markers=True,
                 title="📈 Evolución Diaria de Ventas",
                 labels={'precio': '', 'fecha': ''}
@@ -796,7 +796,7 @@ class ProveedorDashboard:
             fig.update_traces(
                 line_color='#2a5298',
                 line_width=3,
-                selector=dict(name='precio_total')
+                selector=dict(name='precio')
             )
 
             # Agregar línea de tendencia como línea (sin leyenda)
