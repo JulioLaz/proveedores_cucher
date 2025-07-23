@@ -1304,7 +1304,7 @@ class ProveedorDashboard:
                     hole=0.35
                 )
                 fig.update_traces(
-                    textposition='inside',
+                    # textposition='inside',
                     textinfo='percent+label',
                     pull=[0.02] * len(familia_stats),
                     marker=dict(line=dict(color='#00000000', width=0))  # Borde invisible
