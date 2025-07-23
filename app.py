@@ -1011,8 +1011,8 @@ class ProveedorDashboard:
 
                 fig.update_layout(
                     title_text="📈 Análisis de Pareto - Concentración de Ventas",
-                    title_font=dict(size=20, color='#454448', family='Arial Black'),
-                    title_x=0.2,
+                    title_font=dict(size=18, color='#454448', family='Arial Black'),
+                    title_x=0.05,
                     xaxis_title="Ranking de Productos",
                     yaxis_title="Participación Individual (%)",
                     height=600,
