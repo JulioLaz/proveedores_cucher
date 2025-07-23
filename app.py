@@ -897,7 +897,7 @@ class ProveedorDashboard:
                 st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
             with col2:
                 orden_por = st.selectbox(
-                    "Ordenar por:",
+                    "",
                     ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"]
     )
 
