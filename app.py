@@ -960,74 +960,12 @@ class ProveedorDashboard:
 
                 fig.update_traces(marker=dict(opacity=0.8, line=dict(width=0)))
                 fig.update_layout(
-                    height=400,
+                    height=600,
                     title_x=0.2,
                     coloraxis_colorbar=dict(title='Cantidad'),
                     margin=dict(t=60, b=20, l=10, r=10)
                 )
                 st.plotly_chart(fig, use_container_width=True)
-#############################################################
-
-            # with col2:
-            #     # === Análisis de Pareto con tooltips personalizados ===
-            #     productos_pareto = productos_stats.sort_values("Ventas", ascending=False).head(20).copy()
-            #     productos_pareto["descripcion_corta"] = [f"{i+1} - {desc[:15]}..." for i, desc in enumerate(productos_pareto["descripcion"])]
-
-            #     productos_pareto["acumulado"] = productos_pareto["Participación %"].cumsum()
-            #     productos_pareto["individual_fmt"] = productos_pareto["Participación %"].map("{:.1f}%".format)
-            #     productos_pareto["acumulado_fmt"] = productos_pareto["acumulado"].map("{:.1f}%".format)
-
-            #     fig = make_subplots(specs=[[{"secondary_y": True}]])
-
-            #     # === Barras ===
-            #     fig.add_trace(
-            #         go.Bar(
-            #             x=productos_pareto["descripcion_corta"],
-            #             y=productos_pareto["Participación %"],
-            #             name='Participación Individual (%)',
-            #             marker_color='lightblue',
-            #             text=productos_pareto["individual_fmt"],
-            #             textposition='outside',
-            #             hovertemplate="<b>%{x}</b><br>Participación Individual: %{text}<extra></extra>"
-            #         ),
-            #         secondary_y=False
-            #     )
-
-            #     # === Línea de acumulado ===
-            #     fig.add_trace(
-            #         go.Scatter(
-            #             x=productos_pareto["descripcion_corta"],
-            #             y=productos_pareto["acumulado"],
-            #             mode='lines+markers',
-            #             name='Participación Acumulada (%)',
-            #             line=dict(color='red', width=1),
-            #             hovertemplate="<b>%{x}</b><br>Participación Acumulada: %{y:.1f}%<extra></extra>"
-            #         ),
-            #         secondary_y=True
-            #     )
-
-            #     # === Estilo general ===
-            #     fig.update_layout(
-            #         title_text="📈 Análisis de Pareto - Concentración de Ventas",
-            #         title_x=0.2,
-            #         xaxis_title="Ranking de Productos",
-            #         yaxis_title="Participación Individual (%)",
-            #         height=420,
-            #         margin=dict(t=70, b=50),
-            #         legend=dict(
-            #             orientation="h",
-            #             yanchor="top",
-            #             y=1.15,
-            #             xanchor="center",
-            #             x=0.5,
-            #             bgcolor='rgba(0,0,0,0)'
-            #         )
-            #     )
-
-            #     fig.update_yaxes(title_text="Participación Individual (%)", secondary_y=False)
-            #     fig.update_yaxes(title_text="Participación Acumulada (%)", secondary_y=True)
-
-            #     st.plotly_chart(fig, use_container_width=True)
 
             with col2:
                 # === Análisis de Pareto con etiquetas y tooltips optimizados ===
@@ -1076,7 +1014,7 @@ class ProveedorDashboard:
                     title_x=0.2,
                     xaxis_title="Ranking de Productos",
                     yaxis_title="Participación Individual (%)",
-                    height=440,
+                    height=600,
                     margin=dict(t=70, b=50),
                     legend=dict(
                         orientation="h",
