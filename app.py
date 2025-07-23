@@ -1032,15 +1032,11 @@ class ProveedorDashboard:
             with col2:
                 # === Análisis de Pareto con etiquetas y tooltips optimizados ===
                 productos_pareto = productos_stats.sort_values("Ventas", ascending=False).head(20).copy()
-                
                 productos_pareto["ranking"] = range(1, len(productos_pareto) + 1)
-                productos_pareto["descripcion_corta"] = productos_pareto.apply(
-                    lambda row: f"{row['ranking']} - {row['descripcion'][:24]}...", axis=1
-                )
-                
+                productos_pareto["descripcion_corta"] = productos_pareto.apply(lambda row: f"{row['ranking']} - {row['descripcion'][:14]}...", axis=1)
                 productos_pareto["acumulado"] = productos_pareto['Participación %'].cumsum()
                 productos_pareto["individual_fmt"] = productos_pareto["Participación %"].map("{:.1f}%".format)
-                productos_pareto["acumulado_fmt"] = productos_pareto["acumulado"].map("{:.1f}%".format)
+                productos_pareto["acumulado_fmt"] = productos_pareto["acumulado"].map("{:.0f}%".format)
 
                 fig = make_subplots(specs=[[{"secondary_y": True}]])
 
