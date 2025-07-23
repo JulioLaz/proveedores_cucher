@@ -882,13 +882,9 @@ class ProveedorDashboard:
             # Ordenar por ventas
             productos_stats = productos_stats.sort_values('Ventas', ascending=False)
             
-            # Mostrar TOP productos
-            st.markdown("### 📊 TOP 20 Productos")
-
 ###########################################################
 
-
-            st.subheader("🏆 Análisis Detallado de Productos")
+            st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
 
             # === PREPARAR DATA AGRUPADA POR PRODUCTO ===
             productos_stats = df.groupby("descripcion").agg({
