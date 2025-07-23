@@ -1214,9 +1214,9 @@ class ProveedorDashboard:
         
         # # Tabla resumen mensual
         # st.markdown("### 📋 Resumen Mensual")
-        st.markdown("### 📋 Resumen Mensual")
+        import pandas as pd
 
-        # Copiar y renombrar
+        # Renombrar y formatear
         mensual_display = mensual.copy()
         mensual_display.rename(columns={
             "mes_año": "Mes",
@@ -1226,26 +1226,47 @@ class ProveedorDashboard:
             "margen_porcentual": "Margen %"
         }, inplace=True)
 
-        # Selección de columnas
         mensual_display = mensual_display[["Mes", "Ventas", "Utilidad", "Cantidad", "Margen %"]]
 
-        # Formateo de valores
+        # Formato
         mensual_display["Ventas"] = mensual_display["Ventas"].apply(lambda x: f"${x:,.0f}")
         mensual_display["Utilidad"] = mensual_display["Utilidad"].apply(lambda x: f"${x:,.0f}")
         mensual_display["Cantidad"] = mensual_display["Cantidad"].apply(lambda x: f"{x:,.0f}")
         mensual_display["Margen %"] = mensual_display["Margen %"].map("{:.1f}%".format)
 
-        # Estilo: centrar solo "Mes", alinear a la derecha el resto
-        styled_table = mensual_display.style.set_table_styles([
-            {'selector': 'th', 'props': [('text-align', 'center')]},  # Títulos centrados
-        ]).set_properties(
-            **{'text-align': 'right'}
-        ).set_properties(
-            subset=["Mes"], **{'text-align': 'center'}  # Solo Mes centrado
-        )
+        # Convertir a HTML con estilos personalizados
+        html = mensual_display.to_html(index=False, escape=False)
 
-        # Mostrar sin índice
-        st.table(styled_table.hide(axis="index"))
+        # Agregar estilo CSS
+        st.markdown("### 📋 Resumen Mensual")
+        st.markdown("""
+        <style>
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-family: Arial, sans-serif;
+                font-size: 15px;
+            }
+            th {
+                text-align: center;
+                background-color: #f5f5f5;
+                padding: 8px;
+            }
+            td {
+                padding: 8px;
+                border-bottom: 1px solid #ddd;
+            }
+            td:nth-child(1) {
+                text-align: center;
+            }
+            td:nth-child(n+2) {
+                text-align: right;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+
+        st.markdown(html, unsafe_allow_html=True)
+
 
 
 
