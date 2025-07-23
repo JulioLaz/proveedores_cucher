@@ -860,182 +860,10 @@ class ProveedorDashboard:
                     )
 
             st.plotly_chart(fig, use_container_width=True, key="top_productos")
-   
-    # def show_products_analysis(self, df):
-    #     """Análisis detallado de productos"""
-    #     st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
-        
-    #     try:
-    #            # === PREPARAR DATA AGRUPADA POR PRODUCTO ===
-    #         productos_stats = df.groupby("descripcion").agg({
-    #             "precio_total": "sum",
-    #             "costo_total": "sum",
-    #             "cantidad_total": "sum"
-    #         })
 
-    #         productos_stats["Utilidad"] = productos_stats["precio_total"] - productos_stats["costo_total"]
-    #         productos_stats["Margen %"] = 100 * productos_stats["Utilidad"] / productos_stats["precio_total"].replace(0, pd.NA)
-    #         productos_stats["Participación %"] = 100 * productos_stats["precio_total"] / productos_stats["precio_total"].sum()
-
-    #         productos_stats.rename(columns={
-    #             "precio_total": "Ventas",
-    #             "costo_total": "Costos",
-    #             "cantidad_total": "Cantidad"
-    #         }, inplace=True)
-
-    #         # === SELECT MÉTRICA ===
-    #         col1, col2 = st.columns([3, 1])
-    #         with col2:
-    #             orden_por = st.selectbox(
-    #                 "",
-    #                 ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"]
-    #             )
-
-    #         # === MANEJO DE INDICE Y FORMATEO ===
-    #         if isinstance(productos_stats.index, pd.MultiIndex):
-    #             productos_stats["producto_str"] = productos_stats.index.to_flat_index().map(lambda x: " - ".join(map(str, x)))
-    #             productos_stats = productos_stats.reset_index(drop=True)
-    #         else:
-    #             productos_stats["producto_str"] = productos_stats.index.astype(str)
-    #             productos_stats = productos_stats.reset_index(drop=True)
-
-    #         # === FILTRAR TOP 20 POR MÉTRICA ===
-    #         df_filtrado = productos_stats[productos_stats[orden_por].notna()].copy()
-    #         top_n = min(20, len(df_filtrado))
-    #         df_top = df_filtrado.sort_values(orden_por, ascending=False).head(top_n)
-
-    #         df_top["Producto"] = [
-    #             nombre[:40] + "..." if len(nombre) > 40 else nombre
-    #             for nombre in df_top["producto_str"]
-    #         ]
-
-    #         # === TÍTULO PERSONALIZADO ===
-    #         titulo_dict = {
-    #             "Ventas": "Top 20 Productos por Ventas 💰",
-    #             "Utilidad": "Top 20 Productos por Utilidad 📈",
-    #             "Margen %": "Top 20 Productos por Margen (%) 🧮",
-    #             "Cantidad": "Top 20 Productos por Cantidad Vendida 📦",
-    #             "Participación %": "Top 20 por Participación (%) del Total 🧭"
-    #         }
-
-    #         # === GRAFICO ===
-    #         fig = px.bar(
-    #             df_top,
-    #             x="Producto",
-    #             y=orden_por,
-    #             text_auto='.2s' if orden_por in ["Ventas", "Utilidad"] else '.1f',
-    #             title=titulo_dict[orden_por],
-    #             labels={"Producto": "Producto", orden_por: orden_por}
-    #         )
-
-    #         fig.update_layout(
-    #             title_x=0.2,
-    #             height=600,
-    #             margin=dict(t=80, b=120),
-    #             xaxis_tickangle=-45,
-    #             plot_bgcolor='rgba(0,0,0,0)',
-    #             paper_bgcolor='rgba(0,0,0,0)',
-    #             font=dict(size=12)
-    #         )
-
-    #         fig.update_traces(marker_color='indigo')
-
-    #         st.plotly_chart(fig, use_container_width=True)
-
-    #         if top_n < 5:
-    #             st.warning(f"⚠️ Solo hay {top_n} productos disponibles con datos en '{orden_por}'.")
-           
-    #         # Gráficas de productos
-    #         col1, col2 = st.columns(2)
-    #         with col1:
-    #     # Scatter plot Ventas vs Margen - con color gradiente Inferno
-    #             top_20 = productos_stats.head(20).reset_index()
-    #             top_20['producto_corto'] = top_20['descripcion'].str[:30] + '...'
-
-    #             fig = px.scatter(
-    #                 top_20,
-    #                 x='Ventas',
-    #                 y='Margen %',
-    #                 size='Cantidad',
-    #                 color='Cantidad',  # Para aplicar gradiente de color
-    #                 color_continuous_scale='viridis',
-    #                 hover_name='producto_corto',
-    #                 hover_data={'Utilidad': ':,.0f'},
-    #                 title="💹 Ventas vs Margen (TOP 20)",
-    #                 labels={'Ventas': 'Ventas ($)', 'Margen %': 'Margen (%)'}
-    #             )
-
-    #             fig.update_traces(marker=dict(opacity=0.8, line=dict(width=0)))
-    #             fig.update_layout(
-    #                 height=400,
-    #                 title_x=0.2,  # Centrar título
-    #                 coloraxis_colorbar=dict(title='Cantidad'),
-    #                 margin=dict(t=60, b=20, l=10, r=10)
-    #             )
-
-    #             st.plotly_chart(fig, use_container_width=True)
-
-    #         with col2:
-    #             # Análisis de Pareto
-    #             productos_pareto = productos_stats.head(20)
-    #             participacion_acum = productos_pareto['Participación %'].cumsum()
-
-    #             fig = make_subplots(specs=[[{"secondary_y": True}]])
-
-    #             fig.add_trace(
-    #                 go.Bar(
-    #                     x=list(range(1, len(productos_pareto) + 1)),
-    #                     y=productos_pareto['Participación %'],
-    #                     name='Participación Individual (%)',
-    #                     marker_color='lightblue'
-    #                 ),
-    #                 secondary_y=False
-    #             )
-
-    #             fig.add_trace(
-    #                 go.Scatter(
-    #                     x=list(range(1, len(productos_pareto) + 1)),
-    #                     y=participacion_acum,
-    #                     mode='lines+markers',
-    #                     name='Participación Acumulada (%)',
-    #                     line=dict(color='red', width=2)  # Línea más fina
-    #                 ),
-    #                 secondary_y=True
-    #             )
-
-    #             fig.update_layout( 
-    #                 title_text="📈 Análisis de Pareto - Concentración de Ventas",
-    #                 title_x=0.2,
-    #                 xaxis_title="Ranking de Productos",
-    #                 yaxis_title="Participación Individual (%)",
-    #                 height=400,
-    #                 legend=dict(
-    #                     orientation="h",
-    #                     yanchor="top",
-    #                     y=1.15,  # justo debajo del título
-    #                     xanchor="center",
-    #                     x=0.5,
-    #                     bgcolor='rgba(0,0,0,0)'  # Fondo transparente
-    #                 )
-    #             )
-
-    #             fig.update_yaxes(title_text="Participación Individual (%)", secondary_y=False)
-    #             fig.update_yaxes(title_text="Participación Acumulada (%)", secondary_y=True)
-
-    #             st.plotly_chart(fig, use_container_width=True)
-            
-    #     except Exception as e:
-    #         st.error(f"❌ Error en análisis de productos: {str(e)}")
-    #         st.info("💡 Intenta con un rango de fechas diferente o verifica los datos del proveedor.")
     def show_products_analysis(self, df):
         """Análisis detallado de productos"""
-        import plotly.express as px
-        import plotly.graph_objects as go
-        from plotly.subplots import make_subplots
-        import pandas as pd
-        import streamlit as st
-
-        st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
+        # st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
 
         try:
             # === Agrupar por descripción ===
@@ -1056,12 +884,23 @@ class ProveedorDashboard:
             }, inplace=True)
 
             # === Selector de métrica ===
-            col1, col2 = st.columns([3, 1])
+            # col1, col2 = st.columns([3, 1])
+            # with col2:
+            #     orden_por = st.selectbox(
+            #         "",
+            #         ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"]
+            #     )
+
+            # === Título y selector alineados en una fila ===
+            col1, col2 = st.columns([5, 1])  # Ajusta proporción según el espacio que desees
+            with col1:
+                st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
             with col2:
                 orden_por = st.selectbox(
-                    "📊 Ordenar por:",
+                    "Ordenar por:",
                     ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"]
-                )
+    )
+
 
             # === Obtener top ordenado ===
             productos_top = productos_stats[productos_stats[orden_por].notna()].copy()
@@ -1089,7 +928,7 @@ class ProveedorDashboard:
 
             fig.update_layout(
                 title_x=0.2,
-                height=600,
+                height=400,
                 margin=dict(t=80, b=120),
                 xaxis_tickangle=-45,
                 plot_bgcolor='rgba(0,0,0,0)',
