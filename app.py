@@ -1317,41 +1317,40 @@ class ProveedorDashboard:
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
-            with col2:
-                familia_stats["margen_fmt"] = familia_stats["margen_porcentual"].map("{:.1f}%".format)
+                with col2:
+                    familia_stats["margen_fmt"] = familia_stats["margen_porcentual"].map("{:.1f}%".format)
 
-                fig = px.bar(
-                    familia_stats,
-                    x=familia_stats.index,
-                    y='margen_porcentual',
-                    color='margen_porcentual',
-                    text='margen_fmt',
-                    title="📊 Margen por Familia de Productos",
-                    color_continuous_scale='RdYlGn'
-                )
+                    fig = px.bar(
+                        familia_stats,
+                        x=familia_stats.index,
+                        y='margen_porcentual',
+                        color='margen_porcentual',
+                        text='margen_fmt',
+                        title="📊 Margen por Familia de Productos",
+                        color_continuous_scale='RdYlGn'
+                    )
 
-                fig.update_traces(
-                    textposition='outside',
-                    hovertemplate="<b>%{x}</b><br>Margen: %{text}<extra></extra>"
-                )
+                    fig.update_traces(
+                        textposition='outside',
+                        hovertemplate="<b>%{x}</b><br>Margen: %{text}<extra></extra>"
+                    )
 
-                fig.update_layout(
-                    title_font=dict(size=18, color='#454448', family='Arial Black'),
-                    title_x=0.08,
-                    xaxis_title=None,
-                    yaxis_title=None,
-                    coloraxis_showscale=False,
-                    margin=dict(t=70, b=40, l=30, r=20)
-                )
+                    fig.update_layout(
+                        title_font=dict(size=18, color='#454448', family='Arial Black'),
+                        title_x=0.08,
+                        xaxis_title=None,
+                        yaxis_title=None,
+                        coloraxis_showscale=False,
+                        margin=dict(t=70, b=40, l=30, r=20)
+                    )
 
-                fig.update_yaxes(
-                    tickformat='.1f',
-                    ticksuffix='%',
-                    showticklabels=False
-                )
+                    fig.update_yaxes(
+                        tickformat='.1f',
+                        ticksuffix='%',
+                        showticklabels=False
+                    )
 
-                st.plotly_chart(fig, use_container_width=True)
-
+                    st.plotly_chart(fig, use_container_width=True)
 
 
             # col1, col2 = st.columns(2)
