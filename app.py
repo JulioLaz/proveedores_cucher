@@ -1213,9 +1213,11 @@ class ProveedorDashboard:
 
         
         # # Tabla resumen mensual
+        # st.markdown("### 📋 Resumen Mensual")
+
         st.markdown("### 📋 Resumen Mensual")
 
-        # Copiar y renombrar columnas clave
+        # Copia y renombra columnas
         mensual_display = mensual.copy()
         mensual_display.rename(columns={
             "mes_año": "Mes",
@@ -1225,22 +1227,63 @@ class ProveedorDashboard:
             "margen_porcentual": "Margen %"
         }, inplace=True)
 
-        # Seleccionar solo las columnas que querés mostrar
+        # Filtrar solo columnas deseadas
         columnas_finales = ["Mes", "Ventas", "Utilidad", "Cantidad", "Margen %"]
         mensual_display = mensual_display[columnas_finales]
 
-        # Mostrar tabla limpia y formateada
+        # Mostrar tabla con formato profesional
         st.dataframe(
             mensual_display,
             use_container_width=True,
             column_config={
-                "Ventas": st.column_config.NumberColumn("Ventas", format="$%.0f"),
-                "Utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f"),
-                "Cantidad": st.column_config.NumberColumn("Cantidad", format="%.0f"),
-                "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%")
+                "Mes": st.column_config.TextColumn("Mes", width="small"),
+                "Ventas": st.column_config.NumberColumn("Ventas", format="$ {:,.0f}", width="medium"),
+                "Utilidad": st.column_config.NumberColumn("Utilidad", format="$ {:,.0f}", width="medium"),
+                "Cantidad": st.column_config.NumberColumn("Cantidad", format="{:,}", width="medium"),
+                "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%", width="small")
             },
             hide_index=True
         )
+
+        # Centrar columnas con CSS
+        st.markdown("""
+        <style>
+        thead tr th {
+            text-align: center !important;
+        }
+        tbody td:nth-child(1) {
+            text-align: center !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+
+        # # Copiar y renombrar columnas clave
+        # mensual_display = mensual.copy()
+        # mensual_display.rename(columns={
+        #     "mes_año": "Mes",
+        #     "precio_total": "Ventas",
+        #     "utilidad": "Utilidad",
+        #     "cantidad_total": "Cantidad",
+        #     "margen_porcentual": "Margen %"
+        # }, inplace=True)
+
+        # # Seleccionar solo las columnas que querés mostrar
+        # columnas_finales = ["Mes", "Ventas", "Utilidad", "Cantidad", "Margen %"]
+        # mensual_display = mensual_display[columnas_finales]
+
+        # # Mostrar tabla limpia y formateada
+        # st.dataframe(
+        #     mensual_display,
+        #     use_container_width=True,
+        #     column_config={
+        #         "Ventas": st.column_config.NumberColumn("Ventas", format="$%.0f"),
+        #         "Utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f"),
+        #         "Cantidad": st.column_config.NumberColumn("Cantidad", format="%.0f"),
+        #         "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%")
+        #     },
+        #     hide_index=True
+        # )
 
         # st.markdown("### 📋 Resumen Mensual")
         
