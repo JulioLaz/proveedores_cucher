@@ -885,10 +885,12 @@ class ProveedorDashboard:
             # Mostrar TOP productos
             st.markdown("### 📊 TOP 20 Productos")
 
+###########################################################
+
             # import streamlit as st
             # import plotly.express as px
 
-            # === LAYOUT DE FILTRO ===
+            # === SELECTBOX ===
             col1, col2 = st.columns([3, 1])
             with col2:
                 orden_por = st.selectbox(
@@ -896,11 +898,7 @@ class ProveedorDashboard:
                     ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"]
                 )
 
-            # === ORDEN Y SELECCIÓN DE TOP 20 ===
-            productos_top20 = productos_stats.sort_values(orden_por, ascending=False).head(20).copy()
-            productos_top20['Descripción Corta'] = [desc[:40] + "..." if len(desc) > 40 else desc for desc in productos_top20.index]
-
-            # === GRÁFICO PROFESIONAL ===
+            # === TÍTULOS PERSONALIZADOS ===
             titulo_dict = {
                 "Ventas": "Top 20 Productos por Ventas 💰",
                 "Utilidad": "Top 20 Productos por Utilidad 📈",
@@ -909,30 +907,54 @@ class ProveedorDashboard:
                 "Participación %": "Top 20 por Participación (%) del Total 🧭"
             }
 
+            # === FILTRADO DINÁMICO ===
+            df_filtrado = productos_stats.copy()
+
+            # Asegurarse de que el índice tenga nombres legibles
+            df_filtrado.index = df_filtrado.index.astype(str).fillna("Sin nombre")
+
+            # Quitar los que no tienen datos en la métrica seleccionada
+            df_filtrado = df_filtrado[df_filtrado[orden_por].notna()]
+
+            # Tomar top 20 o menos si no hay suficientes
+            top_n = min(20, len(df_filtrado))
+            df_top = df_filtrado.sort_values(orden_por, ascending=False).head(top_n).copy()
+
+            # Crear columna de nombres legibles
+            df_top["Producto"] = [
+                nombre[:40] + "..." if len(nombre) > 40 else nombre
+                for nombre in df_top.index
+            ]
+
+            # === GRAFICO ===
             fig = px.bar(
-                productos_top20,
-                x="Descripción Corta",
+                df_top,
+                x="Producto",
                 y=orden_por,
                 text_auto='.2s' if orden_por in ["Ventas", "Utilidad"] else '.1f',
                 title=titulo_dict[orden_por],
-                labels={orden_por: orden_por, "Descripción Corta": "Producto"},
+                labels={"Producto": "Producto", orden_por: orden_por}
             )
 
-            # === PERSONALIZACIÓN PROFESIONAL ===
             fig.update_layout(
                 title_x=0.2,
                 xaxis_tickangle=-45,
                 plot_bgcolor='rgba(0,0,0,0)',
                 paper_bgcolor='rgba(0,0,0,0)',
-                font=dict(size=13),
-                height=500,
-                margin=dict(t=80, b=100),
+                font=dict(size=12),
+                height=600,
+                margin=dict(t=80, b=120),
             )
 
-            fig.update_traces(marker_color='indigo', hovertemplate='%{y:.2s}')
+            fig.update_traces(marker_color='indigo')
 
-            # === MOSTRAR GRÁFICO ===
+            # === MOSTRAR GRAFICO ===
             st.plotly_chart(fig, use_container_width=True)
+
+            # === MENSAJE SI HAY POCOS DATOS ===
+            if top_n < 5:
+                st.warning(f"⚠️ Solo hay {top_n} productos disponibles con datos en '{orden_por}'.")
+
 
 
 
