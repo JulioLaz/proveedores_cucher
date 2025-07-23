@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from google.cloud import bigquery
 import warnings
+import io
 
 warnings.filterwarnings('ignore')
 
@@ -1211,11 +1212,6 @@ class ProveedorDashboard:
 
                 st.plotly_chart(fig, use_container_width=True)
 
-        
-        # # Tabla resumen mensual
-        # st.markdown("### 📋 Resumen Mensual")
-        import pandas as pd
-
         # Renombrar y formatear
         mensual_display = mensual.copy()
         mensual_display.rename(columns={
@@ -1235,10 +1231,7 @@ class ProveedorDashboard:
         mensual_display["Margen %"] = mensual_display["Margen %"].map("{:.1f}%".format)
 
         # Convertir a HTML con estilos personalizados
-        html = mensual_display.to_html(index=False, escape=False)
-
-        # Agregar estilo CSS
-        import io
+        html = mensual_display.to_html(index=False, escape=False)o
 
         # === TÍTULO Y BOTÓN EN MISMA FILA ===
         col1, col2 = st.columns([6, 1])
@@ -1282,60 +1275,6 @@ class ProveedorDashboard:
 
         st.markdown(html, unsafe_allow_html=True)
 
-
-
-
-
-
-        # # Copiar y renombrar columnas clave
-        # mensual_display = mensual.copy()
-        # mensual_display.rename(columns={
-        #     "mes_año": "Mes",
-        #     "precio_total": "Ventas",
-        #     "utilidad": "Utilidad",
-        #     "cantidad_total": "Cantidad",
-        #     "margen_porcentual": "Margen %"
-        # }, inplace=True)
-
-        # # Seleccionar solo las columnas que querés mostrar
-        # columnas_finales = ["Mes", "Ventas", "Utilidad", "Cantidad", "Margen %"]
-        # mensual_display = mensual_display[columnas_finales]
-
-        # # Mostrar tabla limpia y formateada
-        # st.dataframe(
-        #     mensual_display,
-        #     use_container_width=True,
-        #     column_config={
-        #         "Ventas": st.column_config.NumberColumn("Ventas", format="$%.0f"),
-        #         "Utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f"),
-        #         "Cantidad": st.column_config.NumberColumn("Cantidad", format="%.0f"),
-        #         "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%")
-        #     },
-        #     hide_index=True
-        # )
-
-        # st.markdown("### 📋 Resumen Mensual")
-        
-        # mensual_display = mensual.copy()
-        # mensual_display.rename(columns={
-        #     "mes_año": "Mes",
-        #     "precio_total": "Ventas",
-        #     "utilidad": "Utilidad",
-        #     "cantidad_total": "Cantidad",
-        #     "margen_porcentual": "Margen %"
-        # }, inplace=True)
-
-        # st.dataframe(
-        #     mensual_display,
-        #     use_container_width=True,
-        #     column_config={
-        #         "Ventas": st.column_config.NumberColumn("Ventas", format="$%.0f"),
-        #         "Utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f"),
-        #         "Cantidad": st.column_config.NumberColumn("Cantidad", format="%.0f"),
-        #         "Margen %": st.column_config.NumberColumn("Margen %", format="%.1f%%")            },
-        #     hide_index=True
-        # )
-    
     def show_advanced_analysis(self, df, metrics):
         """Análisis avanzado"""
         st.subheader("🎯 Análisis Avanzado")
@@ -1353,27 +1292,88 @@ class ProveedorDashboard:
             
             familia_stats['participacion'] = (familia_stats['precio_total'] / familia_stats['precio_total'].sum() * 100).round(1)
             familia_stats = familia_stats.sort_values('precio_total', ascending=False)
-            
+
             col1, col2 = st.columns(2)
-            
+
             with col1:
                 fig = px.pie(
-                    values=familia_stats['precio_total'],
+                    familia_stats,
+                    values='precio_total',
                     names=familia_stats.index,
-                    title="🥧 Distribución de Ventas por Familia"
+                    title="🥧 Distribución de Ventas por Familia",
+                    hole=0.35
+                )
+                fig.update_traces(
+                    textposition='inside',
+                    textinfo='percent+label',
+                    pull=[0.02] * len(familia_stats),
+                    marker=dict(line=dict(color='#00000000', width=0))  # Borde invisible
+                )
+                fig.update_layout(
+                    title_font=dict(size=18, color='#454448', family='Arial Black'),
+                    title_x=0.08,
+                    showlegend=False,
+                    margin=dict(t=60, b=30, l=10, r=10)
                 )
                 st.plotly_chart(fig, use_container_width=True)
-            
+
             with col2:
+                familia_stats["margen_fmt"] = familia_stats["margen_porcentual"].map("{:.1f}%".format)
+
                 fig = px.bar(
+                    familia_stats,
                     x=familia_stats.index,
-                    y=familia_stats['margen_porcentual'],
+                    y='margen_porcentual',
+                    color='margen_porcentual',
+                    text='margen_fmt',
                     title="📊 Margen por Familia de Productos",
-                    color=familia_stats['margen_porcentual'],
                     color_continuous_scale='RdYlGn'
                 )
-                fig.update_yaxes(tickformat='.1f', ticksuffix='%')
+
+                fig.update_traces(
+                    textposition='outside',
+                    hovertemplate="<b>%{x}</b><br>Margen: %{text}<extra></extra>"
+                )
+
+                fig.update_layout(
+                    title_font=dict(size=18, color='#454448', family='Arial Black'),
+                    title_x=0.08,
+                    xaxis_title=None,
+                    yaxis_title=None,
+                    coloraxis_showscale=False,
+                    margin=dict(t=70, b=40, l=30, r=20)
+                )
+
+                fig.update_yaxes(
+                    tickformat='.1f',
+                    ticksuffix='%',
+                    showticklabels=False
+                )
+
                 st.plotly_chart(fig, use_container_width=True)
+
+
+
+            # col1, col2 = st.columns(2)
+            
+            # with col1:
+            #     fig = px.pie(
+            #         values=familia_stats['precio_total'],
+            #         names=familia_stats.index,
+            #         title="🥧 Distribución de Ventas por Familia"
+            #     )
+            #     st.plotly_chart(fig, use_container_width=True)
+            
+            # with col2:
+            #     fig = px.bar(
+            #         x=familia_stats.index,
+            #         y=familia_stats['margen_porcentual'],
+            #         title="📊 Margen por Familia de Productos",
+            #         color=familia_stats['margen_porcentual'],
+            #         color_continuous_scale='RdYlGn'
+            #     )
+            #     fig.update_yaxes(tickformat='.1f', ticksuffix='%')
+            #     st.plotly_chart(fig, use_container_width=True)
         
         # Análisis por sucursal
         if 'sucursal' in df.columns and df['sucursal'].notna().any():
