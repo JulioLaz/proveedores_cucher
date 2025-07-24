@@ -1516,7 +1516,7 @@ class ProveedorDashboard:
         # Análisis por sucursal
         # === Análisis por Sucursal con métrica seleccionable ===
         if 'sucursal' in df.columns and df['sucursal'].notna().any():
-            col1, col2 = st.columns([3, 2])
+            col1, col2 = st.columns([4, 2])
 
             with col1:
                 st.markdown("### 🏪 Análisis por Sucursal")
@@ -1732,7 +1732,7 @@ class ProveedorDashboard:
 
         with col2:
             st.markdown(generar_insight_ventas(abc_ventas))
-            
+
         with col1:
             st.markdown(generar_insight_margen(abc_counts))
 
