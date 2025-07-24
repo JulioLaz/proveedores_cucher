@@ -1336,7 +1336,7 @@ class ProveedorDashboard:
                 fig.update_layout(
                     title_font=dict(size=18, color='#454448', family='Arial Black'),
                     title_x=0.08,
-                    height=370,
+                    # height=370,
                     showlegend=True,
                     margin=dict(t=60, b=30, l=10, r=10)
                 )
@@ -1364,7 +1364,7 @@ class ProveedorDashboard:
                     title_x=0.08,
                     xaxis_title=None,
                     yaxis_title=None,
-                    height=370,
+                    # height=370,
                     coloraxis_showscale=False,
                     margin=dict(t=70, b=40, l=30, r=20)
                 )
