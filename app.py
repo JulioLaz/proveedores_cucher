@@ -1975,9 +1975,9 @@ class ProveedorDashboard:
             df.head(100),
             use_container_width=True,
             column_config={
-                "precio_total": st.column_config.NumberColumn("Precio Total", format="$%.2f"),
-                "costo_total": st.column_config.NumberColumn("Costo Total", format="$%.2f"),
-                "utilidad": st.column_config.NumberColumn("Utilidad", format="$%.2f"),
+                "precio_total": st.column_config.NumberColumn("Precio Total", format="$%.0f"),
+                "costo_total": st.column_config.NumberColumn("Costo Total", format="$%.0f"),
+                "utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f"),
                 "margen_porcentual": st.column_config.NumberColumn("Margen %", format="%.1f%%"),
                 "cantidad_total": st.column_config.NumberColumn("Cantidad", format="%.0f")
             }
