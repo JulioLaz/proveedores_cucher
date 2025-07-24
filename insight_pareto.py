@@ -69,8 +69,8 @@ def generar_insight_cantidad(counts):
         insight_text += f"• Segunda categoría: {segunda_cat} con {counts[segunda_cat]} productos ({pct_segunda:.1f}%)\n"
     
     insight_text += f"\n{recomendacion}"
-    
-    return insight_text
+    return f'<div class="insight-box">{insight_text}</div>'
+
 
 
 def generar_insight_ventas(ventas):
@@ -166,7 +166,7 @@ def generar_insight_ventas(ventas):
     
     insight_text += f"\n{recomendacion}"
     
-    return insight_text
+    return f'<div class="insight-box">{insight_text}</div>'
 
 
 def generar_insight_margen(margenes):
@@ -215,7 +215,7 @@ def generar_insight_margen(margenes):
     insight_text += f"• Dispersión: {variabilidad}\n\n"
     insight_text += f"💡 **Recomendación:** {'Maximizar volumen en ' + mejor_cat if mejor_margen >= 25 else 'Revisar estrategia de precios en ' + mejor_cat}"
     
-    return insight_text
+    return f'<div class="warning-box">{insight_text}</div>'
 
 
 def generar_insight_abc_completo(abc_counts, abc_ventas):
@@ -275,5 +275,5 @@ def generar_insight_abc_completo(abc_counts, abc_ventas):
     
     insight_text += f"{estrategia}\n\n"
     insight_text += f"💡 **Foco recomendado:** {'Potenciar productos A' if eficiencia_ratio >= 2.5 else 'Revisar clasificación y optimizar productos B/C'}"
-    
-    return insight_text
+
+    return f'<div class="success-box">{insight_text}</div>'

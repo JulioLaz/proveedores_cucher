@@ -1704,35 +1704,59 @@ class ProveedorDashboard:
 
         #     with col1:
         # === CSS Profesional ===
-        # === CSS Profesional ===
         st.markdown("""
         <style>
-        .insight-box {
-            background: #f9f9f9;
-            padding: 0.7rem 1rem;
-            margin-bottom: 0.5rem;
-            border-left: 6px solid #2a5298;
-            border-radius: 6px;
-            font-size: 0.92rem;
-        }
-        .insight-box.red {
-            border-left: 6px solid #d9534f;
-            background: #fbeaea;
-        }
-        .insight-box.green {
-            border-left: 6px solid #5cb85c;
-            background: #e7f7ec;
-        }
+            .insight-box, .warning-box, .success-box {
+                border-radius: 12px;
+                padding: 1.2rem;
+                margin: 1rem 0;
+                font-size: 0.95rem;
+                line-height: 1.6;
+                background-color: #ffffff;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                border-left: 5px solid #2a5298;
+            }
+
+            .warning-box {
+                border-left-color: #ffc107;
+                background-color: #fff9e6;
+            }
+
+            .success-box {
+                border-left-color: #28a745;
+                background-color: #e9f7ef;
+            }
+
+            .insight-box {
+                border-left-color: #17a2b8;
+                background-color: #eef9fc;
+            }
+
+            .insight-titulo {
+                font-size: 1.15rem;
+                color: #2a2a2a;
+                margin-bottom: .5rem;
+            }
+
+            .highlight {
+                background-color: #ffeaa7;
+                padding: 2px 6px;
+                border-radius: 6px;
+            }
         </style>
         """, unsafe_allow_html=True)
 
-        # === Insights debajo de gráficos ABC ===
         with col1:
-            st.markdown(generar_insight_cantidad(abc_counts))
+            st.markdown(generar_insight_cantidad(abc_counts), unsafe_allow_html=True)
 
         with col2:
-            st.markdown(generar_insight_ventas(abc_ventas))
-        
+            st.markdown(generar_insight_ventas(abc_ventas), unsafe_allow_html=True)
+
+
+        st.markdown(generar_insight_abc_completo(abc_counts, abc_ventas), unsafe_allow_html=True)
+
+        # === Insights debajo de gráficos ABC ===
+         
         # col1, col2 = st.columns(2)
         # with col1:
         #     st.markdown(generar_insight_cantidad(abc_counts))
