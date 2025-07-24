@@ -373,7 +373,7 @@ def generar_insight_ventas(ventas):
     return html
 
 
-def generar_insight_margen(margenes):
+def generar_insight_margen(margenes,categoria):
     if margenes.empty or margenes.sum() == 0:
         return '<div class="warning-box">🚫 <strong>Sin datos disponibles:</strong> No se encontraron datos de margen para analizar.</div>'
 
@@ -400,17 +400,17 @@ def generar_insight_margen(margenes):
     if len(margenes) > 1:
         std = margenes.std()
         if std >= 15:
-            dispersion = "Alta variabilidad entre categorías - oportunidad de optimización"
+            dispersion = f"Alta variabilidad entre {categoria} - oportunidad de optimización"
         elif std >= 8:
             dispersion = "Variabilidad moderada - gestión diferenciada recomendada"
         else:
-            dispersion = "Márgenes consistentes entre categorías"
+            dispersion = f"Márgenes consistentes entre {categoria}"
     else:
-        dispersion = "Única categoría disponible"
+        dispersion = f"Única {categoria} disponible"
 
     html = f"""
     <div class="insight-box">
-        <div class="insight-titulo">{emoji} <strong>Análisis de Rentabilidad por Familia</strong></div>
+        <div class="insight-titulo">{emoji} <strong>Análisis de Rentabilidad por {categoria}</strong></div>
         <p><strong>{mejor_cat}</strong> lidera en rentabilidad con <strong>{mejor_margen:.1f}%</strong> de margen (<em>{rentabilidad}</em>).</p>
         <p><strong>📈 Características:</strong></p>
         <ul>

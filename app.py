@@ -1752,8 +1752,23 @@ class ProveedorDashboard:
         with col2:
             st.markdown(generar_insight_ventas(abc_ventas), unsafe_allow_html=True)
 
-        df_margenes = df.groupby('familia')['margen_porcentual'].mean()
-        st.markdown(generar_insight_margen(df_margenes), unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+
+        with col1:
+            df_margenes_flia = df.groupby('familia')['margen_porcentual'].mean()
+            st.markdown(generar_insight_margen(df_margenes_flia, 'Familia'), unsafe_allow_html=True)
+
+        with col2:
+            df_margenes_subflia = df.groupby('subfamilia')['margen_porcentual'].mean()
+            st.markdown(generar_insight_margen(df_margenes_subflia, 'Subfamilia'), unsafe_allow_html=True)
+
+
+
+        # df_margenes_flia = df.groupby('familia')['margen_porcentual'].mean()
+        # st.markdown(generar_insight_margen(df_margenes_flia,'Familia'), unsafe_allow_html=True)
+
+        # df_margenes_subflia = df.groupby('subfamilia')['margen_porcentual'].mean()
+        # st.markdown(generar_insight_margen(df_margenes_subflia,'Subfamilia'), unsafe_allow_html=True)
 
         st.markdown(generar_insight_abc_completo(abc_counts, abc_ventas), unsafe_allow_html=True)
 
