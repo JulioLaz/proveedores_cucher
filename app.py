@@ -1761,14 +1761,14 @@ class ProveedorDashboard:
             )
 
         # Ticket promedio
-        # if metrics['ticket_promedio'] < 2000:
-        #     recomendaciones_medias.append(
-        #         f"💡 **Cross-selling:** Ticket promedio de ${metrics['ticket_promedio']:.0f}. Promover ventas combinadas."
-        #     )
-        # else:
-        #     recomendaciones_bajas.append(
-        #         f"🟢 **Ticket alto:** Excelente ticket promedio (${metrics['ticket_promedio']:.0f})."
-        #     )
+        if metrics['ticket_promedio'] < 2000:
+            recomendaciones_medias.append(
+                f"💡 **Cross-selling:** Ticket promedio de ${metrics['ticket_promedio']:.0f}. Promover ventas combinadas."
+            )
+        else:
+            recomendaciones_bajas.append(
+                f"🟢 **Ticket alto:** Excelente ticket promedio (${metrics['ticket_promedio']:.0f})."
+            )
 
         # === Mostrar recomendaciones ordenadas ===
         from io import BytesIO
