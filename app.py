@@ -20,7 +20,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 warnings.filterwarnings('ignore')
 
 from limpiar_datos import limpiar_datos
-from insight_pareto import generar_insight_cantidad, generar_insight_ventas, generar_insight_margen, generar_insight_abc_completo
+from insight_ABC import generar_insight_cantidad, generar_insight_ventas, generar_insight_margen, generar_insight_abc_completo
 from generar_excel import generar_excel
 locale = Locale.parse('es_AR')
 
@@ -1752,6 +1752,8 @@ class ProveedorDashboard:
         with col2:
             st.markdown(generar_insight_ventas(abc_ventas), unsafe_allow_html=True)
 
+        df_margenes = df.groupby('familia')['margen_porcentual'].mean()
+        st.markdown(generar_insight_margen(df_margenes), unsafe_allow_html=True)
 
         st.markdown(generar_insight_abc_completo(abc_counts, abc_ventas), unsafe_allow_html=True)
 
