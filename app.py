@@ -1607,51 +1607,134 @@ class ProveedorDashboard:
                 st.plotly_chart(fig, use_container_width=True)
 
         
-        # Matriz de análisis ABC
+        # # Matriz de análisis ABC
+        # === Análisis ABC Mejorado ===
         st.markdown("### 📊 Análisis ABC de Productos")
-        
+
         productos_abc = df.groupby(['idarticulo', 'descripcion']).agg({
             'precio_total': 'sum',
             'utilidad': 'sum'
         }).sort_values('precio_total', ascending=False)
-        
-        # Calcular categorías ABC
-        productos_abc['participacion_acum'] = (productos_abc['precio_total'].cumsum() / productos_abc['precio_total'].sum() * 100)
-        
-        def categorizar_abc(participacion):
-            if participacion <= 80:
+
+        productos_abc['participacion_acum'] = (
+            productos_abc['precio_total'].cumsum() /
+            productos_abc['precio_total'].sum() * 100
+        )
+
+        # Clasificación ABC
+        def categorizar_abc(part):
+            if part <= 80:
                 return 'A (Alto valor)'
-            elif participacion <= 95:
+            elif part <= 95:
                 return 'B (Valor medio)'
             else:
                 return 'C (Bajo valor)'
-        
+
         productos_abc['categoria_abc'] = productos_abc['participacion_acum'].apply(categorizar_abc)
-        
-        # Contar productos por categoría
-        abc_counts = productos_abc['categoria_abc'].value_counts()
-        abc_ventas = productos_abc.groupby('categoria_abc')['precio_total'].sum()
-        
+
+        # Datos agregados
+        abc_counts = productos_abc['categoria_abc'].value_counts().sort_index()
+        abc_ventas = productos_abc.groupby('categoria_abc')['precio_total'].sum().sort_index()
+        abc_ventas_fmt = abc_ventas.map("${:,.0f}".format)
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
             fig = px.bar(
                 x=abc_counts.index,
                 y=abc_counts.values,
-                title="📈 Distribución de Productos ABC",
-                labels={'x': 'Categoría', 'y': 'Cantidad de Productos'},
                 color=abc_counts.values,
+                text=abc_counts.values,
+                title="📦 Cantidad de Productos por Categoría ABC",
+                labels={'x': 'Categoría ABC', 'y': 'Cantidad'},
                 color_continuous_scale='Blues'
             )
+            fig.update_traces(
+                textposition='outside',
+                hovertemplate="<b>%{x}</b><br>Cantidad: %{y}<extra></extra>"
+            )
+            fig.update_layout(
+                title_font=dict(size=18, color='#2c2c2c', family='Arial Black'),
+                title_x=0.08,
+                xaxis_title=None,
+                yaxis_title=None,
+                coloraxis_showscale=False,
+                height=350,
+                margin=dict(t=60, b=40, l=30, r=20)
+            )
             st.plotly_chart(fig, use_container_width=True)
-        
+
         with col2:
             fig = px.pie(
                 values=abc_ventas.values,
                 names=abc_ventas.index,
-                title="💰 Participación de Ventas ABC"
+                title="💰 Participación de Ventas por Categoría ABC",
+                hole=0.35
+            )
+            fig.update_traces(
+                textinfo='percent+label',
+                textposition='inside',
+                marker=dict(line=dict(width=0)),
+                hovertemplate="<b>%{label}</b><br>Ventas: %{value:$,.0f}<br>Participación: %{percent}<extra></extra>"
+            )
+            fig.update_layout(
+                title_font=dict(size=18, color='#2c2c2c', family='Arial Black'),
+                title_x=0.08,
+                legend=dict(
+                    bgcolor='rgba(0,0,0,0)',
+                    bordercolor='rgba(0,0,0,0)',
+                    font=dict(size=11)
+                ),
+                height=350,
+                margin=dict(t=60, b=30, l=10, r=10)
             )
             st.plotly_chart(fig, use_container_width=True)
+
+
+        # st.markdown("### 📊 Análisis ABC de Productos")
+        
+        # productos_abc = df.groupby(['idarticulo', 'descripcion']).agg({
+        #     'precio_total': 'sum',
+        #     'utilidad': 'sum'
+        # }).sort_values('precio_total', ascending=False)
+        
+        # # Calcular categorías ABC
+        # productos_abc['participacion_acum'] = (productos_abc['precio_total'].cumsum() / productos_abc['precio_total'].sum() * 100)
+        
+        # def categorizar_abc(participacion):
+        #     if participacion <= 80:
+        #         return 'A (Alto valor)'
+        #     elif participacion <= 95:
+        #         return 'B (Valor medio)'
+        #     else:
+        #         return 'C (Bajo valor)'
+        
+        # productos_abc['categoria_abc'] = productos_abc['participacion_acum'].apply(categorizar_abc)
+        
+        # # Contar productos por categoría
+        # abc_counts = productos_abc['categoria_abc'].value_counts()
+        # abc_ventas = productos_abc.groupby('categoria_abc')['precio_total'].sum()
+        
+        # col1, col2 = st.columns(2)
+        
+        # with col1:
+        #     fig = px.bar(
+        #         x=abc_counts.index,
+        #         y=abc_counts.values,
+        #         title="📈 Distribución de Productos ABC",
+        #         labels={'x': 'Categoría', 'y': 'Cantidad de Productos'},
+        #         color=abc_counts.values,
+        #         color_continuous_scale='Blues'
+        #     )
+        #     st.plotly_chart(fig, use_container_width=True)
+        
+        # with col2:
+        #     fig = px.pie(
+        #         values=abc_ventas.values,
+        #         names=abc_ventas.index,
+        #         title="💰 Participación de Ventas ABC"
+        #     )
+        #     st.plotly_chart(fig, use_container_width=True)
         
         # Recomendaciones basadas en análisis
         st.markdown("### 💡 Recomendaciones Estratégicas")
