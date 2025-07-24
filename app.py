@@ -1963,10 +1963,12 @@ class ProveedorDashboard:
         data=df[['fecha_fmt', 'idarticulo', 'descripcion', 'precio_total', 'costo_total', 'utilidad', 'margen_porcentual', 'cantidad_total']]
 ###############################################
         archivo_excel = generar_excel(data, sheet_name="ABC Clasificación")
+        periodo_analisis = resumen_data['Valor'][1]
+
         st.download_button(
-            label="📥 Descargar Tabla ABC (Excel)",
+            label="📥 Descargar todos los datos del proveedor (Excel)",
             data=archivo_excel,
-            file_name="tabla_abc_productos.xlsx",
+            file_name=f"{proveedor}_{periodo_analisis}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
