@@ -2443,8 +2443,8 @@ class ProveedorDashboard:
         st.dataframe(df_resumen, use_container_width=True, hide_index=True)
 
         st.markdown("### Vista Previa de Datos")
-        data=df.to_csv(index=False)
-        data=df[['fecha_fmt', 'idarticulo', 'descripcion', 'precio_total', 'costo_total', 'utilidad', 'margen_porcentual', 'cantidad_total']]
+        df['fecha_fmt'] = df['fecha'].apply(lambda x: format_date(x, format="d MMMM y", locale=locale))
+        data=df[['fecha_fmt', 'idarticulo', 'descripcion', 'precio_total', 'costo_total', 'utilidad', 'margen_porcentual', 'cantidad_total']].copy()
         archivo_excel = generar_excel(data, sheet_name="ABC Clasificación")
         periodo_analisis = resumen_data['Valor'][1]
 
