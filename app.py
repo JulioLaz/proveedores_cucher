@@ -1962,12 +1962,13 @@ class ProveedorDashboard:
         # Vista previa de datos
         st.markdown("### 👁️ Vista Previa de Datos")
         
-        data=df[['fecha_fmt', 'idarticulo', 'descripcion', 'fecha', 'precio_total', 'costo_total', 'utilidad', 'margen_porcentual', 'cantidad_total']]
+        data=df[['fecha_fmt', 'idarticulo', 'descripcion', 'precio_total', 'costo_total', 'utilidad', 'margen_porcentual', 'cantidad_total']]
         # Mostrar muestra de datos
         st.dataframe(
             data.head(100),
             use_container_width=True,
             column_config={
+                "fecha_fmt": st.column_config.DateColumn("Fecha"),
                 "precio_total": st.column_config.NumberColumn("Precio Total", format="$%.0f"),
                 "costo_total": st.column_config.NumberColumn("Costo Total", format="$%.0f"),
                 "utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f"),
