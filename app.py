@@ -660,8 +660,8 @@ class ProveedorDashboard:
         with tab5:
             self.show_reports_section(df, proveedor, metrics)
         
-        with tab6:
-            self.show_executive_summary(df, proveedor, metrics)
+        # with tab6:
+        #     self.show_executive_summary(df, proveedor, metrics)
 
             # self.show_executive_summary_best(self, df, proveedor, metrics)
 
@@ -1999,7 +1999,7 @@ class ProveedorDashboard:
 ##################################################################################################
 ##################################################################################################
 ##################################################################################################
-    def show_executive_summary_best(self, df, proveedor, metrics):
+    def show_executive_summary(self, df, proveedor, metrics):
         # === Estilos CSS personalizados ===
         st.markdown("""
         <style>
