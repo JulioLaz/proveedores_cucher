@@ -1696,6 +1696,7 @@ class ProveedorDashboard:
 
         #     with col1:
         # === CSS Profesional ===
+        # === CSS Profesional ===
         st.markdown("""
         <style>
         .insight-box {
@@ -1761,14 +1762,104 @@ class ProveedorDashboard:
             )
 
         # Ticket promedio
-        if metrics['ticket_promedio'] < 2000:
-            recomendaciones_medias.append(
-                f"💡 **Cross-selling:** Ticket promedio de ${metrics['ticket_promedio']:.0f}. Promover ventas combinadas."
-            )
-        else:
-            recomendaciones_bajas.append(
-                f"🟢 **Ticket alto:** Excelente ticket promedio (${metrics['ticket_promedio']:.0f})."
-            )
+        # if metrics['ticket_promedio'] < 2000:
+        #     recomendaciones_medias.append(
+        #         f"💡 **Cross-selling:** Ticket promedio de ${metrics['ticket_promedio']:.0f}. Promover ventas combinadas."
+        #     )
+        # else:
+        #     recomendaciones_bajas.append(
+        #         f"🟢 **Ticket alto:** Excelente ticket promedio (${metrics['ticket_promedio']:.0f})."
+        #     )
+
+        # === Mostrar recomendaciones ordenadas ===
+        if recomendaciones_criticas:
+            st.markdown("#### 🔺 Alta Prioridad")
+            for rec in recomendaciones_criticas:
+                st.markdown(f'<div class="insight-box red">{rec}</div>', unsafe_allow_html=True)
+
+        if recomendaciones_medias:
+            st.markdown("#### ⚠️ Prioridad Media")
+            for rec in recomendaciones_medias:
+                st.markdown(f'<div class="insight-box">{rec}</div>', unsafe_allow_html=True)
+
+        if recomendaciones_bajas:
+            st.markdown("#### ✅ Aspectos Positivos")
+            for rec in recomendaciones_bajas:
+                st.markdown(f'<div class="insight-box green">{rec}</div>', unsafe_allow_html=True)
+
+        # st.markdown("""
+        # <style>
+        # .insight-box {
+        #     background: #f9f9f9;
+        #     padding: 0.7rem 1rem;
+        #     margin-bottom: 0.5rem;
+        #     border-left: 6px solid #2a5298;
+        #     border-radius: 6px;
+        #     font-size: 0.92rem;
+        # }
+        # .insight-box.red {
+        #     border-left: 6px solid #d9534f;
+        #     background: #fbeaea;
+        # }
+        # .insight-box.green {
+        #     border-left: 6px solid #5cb85c;
+        #     background: #e7f7ec;
+        # }
+        # </style>
+        # """, unsafe_allow_html=True)
+
+        # # === Insights debajo de gráficos ABC ===
+        # with col1:
+        #     st.markdown(generar_insight_cantidad(abc_counts))
+
+        # with col2:
+        #     st.markdown(generar_insight_ventas(abc_ventas))
+
+        # # === Recomendaciones Estratégicas ===
+        # st.markdown("### 💡 Recomendaciones Estratégicas")
+
+        # recomendaciones_criticas = []
+        # recomendaciones_medias = []
+        # recomendaciones_bajas = []
+
+        # # Productos A
+        # productos_a = productos_abc[productos_abc['categoria_abc'] == 'A (Alto valor)']
+        # if not productos_a.empty:
+        #     ventas_a = abc_ventas.get('A (Alto valor)', 0)
+        #     porcentaje_a = ventas_a / abc_ventas.sum() * 100
+        #     recomendaciones_criticas.append(
+        #         f"🔺 **Productos A:** {len(productos_a)} productos generan el {porcentaje_a:.1f}% de las ventas. Priorizá disponibilidad y promoción."
+        #     )
+
+        # # Margen bajo
+        # if metrics['margen_promedio'] < 20:
+        #     recomendaciones_criticas.append(
+        #         f"🔴 **Margen bajo ({metrics['margen_promedio']:.1f}%):** Revisar precios y negociar con proveedores."
+        #     )
+        # elif metrics['margen_promedio'] >= 30:
+        #     recomendaciones_bajas.append(
+        #         f"✅ **Margen saludable:** Excelente rentabilidad promedio ({metrics['margen_promedio']:.1f}%). ¡Seguir así!"
+        #     )
+
+        # # Diversificación
+        # if metrics['productos_unicos'] < 10:
+        #     recomendaciones_medias.append(
+        #         f"📈 **Ampliar catálogo:** Solo {metrics['productos_unicos']} productos únicos. Evaluar incorporar nuevas líneas."
+        #     )
+        # else:
+        #     recomendaciones_bajas.append(
+        #         f"🟢 **Catálogo variado:** {metrics['productos_unicos']} productos activos. Diversificación saludable."
+        #     )
+
+        # # Ticket promedio
+        # if metrics['ticket_promedio'] < 2000:
+        #     recomendaciones_medias.append(
+        #         f"💡 **Cross-selling:** Ticket promedio de ${metrics['ticket_promedio']:.0f}. Promover ventas combinadas."
+        #     )
+        # else:
+        #     recomendaciones_bajas.append(
+        #         f"🟢 **Ticket alto:** Excelente ticket promedio (${metrics['ticket_promedio']:.0f})."
+        #     )
 
         # === Mostrar recomendaciones ordenadas ===
         from io import BytesIO
