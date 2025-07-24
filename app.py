@@ -17,6 +17,10 @@ import io
 warnings.filterwarnings('ignore')
 
 from limpiar_datos import limpiar_datos
+from insight_pareto import generar_insight_cantidad, generar_insight_ventas
+
+
+
 
 def format_abbr(x):
                 if x >= 1_000_000:
@@ -1659,7 +1663,7 @@ class ProveedorDashboard:
                 xaxis_title=None,
                 yaxis_title=None,
                 coloraxis_showscale=False,
-                height=350,
+                height=400,
                 margin=dict(t=60, b=40, l=30, r=20)
             )
             st.plotly_chart(fig, use_container_width=True)
@@ -1685,10 +1689,16 @@ class ProveedorDashboard:
                     bordercolor='rgba(0,0,0,0)',
                     font=dict(size=11)
                 ),
-                height=350,
+                height=400,
                 margin=dict(t=60, b=30, l=10, r=10)
             )
             st.plotly_chart(fig, use_container_width=True)
+
+            with col1:
+                st.markdown(generar_insight_cantidad(abc_counts))
+
+            with col2:
+                st.markdown(generar_insight_ventas(abc_ventas))
 
 
         # st.markdown("### 📊 Análisis ABC de Productos")
