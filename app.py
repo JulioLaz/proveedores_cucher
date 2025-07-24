@@ -1771,86 +1771,79 @@ class ProveedorDashboard:
         #     )
 
         # === Mostrar recomendaciones ordenadas ===
-        if recomendaciones_criticas:
-            st.markdown("#### 🔺 Alta Prioridad")
-            for rec in recomendaciones_criticas:
-                st.markdown(f'<div class="insight-box red">{rec}</div>', unsafe_allow_html=True)
-
-        if recomendaciones_medias:
-            st.markdown("#### ⚠️ Prioridad Media")
-            for rec in recomendaciones_medias:
-                st.markdown(f'<div class="insight-box">{rec}</div>', unsafe_allow_html=True)
-
-        if recomendaciones_bajas:
-            st.markdown("#### ✅ Aspectos Positivos")
-            for rec in recomendaciones_bajas:
-                st.markdown(f'<div class="insight-box green">{rec}</div>', unsafe_allow_html=True)
-
-        #     with col1:
-        #         st.markdown(generar_insight_cantidad(abc_counts))
-
-        #     with col2:
-        #         st.markdown(generar_insight_ventas(abc_ventas))
-
-        
-        # # Recomendaciones basadas en análisis
-        # st.markdown("### 💡 Recomendaciones Estratégicas")
-        
-        # recomendaciones = []
-        
-        # # Análisis de productos A
-        # productos_a = productos_abc[productos_abc['categoria_abc'] == 'A (Alto valor)']
-        # if len(productos_a) > 0:
-        #     recomendaciones.append(f"🎯 **Productos A:** {len(productos_a)} productos generan el 80% de las ventas. Priorizar su disponibilidad y promoción.")
-        
-        # # Análisis de margen
-        # if metrics['margen_promedio'] < 20:
-        #     recomendaciones.append("⚠️ **Margen bajo:** Revisar precios y costos. Considerar renegociación con proveedores.")
-        
-        # # Análisis de diversificación
-        # if metrics['productos_unicos'] < 10:
-        #     recomendaciones.append("📈 **Ampliar catálogo:** Pocos productos únicos. Considerar expandir línea de productos.")
-        
-        # # Análisis de ticket promedio
-        # if metrics['ticket_promedio'] < 2000:
-        #     recomendaciones.append("💡 **Cross-selling:** Ticket promedio bajo. Implementar estrategias de venta cruzada.")
-        
-        # for rec in recomendaciones:
-        #     st.markdown(f'<div class="insight-box">{rec}</div>', unsafe_allow_html=True)
-    
         from io import BytesIO
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, Alignment, PatternFill, Border, Side, NamedStyle
+        from openpyxl.utils.dataframe import dataframe_to_rows
 
-        def generar_excel_descarga(tabla_abc):
+        # === Crear tabla ABC formateada ===
+        tabla_abc = productos_abc.reset_index()[[
+            'idarticulo', 'descripcion', 'precio_total', 'utilidad', 'participacion_acum', 'categoria_abc'
+        ]]
+        tabla_abc.columns = ['ID Artículo', 'Descripción', 'Ventas Totales', 'Utilidad', 'Participación Acum. (%)', 'Categoría ABC']
+
+        # Redondear y aplicar formato a los valores
+        tabla_abc['Ventas Totales'] = tabla_abc['Ventas Totales'].round(0).astype(int)
+        tabla_abc['Utilidad'] = tabla_abc['Utilidad'].round(0).astype(int)
+        tabla_abc['Participación Acum. (%)'] = tabla_abc['Participación Acum. (%)'].round(1)
+
+        # === Función para exportar Excel con estilos ===
+        def generar_excel_descarga(df):
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Clasificación ABC"
+
+            # Escribir los datos
+            for r_idx, row in enumerate(dataframe_to_rows(df, index=False, header=True), 1):
+                for c_idx, value in enumerate(row, 1):
+                    ws.cell(row=r_idx, column=c_idx, value=value)
+
+            # Estilos
+            header_fill = PatternFill("solid", fgColor="BDD7EE")
+            currency_fmt = '"$"#,##0'
+            percent_fmt = '0.0"%"'
+            border = Border(
+                left=Side(style="thin", color="999999"),
+                right=Side(style="thin", color="999999"),
+                top=Side(style="thin", color="999999"),
+                bottom=Side(style="thin", color="999999")
+            )
+
+            for col in ws.iter_cols(min_row=1, max_row=ws.max_row, max_col=ws.max_column):
+                max_length = 0
+                for cell in col:
+                    cell.border = border
+                    cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+                    if cell.row == 1:
+                        cell.font = Font(bold=True)
+                        cell.fill = header_fill
+                    if isinstance(cell.value, (int, float)):
+                        if cell.column_letter in ['C', 'D']:
+                            cell.number_format = currency_fmt
+                        elif cell.column_letter == 'E':
+                            cell.number_format = percent_fmt
+                    max_length = max(max_length, len(str(cell.value)))
+                col_letter = col[0].column_letter
+                ws.column_dimensions[col_letter].width = max_length + 2
+
+            # Guardar en BytesIO
             output = BytesIO()
-
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                tabla_abc.to_excel(writer, sheet_name='Clasificación ABC', index=False)
-
-                # Ajustar anchos de columnas (solo si usás openpyxl)
-                workbook = writer.book
-                worksheet = writer.sheets['Clasificación ABC']
-
-                for i, col in enumerate(tabla_abc.columns, 1):
-                    max_len = max((
-                        tabla_abc[col].astype(str).map(len).max(),
-                        len(col)
-                    )) + 2
-                    worksheet.column_dimensions[chr(64 + i)].width = max_len
-
+            wb.save(output)
             output.seek(0)
             return output
 
-        # Luego de mostrar los insights:
-        st.markdown("### 📥 Descargar Clasificación ABC")
+        # === Mostrar tabla e incluir botón de descarga ===
+        st.markdown("### 📋 Detalle de Clasificación ABC")
+        st.dataframe(tabla_abc, use_container_width=True)
 
         archivo_excel = generar_excel_descarga(tabla_abc)
+
         st.download_button(
-            label="📊 Descargar Excel",
+            label="📥 Descargar tabla ABC en Excel",
             data=archivo_excel,
-            file_name="clasificacion_ABC.xlsx",
+            file_name="clasificacion_abc.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-
 
 
 
