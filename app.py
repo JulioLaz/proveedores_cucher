@@ -1962,9 +1962,10 @@ class ProveedorDashboard:
         # Vista previa de datos
         st.markdown("### 👁️ Vista Previa de Datos")
         
+        data=df[['fecha_fmt', 'idarticulo', 'descripcion', 'fecha', 'precio_total', 'costo_total', 'utilidad', 'margen_porcentual', 'cantidad_total']]
         # Mostrar muestra de datos
         st.dataframe(
-            df.head(100),
+            data.head(100),
             use_container_width=True,
             column_config={
                 "precio_total": st.column_config.NumberColumn("Precio Total", format="$%.0f"),
@@ -1975,8 +1976,8 @@ class ProveedorDashboard:
             }
         )
         
-        if len(df) > 100:
-            st.info(f"ℹ️ Mostrando las primeras 100 filas de {len(df):,} registros totales. Descarga el CSV completo para ver todos los datos.")
+        if len(data) > 100:
+            st.info(f"ℹ️ Mostrando las primeras 100 filas de {len(data):,} registros totales. Descarga el CSV completo para ver todos los datos.")
     
     def run(self):
         """Ejecutar dashboard"""
