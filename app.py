@@ -2132,7 +2132,7 @@ class ProveedorDashboard:
             """, unsafe_allow_html=True)
 
         # === Análisis de Familias y Subfamilias ===
-        # st.markdown('<div class="executive-section">', unsafe_allow_html=True)
+        st.markdown("""<hr style="margin: 0; border: none; border-top: 2px solid #ccc;" />""", unsafe_allow_html=True)
         st.markdown("### 🧬 Análisis de Categorías de Productos")
         
         col1, col2 = st.columns(2)
@@ -2176,7 +2176,7 @@ class ProveedorDashboard:
         st.markdown('</div>', unsafe_allow_html=True)
 
         # === Síntesis de Análisis Temporal ===
-        # st.markdown('<div class="executive-section">', unsafe_allow_html=True)
+        st.markdown("""<hr style="margin: 0; border: none; border-top: 2px solid #ccc;" />""", unsafe_allow_html=True)
         st.markdown("### 📅 Síntesis Temporal")
         
         # Análisis mensual para tendencias
@@ -2239,7 +2239,7 @@ class ProveedorDashboard:
         st.markdown('</div>', unsafe_allow_html=True)
 
         # === Síntesis Análisis ABC ===
-        # st.markdown('<div class="executive-section">', unsafe_allow_html=True)
+        st.markdown("""<hr style="margin: 0; border: none; border-top: 2px solid #ccc;" />""", unsafe_allow_html=True)
         st.markdown("### 🎯 Síntesis Análisis ABC")
         
         productos_abc = df.groupby(['idarticulo', 'descripcion']).agg({
@@ -2301,7 +2301,7 @@ class ProveedorDashboard:
 
         # === Análisis por Sucursal ===
         if 'sucursal' in df.columns and df['sucursal'].notna().any():
-            # st.markdown('<div class="executive-section">', unsafe_allow_html=True)
+            st.markdown("""<hr style="margin: 0; border: none; border-top: 2px solid #ccc;" />""", unsafe_allow_html=True)
             st.markdown("### 🏪 Síntesis Geográfica")
             
             sucursal_stats = df.groupby('sucursal').agg({
@@ -2338,7 +2338,7 @@ class ProveedorDashboard:
         # === Insights Clave Automatizados ===
         insights = self.generate_insights(df, metrics)
         
-        # st.markdown('<div class="executive-section">', unsafe_allow_html=True)
+        st.markdown("""<hr style="margin: 0; border: none; border-top: 2px solid #ccc;" />""", unsafe_allow_html=True)
         st.markdown("### 💡 Insights Clave del Período")
         
         # Separar insights por tipo
@@ -2364,7 +2364,7 @@ class ProveedorDashboard:
         st.markdown('</div>', unsafe_allow_html=True)
 
         # === Recomendaciones Estratégicas Priorizadas ===
-        # st.markdown('<div class="executive-section">', unsafe_allow_html=True)
+        st.markdown("""<hr style="margin: 0; border: none; border-top: 2px solid #ccc;" />""", unsafe_allow_html=True)
         st.markdown("### 🎯 Recomendaciones Estratégicas")
         
         recomendaciones = []
@@ -2486,10 +2486,6 @@ class ProveedorDashboard:
         if len(data) > 100:
                 st.info(f"ℹ️ Mostrando las primeras 10 filas de {len(data):,} registros totales. Descarga el CSV completo para ver todos los datos.")
         
-
-
-
-
     def run(self):
         """Ejecutar dashboard"""
         # Sidebar con filtros (guardar en atributos de instancia)
@@ -2501,7 +2497,7 @@ class ProveedorDashboard:
         # Footer
         # st.markdown("---")
         st.markdown("""
-        <hr style="margin: 0; border: none; border-top: 1px solid #ccc;" />
+        <hr style="margin: 0; border: none; border-top: 2px solid #ccc;" />
         <div style="text-align: center; color: #666; font-size: 0.8em;margin-top: 20px;">
             Julio A. Lazarte    |    Científico de Datos & BI   |   Cucher Mercados
         </div>
