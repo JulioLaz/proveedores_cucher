@@ -2418,6 +2418,7 @@ class ProveedorDashboard:
                 'Sucursales Activas',
                 'Tendencia Período',
                 'Clasificación ABC',
+                'Producto estrella',
                 'Recomendación Principal'
             ],
             'Valor': [
@@ -2433,6 +2434,7 @@ class ProveedorDashboard:
                 metrics['sucursales_presentes'],
                 tendencia_texto,
                 f"{abc_counts.get('A', 0)}A-{abc_counts.get('B', 0)}B-{abc_counts.get('C', 0)}C",
+                producto_estrella,
                 recomendaciones[0][1][:80] + "..." if len(recomendaciones[0][1]) > 80 else recomendaciones[0][1]
             ]
         }
