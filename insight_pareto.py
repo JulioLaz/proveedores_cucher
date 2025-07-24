@@ -19,7 +19,8 @@ def generar_insight_ventas(ventas):
     val_top = ventas.max()
     pct_top = val_top / total * 100
    #  val_fmt = format_currency(val_top, '$', locale='es_AR', format='#,##0')
-    val_fmt = val_top
+   #  val_fmt = f'val_top:.0f'.replace('.', ',')  # Formatear sin símbolo de moneda
+    val_fmt = "$" + f"{val_top:,.0f}".replace('.', ',')
 
     texto = f"""
     🧠 **Insight:**
