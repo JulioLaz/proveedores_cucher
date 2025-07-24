@@ -3,7 +3,7 @@ from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 
-def generar_excel(df: pd.DataFrame, sheet_name: str = "Hoja1") -> BytesIO:
+def generar_excel(df, sheet_name: str = "Hoja1") -> BytesIO:
     wb = Workbook()
     ws = wb.active
     ws.title = sheet_name
