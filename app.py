@@ -1999,7 +1999,6 @@ class ProveedorDashboard:
 ##################################################################################################
 ##################################################################################################
 ##################################################################################################
-
     def show_executive_summary_best(self, df, proveedor, metrics):
         # === Estilos CSS personalizados ===
         st.markdown("""
@@ -2447,7 +2446,7 @@ class ProveedorDashboard:
             ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
             ventas_diarias['precio'] = ventas_diarias['precio_total'].apply(format_abbr)
             
-            fig = px.line(
+            fig_evolution = px.line(
                 ventas_diarias,
                 x='fecha',
                 y='precio_total',
@@ -2455,14 +2454,14 @@ class ProveedorDashboard:
                 labels={'fecha': '', 'precio_total': 'Ventas'}
             )
             
-            fig.update_traces(
+            fig_evolution.update_traces(
                 line_color='#2a5298',
                 line_width=2,
                 hovertemplate='<b>Fecha:</b> %{x}<br><b>Ventas:</b> %{customdata[0]}<extra></extra>',
                 customdata=ventas_diarias[['precio']]
             )
             
-            fig.update_layout(
+            fig_evolution.update_layout(
                 height=300,
                 margin=dict(t=60, b=20, l=10, r=10),
                 title_x=0.2,
@@ -2470,7 +2469,7 @@ class ProveedorDashboard:
                 yaxis_title=None
             )
             
-            st.plotly_chart(fig, use_container_width=True, key="executive_daily_evolution")
+            st.plotly_chart(fig_evolution, use_container_width=True, key="executive_daily_evolution")
 
         with col2:
             # Mini gráfico top productos
@@ -2483,7 +2482,7 @@ class ProveedorDashboard:
             top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
             top_productos['precio'] = top_productos['precio_total'].apply(format_abbr)
 
-            fig = px.bar(
+            fig_products = px.bar(
                 top_productos,
                 x='precio_total',
                 y='descripcion_corta',
@@ -2493,15 +2492,15 @@ class ProveedorDashboard:
                 labels={'precio_total': '', 'descripcion_corta': ''}
             )
             
-            fig.update_yaxes(categoryorder='total ascending')
-            fig.update_traces(
+            fig_products.update_yaxes(categoryorder='total ascending')
+            fig_products.update_traces(
                 marker_color='#4682B4',
                 textposition='outside',
                 cliponaxis=False,
                 hovertemplate='<b>Artículo:</b> %{y}<br><b>Venta:</b> %{text}<extra></extra>'
             )
             
-            fig.update_layout(
+            fig_products.update_layout(
                 height=300,
                 margin=dict(t=60, b=20, l=10, r=80),
                 title_x=0.2,
@@ -2514,7 +2513,7 @@ class ProveedorDashboard:
                 )
             )
             
-            st.plotly_chart(fig, use_container_width=True, key="executive_top_productos")
+            st.plotly_chart(fig_products, use_container_width=True, key="executive_top_productos")
 
 
 
