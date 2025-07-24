@@ -1818,53 +1818,36 @@ class ProveedorDashboard:
         # for rec in recomendaciones:
         #     st.markdown(f'<div class="insight-box">{rec}</div>', unsafe_allow_html=True)
     
-        from io import BytesIO  # ← IMPORTANTE
+        from io import BytesIO
 
-        # Crear y formatear la tabla ABC
-        tabla_abc = productos_abc.reset_index()[['idarticulo', 'descripcion', 'precio_total', 'utilidad', 'participacion_acum', 'categoria_abc']].copy()
-
-        tabla_abc['precio_total'] = tabla_abc['precio_total'].round(0).astype(int)
-        tabla_abc['utilidad'] = tabla_abc['utilidad'].round(0).astype(int)
-        tabla_abc['participacion_acum'] = tabla_abc['participacion_acum'].round(1)
-
-        tabla_abc.columns = [
-            'ID Artículo', 'Descripción', 'Ventas Totales', 'Utilidad Total',
-            'Participación Acumulada (%)', 'Categoría ABC'
-        ]
-
-        st.markdown("### 🗂️ Tabla Detallada de Clasificación ABC")
-        st.dataframe(tabla_abc, use_container_width=True)
-
-        # Función para generar archivo Excel
-        def generar_excel_descarga(df):
+        def generar_excel_descarga(tabla_abc):
             output = BytesIO()
-            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                df.to_excel(writer, index=False, sheet_name='ABC')
+
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                tabla_abc.to_excel(writer, sheet_name='Clasificación ABC', index=False)
+
+                # Ajustar anchos de columnas (solo si usás openpyxl)
                 workbook = writer.book
-                worksheet = writer.sheets['ABC']
+                worksheet = writer.sheets['Clasificación ABC']
 
-                money_fmt = workbook.add_format({'num_format': '$#,##0'})
-                percent_fmt = workbook.add_format({'num_format': '0.0%'})
-
-                for col_num, col_name in enumerate(df.columns):
-                    max_len = max(df[col_name].astype(str).map(len).max(), len(col_name)) + 2
-                    worksheet.set_column(col_num, col_num, max_len)
-
-                    if 'Ventas' in col_name or 'Utilidad' in col_name:
-                        worksheet.set_column(col_num, col_num, None, money_fmt)
-                    if 'Acumulada' in col_name:
-                        worksheet.set_column(col_num, col_num, None, percent_fmt)
+                for i, col in enumerate(tabla_abc.columns, 1):
+                    max_len = max((
+                        tabla_abc[col].astype(str).map(len).max(),
+                        len(col)
+                    )) + 2
+                    worksheet.column_dimensions[chr(64 + i)].width = max_len
 
             output.seek(0)
             return output
 
-        # Crear archivo y botón de descarga
-        archivo_excel = generar_excel_descarga(tabla_abc)
+        # Luego de mostrar los insights:
+        st.markdown("### 📥 Descargar Clasificación ABC")
 
+        archivo_excel = generar_excel_descarga(tabla_abc)
         st.download_button(
-            label="📥 Descargar Tabla ABC en Excel",
+            label="📊 Descargar Excel",
             data=archivo_excel,
-            file_name="Tabla_ABC_Productos.xlsx",
+            file_name="clasificacion_ABC.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
