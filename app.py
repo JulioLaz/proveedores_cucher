@@ -1310,11 +1310,7 @@ class ProveedorDashboard:
                 metrica_seleccionada = st.selectbox(
                     "Selecciona una métrica:",
                     ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"],
-                    index=0
-                )
-
-
-            # metrica_seleccionada = st.selectbox("📌 Selecciona la métrica a analizar:", list(metricas_opciones.keys()), index=0)
+                    index=0)
 
             columna = metricas_opciones[metrica_seleccionada]
             familia_stats = familia_stats.sort_values(columna, ascending=False)
@@ -1378,7 +1374,7 @@ class ProveedorDashboard:
                     yaxis_title=None,
                     height=350,
                     coloraxis_showscale=False,
-                    margin=dict(t=70, b=40, l=30, r=20)
+                    margin=dict(t=20, b=40, l=30, r=20)
                 )
                 fig.update_yaxes(
                     showticklabels=False
