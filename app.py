@@ -1818,51 +1818,56 @@ class ProveedorDashboard:
         # for rec in recomendaciones:
         #     st.markdown(f'<div class="insight-box">{rec}</div>', unsafe_allow_html=True)
     
+        from io import BytesIO  # ← IMPORTANTE
 
-        # Crear una copia formateada de la tabla ABC
+        # Crear y formatear la tabla ABC
         tabla_abc = productos_abc.reset_index()[['idarticulo', 'descripcion', 'precio_total', 'utilidad', 'participacion_acum', 'categoria_abc']].copy()
 
-        # Redondear columnas numéricas
         tabla_abc['precio_total'] = tabla_abc['precio_total'].round(0).astype(int)
         tabla_abc['utilidad'] = tabla_abc['utilidad'].round(0).astype(int)
         tabla_abc['participacion_acum'] = tabla_abc['participacion_acum'].round(1)
 
-        # Renombrar columnas para visualización profesional
-        tabla_abc.columns = ['ID Artículo', 'Descripción', 'Ventas Totales', 'Utilidad Total', 'Participación Acumulada (%)', 'Categoría ABC']
+        tabla_abc.columns = [
+            'ID Artículo', 'Descripción', 'Ventas Totales', 'Utilidad Total',
+            'Participación Acumulada (%)', 'Categoría ABC'
+        ]
 
-        # Mostrar tabla en Streamlit
         st.markdown("### 🗂️ Tabla Detallada de Clasificación ABC")
         st.dataframe(tabla_abc, use_container_width=True)
 
-        # Descargar como Excel
+        # Función para generar archivo Excel
         def generar_excel_descarga(df):
             output = BytesIO()
             with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
                 df.to_excel(writer, index=False, sheet_name='ABC')
-                # Formato opcional adicional
                 workbook = writer.book
                 worksheet = writer.sheets['ABC']
+
                 money_fmt = workbook.add_format({'num_format': '$#,##0'})
                 percent_fmt = workbook.add_format({'num_format': '0.0%'})
+
                 for col_num, col_name in enumerate(df.columns):
                     max_len = max(df[col_name].astype(str).map(len).max(), len(col_name)) + 2
                     worksheet.set_column(col_num, col_num, max_len)
+
                     if 'Ventas' in col_name or 'Utilidad' in col_name:
                         worksheet.set_column(col_num, col_num, None, money_fmt)
                     if 'Acumulada' in col_name:
                         worksheet.set_column(col_num, col_num, None, percent_fmt)
+
             output.seek(0)
             return output
 
+        # Crear archivo y botón de descarga
         archivo_excel = generar_excel_descarga(tabla_abc)
 
-        # Botón de descarga
         st.download_button(
             label="📥 Descargar Tabla ABC en Excel",
             data=archivo_excel,
-            file_name='Tabla_ABC_Productos.xlsx',
-            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            file_name="Tabla_ABC_Productos.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
 
 
 
