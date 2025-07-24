@@ -1327,20 +1327,61 @@ class ProveedorDashboard:
                     title=f"🥧 Distribución de {metrica_seleccionada} por Familia",
                     hole=0.35
                 )
+
+                # Elegimos si mostrar porcentaje o valor
+                text_mode = 'percent+label' if 'porcentual' in columna or 'participa' in columna else 'label+value'
+
+                # Texto con formato abreviado
+                familia_stats["valor_fmt"] = familia_stats[columna].apply(
+                    lambda x: f"{x:,.0f}" if x < 1_000 else f"{x/1_000:.0f}K" if x < 1_000_000 else f"{x/1_000_000:.1f}M"
+                )
+
                 fig.update_traces(
-                    textinfo='percent+label' if 'porcentual' in columna or 'participa' in columna else 'label+value',
+                    textinfo=text_mode,
                     textposition='inside',
                     pull=[0.02] * len(familia_stats),
-                    marker=dict(line=dict(width=0))
+                    marker=dict(line=dict(width=0)),
+                    hovertemplate="<b>%{label}</b><br>" +
+                                f"{metrica_seleccionada}: " + "%{value:,.0f}<extra></extra>"
                 )
+
                 fig.update_layout(
                     title_font=dict(size=18, color='#454448', family='Arial Black'),
                     title_x=0.08,
-                    # height=370,
+                    legend=dict(
+                        bgcolor='rgba(0,0,0,0)',  # fondo transparente
+                        bordercolor='rgba(0,0,0,0)',
+                        font=dict(size=11)
+                    ),
                     showlegend=True,
                     margin=dict(t=60, b=30, l=10, r=10)
                 )
+
                 st.plotly_chart(fig, use_container_width=True)
+
+
+            # with col1:
+            #     fig = px.pie(
+            #         familia_stats,
+            #         values=columna,
+            #         names=familia_stats.index,
+            #         title=f"🥧 Distribución de {metrica_seleccionada} por Familia",
+            #         hole=0.35
+            #     )
+            #     fig.update_traces(
+            #         textinfo='percent+label' if 'porcentual' in columna or 'participa' in columna else 'label+value',
+            #         textposition='inside',
+            #         pull=[0.02] * len(familia_stats),
+            #         marker=dict(line=dict(width=0))
+            #     )
+            #     fig.update_layout(
+            #         title_font=dict(size=18, color='#454448', family='Arial Black'),
+            #         title_x=0.08,
+            #         # height=370,
+            #         showlegend=True,
+            #         margin=dict(t=60, b=30, l=10, r=10)
+            #     )
+            #     st.plotly_chart(fig, use_container_width=True)
 
             with col2:
                 df_bar = familia_stats.reset_index()
