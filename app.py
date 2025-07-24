@@ -1277,37 +1277,52 @@ class ProveedorDashboard:
 
     def show_advanced_analysis(self, df, metrics):
         """Análisis avanzado"""
+        # st.subheader("🎯 Análisis Avanzado")
         st.subheader("🎯 Análisis Avanzado")
-        
-        # Análisis por familia de productos
+
+        # Análisis por familia
         if 'familia' in df.columns and df['familia'].notna().any():
             st.markdown("### 🌿 Análisis por Familia de Productos")
-            
+
             familia_stats = df.groupby('familia').agg({
                 'precio_total': 'sum',
                 'utilidad': 'sum',
                 'margen_porcentual': 'mean',
                 'cantidad_total': 'sum'
             }).round(2)
-            
+
             familia_stats['participacion'] = (familia_stats['precio_total'] / familia_stats['precio_total'].sum() * 100).round(1)
-            familia_stats = familia_stats.sort_values('precio_total', ascending=False)
+
+            metricas_opciones = {
+                "Ventas": "precio_total",
+                "Utilidad": "utilidad",
+                "Margen %": "margen_porcentual",
+                "Cantidad": "cantidad_total",
+                "Participación %": "participacion"
+            }
+
+            metrica_seleccionada = st.selectbox("📌 Selecciona la métrica a analizar:", list(metricas_opciones.keys()), index=0)
+
+            columna = metricas_opciones[metrica_seleccionada]
+            familia_stats = familia_stats.sort_values(columna, ascending=False)
+            formato = "${:,.0f}" if columna in ['precio_total', 'utilidad'] else "{:,.1f}%" if 'margen' in columna or 'participa' in columna else "{:,.0f}"
+            texto_etiqueta = familia_stats[columna].map(formato.format)
 
             col1, col2 = st.columns(2)
 
             with col1:
                 fig = px.pie(
                     familia_stats,
-                    values='precio_total',
+                    values=columna,
                     names=familia_stats.index,
-                    title="🥧 Distribución de Ventas por Familia",
+                    title=f"🥧 Distribución de {metrica_seleccionada} por Familia",
                     hole=0.35
                 )
                 fig.update_traces(
-                    textinfo='percent+label',
+                    textinfo='percent+label' if 'porcentual' in columna or 'participa' in columna else 'label+value',
                     textposition='inside',
                     pull=[0.02] * len(familia_stats),
-                    marker=dict(line=dict(width=0))  # Borde invisible
+                    marker=dict(line=dict(width=0))
                 )
                 fig.update_layout(
                     title_font=dict(size=18, color='#454448', family='Arial Black'),
@@ -1319,19 +1334,17 @@ class ProveedorDashboard:
                 st.plotly_chart(fig, use_container_width=True)
 
             with col2:
-                familia_stats["margen_fmt"] = familia_stats["margen_porcentual"].map("{:.1f}%".format)
-
                 fig = px.bar(
                     x=familia_stats.index,
-                    y=familia_stats['margen_porcentual'],
-                    color=familia_stats['margen_porcentual'],
-                    text=familia_stats["margen_fmt"],
-                    title="📊 Margen por Familia de Productos",
-                    color_continuous_scale='RdYlGn'
+                    y=columna,
+                    color=familia_stats[columna],
+                    text=texto_etiqueta,
+                    title=f"📊 {metrica_seleccionada} por Familia",
+                    color_continuous_scale='Viridis'
                 )
                 fig.update_traces(
                     textposition='outside',
-                    hovertemplate="<b>%{x}</b><br>Margen: %{text}<extra></extra>"
+                    hovertemplate="<b>%{x}</b><br>" + metrica_seleccionada + ": %{text}<extra></extra>"
                 )
                 fig.update_layout(
                     title_font=dict(size=18, color='#454448', family='Arial Black'),
@@ -1343,11 +1356,79 @@ class ProveedorDashboard:
                     margin=dict(t=70, b=40, l=30, r=20)
                 )
                 fig.update_yaxes(
-                    tickformat='.1f',
-                    ticksuffix='%',
                     showticklabels=False
                 )
                 st.plotly_chart(fig, use_container_width=True)
+
+        # # Análisis por familia de productos
+        # if 'familia' in df.columns and df['familia'].notna().any():
+        #     st.markdown("### 🌿 Análisis por Familia de Productos")
+            
+        #     familia_stats = df.groupby('familia').agg({
+        #         'precio_total': 'sum',
+        #         'utilidad': 'sum',
+        #         'margen_porcentual': 'mean',
+        #         'cantidad_total': 'sum'
+        #     }).round(2)
+            
+        #     familia_stats['participacion'] = (familia_stats['precio_total'] / familia_stats['precio_total'].sum() * 100).round(1)
+        #     familia_stats = familia_stats.sort_values('precio_total', ascending=False)
+
+        #     col1, col2 = st.columns(2)
+
+        #     with col1:
+        #         fig = px.pie(
+        #             familia_stats,
+        #             values='precio_total',
+        #             names=familia_stats.index,
+        #             title="🥧 Distribución de Ventas por Familia",
+        #             hole=0.35
+        #         )
+        #         fig.update_traces(
+        #             textinfo='percent+label',
+        #             textposition='inside',
+        #             pull=[0.02] * len(familia_stats),
+        #             marker=dict(line=dict(width=0))  # Borde invisible
+        #         )
+        #         fig.update_layout(
+        #             title_font=dict(size=18, color='#454448', family='Arial Black'),
+        #             title_x=0.08,
+        #             height=350,
+        #             showlegend=False,
+        #             margin=dict(t=60, b=30, l=10, r=10)
+        #         )
+        #         st.plotly_chart(fig, use_container_width=True)
+
+        #     with col2:
+        #         familia_stats["margen_fmt"] = familia_stats["margen_porcentual"].map("{:.1f}%".format)
+
+        #         fig = px.bar(
+        #             x=familia_stats.index,
+        #             y=familia_stats['margen_porcentual'],
+        #             color=familia_stats['margen_porcentual'],
+        #             text=familia_stats["margen_fmt"],
+        #             title="📊 Margen por Familia de Productos",
+        #             color_continuous_scale='RdYlGn'
+        #         )
+        #         fig.update_traces(
+        #             textposition='outside',
+        #             hovertemplate="<b>%{x}</b><br>Margen: %{text}<extra></extra>"
+        #         )
+        #         fig.update_layout(
+        #             title_font=dict(size=18, color='#454448', family='Arial Black'),
+        #             title_x=0.08,
+        #             xaxis_title=None,
+        #             yaxis_title=None,
+        #             height=350,
+        #             coloraxis_showscale=False,
+        #             margin=dict(t=70, b=40, l=30, r=20)
+        #         )
+        #         fig.update_yaxes(
+        #             tickformat='.1f',
+        #             ticksuffix='%',
+        #             showticklabels=False
+        #         )
+        #         st.plotly_chart(fig, use_container_width=True)
 
 ##################################33333
 #             # Dividir en 3 columnas
