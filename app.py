@@ -1513,7 +1513,8 @@ class ProveedorDashboard:
                 metrica_seleccionada = st.selectbox(
                     "Selecciona una métrica:",
                     ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"],
-                    index=0
+                    index=0,
+                    key="metrica_sucursal"
                 )
 
             # === Preparación de datos ===
