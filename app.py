@@ -21,9 +21,8 @@ warnings.filterwarnings('ignore')
 
 from limpiar_datos import limpiar_datos
 from insight_pareto import generar_insight_cantidad, generar_insight_ventas
+from generar_excel import generar_excel
 locale = Locale.parse('es_AR')
-
-
 
 def format_abbr(x):
                 if x >= 1_000_000:
@@ -1958,9 +1957,19 @@ class ProveedorDashboard:
             file_name=f"reporte_completo_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.json",
             mime="application/json"
         )
-        
+###############################################
+        archivo_excel = generar_excel(reporte_completo, sheet_name="ABC Clasificación")
+        st.download_button(
+            label="📥 Descargar Tabla ABC (Excel)",
+            data=archivo_excel,
+            file_name="tabla_abc_productos.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+
+###############################################
         # Vista previa de datos
-        st.markdown("### 👁️ Vista Previa de Datos")
+        st.markdown("### Vista Previa de Datos")
         
         data=df[['fecha_fmt', 'idarticulo', 'descripcion', 'precio_total', 'costo_total', 'utilidad', 'margen_porcentual', 'cantidad_total']]
         # Mostrar muestra de datos
