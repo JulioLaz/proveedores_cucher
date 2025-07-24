@@ -21,7 +21,7 @@ warnings.filterwarnings('ignore')
 
 from limpiar_datos import limpiar_datos
 from insight_pareto import generar_insight_cantidad, generar_insight_ventas
-
+locale = Locale.parse('es_AR')
 
 
 
@@ -1865,10 +1865,8 @@ class ProveedorDashboard:
     def show_reports_section(self, df, proveedor, metrics):
         """Sección de reportes y exportación"""
         st.subheader("📁 Generación de Reportes")
-        
-        # Resumen para exportación
         st.markdown("### 📊 Resumen Ejecutivo")
-        
+        df['fecha_fmt'] = df['fecha'].apply(lambda x: format_date(x, format="d MMMM y", locale=locale))
         resumen_data = {
             'Métrica': [
                 'Proveedor',
@@ -1876,8 +1874,6 @@ class ProveedorDashboard:
                 'Ventas Totales',
                 'Utilidad Total',
                 'Margen Promedio',
-                # 'Total Transacciones',
-                # 'Ticket Promedio',
                 'Productos Únicos',
                 'Días con Ventas'
             ],
@@ -1887,8 +1883,6 @@ class ProveedorDashboard:
                 f"${metrics['total_ventas']:,.0f}",
                 f"${metrics['total_utilidad']:,.0f}",
                 f"{metrics['margen_promedio']:.1f}%",
-                # f"{metrics['num_tickets']:,}",
-                # f"${metrics['ticket_promedio']:,.2f}",
                 f"{metrics['productos_unicos']:,}",
                 f"{metrics['dias_con_ventas']:,}"
             ]
@@ -1953,8 +1947,6 @@ class ProveedorDashboard:
                 'utilidad_total': float(metrics['total_utilidad']),
                 'margen_promedio': float(metrics['margen_promedio']),
                 'productos_unicos': int(metrics['productos_unicos'])
-                # 'ticket_promedio': float(metrics['ticket_promedio']),
-                # 'num_tickets': int(metrics['num_tickets'])
             },
             'insights': [insight[1] for insight in self.generate_insights(df, metrics)]
         }
@@ -1963,7 +1955,7 @@ class ProveedorDashboard:
         st.download_button(
             label="🗂️ Descargar Reporte Completo (JSON)",
             data=json_data,
-            file_name=f"reporte_completo_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            file_name=f"reporte_completo_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.json",
             mime="application/json"
         )
         
