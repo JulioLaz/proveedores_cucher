@@ -1,5 +1,82 @@
 def generar_insight_cantidad(counts):
     """Genera insights inteligentes sobre la distribución de cantidad de productos"""
+
+    if counts.empty or counts.sum() == 0:
+        return '<div class="warning-box">🚫 <strong>Sin datos disponibles:</strong> No se encontraron productos para analizar la distribución por cantidad.</div>'
+
+    total = counts.sum()
+    mayor_cat = counts.idxmax()
+    pct_mayor = counts.max() / total * 100
+
+    # Análisis de diversificación
+    num_categorias = len(counts)
+    diversificacion = "Alta" if num_categorias >= 5 else "Media" if num_categorias >= 3 else "Baja"
+
+    # Análisis de concentración
+    if pct_mayor >= 70:
+        concentracion = "Muy alta"
+        riesgo = "Alto"
+        emoji = "🚨"
+    elif pct_mayor >= 50:
+        concentracion = "Alta"
+        riesgo = "Medio-Alto"
+        emoji = "⚠️"
+    elif pct_mayor >= 30:
+        concentracion = "Moderada"
+        riesgo = "Medio"
+        emoji = "📊"
+    else:
+        concentracion = "Baja"
+        riesgo = "Bajo"
+        emoji = "✅"
+
+    if len(counts) > 1:
+        segunda_cat = counts.nlargest(2).index[1]
+        pct_segunda = counts[segunda_cat] / total * 100
+        diferencia = pct_mayor - pct_segunda
+        if diferencia >= 40:
+            dominancia = "domina ampliamente"
+        elif diferencia >= 20:
+            dominancia = "lidera claramente"
+        elif diferencia >= 10:
+            dominancia = "supera moderadamente"
+        else:
+            dominancia = "compite estrechamente con"
+    else:
+        segunda_cat = None
+        dominancia = "es la única categoría"
+
+    if concentracion in ["Muy alta", "Alta"]:
+        recomendacion = f"<strong>Recomendación crítica:</strong> Diversificar el portafolio para reducir la dependencia de <strong>{mayor_cat}</strong>."
+    elif concentracion == "Moderada":
+        recomendacion = f"<strong>Oportunidad:</strong> <strong>{mayor_cat}</strong> tiene buen potencial. Evaluar si aumentar su participación."
+    else:
+        recomendacion = f"<strong>Fortaleza:</strong> Excelente diversificación del portafolio."
+
+    insight_html = f"""
+    <div class="insight-box">
+        <div class="insight-titulo">{emoji} <strong>Análisis de Distribución por Cantidad:</strong></div>
+        <p>La categoría <strong>{mayor_cat}</strong> {dominancia} {"a " + segunda_cat if segunda_cat else "el mercado"} con <strong>{counts.max()} productos</strong> (<strong>{pct_mayor:.1f}%</strong> del total).</p>
+        <p><strong>📈 Características del portafolio:</strong></p>
+        <ul>
+            <li><strong>Diversificación:</strong> {diversificacion} ({num_categorias} categorías activas)</li>
+            <li><strong>Concentración:</strong> {concentracion} en categoría líder</li>
+            <li><strong>Nivel de riesgo:</strong> {riesgo}</li>
+    """
+
+    if segunda_cat:
+        insight_html += f'<li><strong>Segunda categoría:</strong> {segunda_cat} con {counts[segunda_cat]} productos ({pct_segunda:.1f}%)</li>'
+
+    insight_html += f"""
+        </ul>
+        <p>💡 {recomendacion}</p>
+    </div>
+    """
+    return insight_html
+
+
+def generar_insight_cantidad00(counts):
+    """Genera insights inteligentes sobre la distribución de cantidad de productos"""
     
     if counts.empty or counts.sum() == 0:
         return "🚫 **Sin datos disponibles:** No se encontraron productos para analizar la distribución por cantidad."
