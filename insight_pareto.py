@@ -20,12 +20,12 @@ def generar_insight_ventas(ventas):
     pct_top = val_top / total * 100
    #  val_fmt = format_currency(val_top, '$', locale='es_AR', format='#,##0')
    #  val_fmt = f'val_top:.0f'.replace('.', ',')  # Formatear sin símbolo de moneda
-    val_fmt = "$" + f"{val_top:.0f}"
+    val_fmt = "$" + f"{val_top:,.0f}"
 
 
     texto = f"""
     🧠 **Insight:**
-    En términos de ventas, la categoría **{top_cat}** domina con un total de **{val_fmt}**, representando el **{pct_top:.1f}%** del total.
+    En términos de ventas, la categoría **{top_cat}** domina con un total de **{val_fmt}** representando el **{pct_top:.1f}%** del total.
     Esta categoría es estratégica para los ingresos y debe ser priorizada en promociones, disponibilidad y análisis de margen.
     """
     return texto
