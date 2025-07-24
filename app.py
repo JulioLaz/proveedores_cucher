@@ -1618,12 +1618,17 @@ class ProveedorDashboard:
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
-        col1, col2 = st.columns(2)
+        col1, col2,col3 = st.columns(3)
+            
         with col1:
+            df_margenes_suc = df.groupby('sucursal')['margen_porcentual'].mean()
+            st.markdown(generar_insight_margen(df_margenes_suc, "Sucursal"), unsafe_allow_html=True)
+
+        with col2:
             df_margenes_flia = df.groupby('familia')['margen_porcentual'].mean()
             st.markdown(generar_insight_margen(df_margenes_flia, "Familia"), unsafe_allow_html=True)
 
-        with col2:
+        with col3:
             df_margenes_subflia = df.groupby('subfamilia')['margen_porcentual'].mean()
             st.markdown(generar_insight_margen(df_margenes_subflia, "Subfamilia"), unsafe_allow_html=True)
 
