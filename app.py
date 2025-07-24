@@ -636,12 +636,12 @@ class ProveedorDashboard:
         metrics = self.calculate_metrics(df)
         
         # Tabs principales
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "📈 Resumen Ejecutivo", 
             "🏆 Análisis de Productos", 
             "📅 Evolución Temporal",
             "🎯 Análisis Avanzado",
-            "📁 Reportes",
+            # "📁 Reportes",
             "📋 Sintesis Final"
         ])
         
@@ -657,10 +657,10 @@ class ProveedorDashboard:
         with tab4:
             self.show_advanced_analysis(df, metrics)
         
-        with tab5:
-            self.show_reports_section(df, proveedor, metrics)
+        # with tab5:
+        #     self.show_reports_section(df, proveedor, metrics)
         
-        with tab6:
+        with tab5:
         #     self.show_executive_summary(df, proveedor, metrics)
 
             self.show_executive_summary_best(df, proveedor, metrics)
@@ -2448,12 +2448,26 @@ class ProveedorDashboard:
         archivo_excel = generar_excel(data, sheet_name="ABC Clasificación")
         periodo_analisis = resumen_data['Valor'][1]
 
+        from re import sub
+
+        proveedor_key = sub(r'\W+', '', proveedor.lower())
+
         st.download_button(
-                label="📥 Descargar todos los datos del proveedor (Excel)",
-                data=archivo_excel,
-                file_name=f"{proveedor}_{periodo_analisis}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+            label="📥 Descargar todos los datos del proveedor (Excel)",
+            data=archivo_excel,
+            file_name=f"{proveedor}_{periodo_analisis}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"descarga_excel_{proveedor_key}"
+)
+
+
+
+        # st.download_button(
+        #         label="📥 Descargar todos los datos del proveedor (Excel)",
+        #         data=archivo_excel,
+        #         file_name=f"{proveedor}_{periodo_analisis}.xlsx",
+        #         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        #     )
 
             # Mostrar muestra de datos
         st.dataframe(
