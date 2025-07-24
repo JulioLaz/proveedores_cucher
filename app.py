@@ -1733,12 +1733,12 @@ class ProveedorDashboard:
         with col2:
             st.markdown(generar_insight_ventas(abc_ventas))
         
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown(generar_insight_margen(abc_counts))
+        # col1, col2 = st.columns(2)
+        # with col1:
+        #     st.markdown(generar_insight_margen(abc_counts))
 
-        with col2:
-            st.markdown(generar_insight_abc_completo(abc_ventas))
+        # with col2:
+        #     st.markdown(generar_insight_abc_completo(abc_ventas))
 
         # === Recomendaciones Estratégicas ===
         st.markdown("### 💡 Recomendaciones Estratégicas")
