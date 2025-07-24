@@ -18,7 +18,8 @@ def generar_insight_ventas(ventas):
     top_cat = ventas.idxmax()
     val_top = ventas.max()
     pct_top = val_top / total * 100
-    val_fmt = format_currency(val_top, '$', locale='es_AR', format='#,##0')
+   #  val_fmt = format_currency(val_top, '$', locale='es_AR', format='#,##0')
+    val_fmt = val_top
 
     texto = f"""
     🧠 **Insight:**
