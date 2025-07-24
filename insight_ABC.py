@@ -373,7 +373,7 @@ def generar_insight_ventas(ventas):
     return html
 
 
-def generar_insight_margen(margenes,categoria):
+def generar_insight_margen(margenes, categoria):
     if margenes.empty or margenes.sum() == 0:
         return '<div class="warning-box">🚫 <strong>Sin datos disponibles:</strong> No se encontraron datos de margen para analizar.</div>'
 
