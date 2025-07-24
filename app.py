@@ -1500,44 +1500,122 @@ class ProveedorDashboard:
                 )
 
                 st.plotly_chart(fig, use_container_width=True)
-
-
         
         # Análisis por sucursal
+        # === Análisis por Sucursal ===
         if 'sucursal' in df.columns and df['sucursal'].notna().any():
             st.markdown("### 🏪 Análisis por Sucursal")
-            
+
             sucursal_stats = df.groupby('sucursal').agg({
                 'precio_total': 'sum',
                 'utilidad': 'sum',
                 'margen_porcentual': 'mean',
                 'cantidad_total': 'sum'
             }).round(2)
-            
+
             sucursal_stats['tickets'] = df.groupby('sucursal').size()
             sucursal_stats['participacion'] = (sucursal_stats['precio_total'] / sucursal_stats['precio_total'].sum() * 100).round(1)
             sucursal_stats = sucursal_stats.sort_values('precio_total', ascending=False)
-            
+
             col1, col2 = st.columns(2)
-            
+
             with col1:
+                sucursal_stats['participacion'] = (sucursal_stats['precio_total'] / sucursal_stats['precio_total'].sum()) * 100
+                pulls = sucursal_stats['participacion'].apply(lambda x: 0.12 if x < 5 else 0.04 if x < 15 else 0.01).tolist()
+
                 fig = px.pie(
-                    values=sucursal_stats['precio_total'],
+                    sucursal_stats,
+                    values='precio_total',
                     names=sucursal_stats.index,
-                    title="🏪 Ventas por Sucursal"
+                    title="🏪 Distribución de Ventas por Sucursal",
+                    hole=0.35
+                )
+                fig.update_traces(
+                    textinfo='label+value',
+                    textposition='inside',
+                    pull=pulls,
+                    marker=dict(line=dict(width=0)),
+                    hovertemplate="<b>%{label}</b><br>Ventas: %{value:,.0f} <br>Participación: %{percent}<extra></extra>"
+                )
+                fig.update_layout(
+                    title_font=dict(size=18, color='#454448', family='Arial Black'),
+                    title_x=0.08,
+                    legend=dict(
+                        bgcolor='rgba(0,0,0,0)',
+                        bordercolor='rgba(0,0,0,0)',
+                        font=dict(size=11)
+                    ),
+                    showlegend=True,
+                    margin=dict(t=60, b=30, l=10, r=10)
                 )
                 st.plotly_chart(fig, use_container_width=True)
-            
+
             with col2:
+                df_bar = sucursal_stats.reset_index()
+                df_bar["margen_fmt"] = df_bar["margen_porcentual"].map("{:.1f}%".format)
+
                 fig = px.bar(
-                    x=sucursal_stats.index,
-                    y=sucursal_stats['margen_porcentual'],
+                    df_bar,
+                    x='sucursal',
+                    y='margen_porcentual',
+                    color='margen_porcentual',
+                    text='margen_fmt',
                     title="📈 Margen por Sucursal",
-                    color=sucursal_stats['margen_porcentual'],
                     color_continuous_scale='Viridis'
                 )
-                fig.update_yaxes(tickformat='.1f', ticksuffix='%')
+                fig.update_traces(
+                    textposition='outside',
+                    hovertemplate="<b>%{x}</b><br>Margen: %{text}<extra></extra>"
+                )
+                fig.update_layout(
+                    title_font=dict(size=18, color='#454448', family='Arial Black'),
+                    title_x=0.08,
+                    xaxis_title=None,
+                    yaxis_title=None,
+                    coloraxis_showscale=False,
+                    margin=dict(t=70, b=40, l=30, r=20)
+                )
+                fig.update_yaxes(
+                    tickformat='.1f',
+                    ticksuffix='%',
+                    showticklabels=False
+                )
                 st.plotly_chart(fig, use_container_width=True)
+
+        # if 'sucursal' in df.columns and df['sucursal'].notna().any():
+        #     st.markdown("### 🏪 Análisis por Sucursal")
+            
+        #     sucursal_stats = df.groupby('sucursal').agg({
+        #         'precio_total': 'sum',
+        #         'utilidad': 'sum',
+        #         'margen_porcentual': 'mean',
+        #         'cantidad_total': 'sum'
+        #     }).round(2)
+            
+        #     sucursal_stats['tickets'] = df.groupby('sucursal').size()
+        #     sucursal_stats['participacion'] = (sucursal_stats['precio_total'] / sucursal_stats['precio_total'].sum() * 100).round(1)
+        #     sucursal_stats = sucursal_stats.sort_values('precio_total', ascending=False)
+            
+        #     col1, col2 = st.columns(2)
+            
+        #     with col1:
+        #         fig = px.pie(
+        #             values=sucursal_stats['precio_total'],
+        #             names=sucursal_stats.index,
+        #             title="🏪 Ventas por Sucursal"
+        #         )
+        #         st.plotly_chart(fig, use_container_width=True)
+            
+        #     with col2:
+        #         fig = px.bar(
+        #             x=sucursal_stats.index,
+        #             y=sucursal_stats['margen_porcentual'],
+        #             title="📈 Margen por Sucursal",
+        #             color=sucursal_stats['margen_porcentual'],
+        #             color_continuous_scale='Viridis'
+        #         )
+        #         fig.update_yaxes(tickformat='.1f', ticksuffix='%')
+        #         st.plotly_chart(fig, use_container_width=True)
             
          
 # #########################################################################
