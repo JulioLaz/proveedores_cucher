@@ -642,7 +642,7 @@ class ProveedorDashboard:
             "📅 Evolución Temporal",
             "🎯 Análisis Avanzado",
             "📁 Reportes",
-            "📋 Reporte Final"
+            "📋 Sintesis Final"
         ])
         
         with tab1:
@@ -1965,7 +1965,7 @@ class ProveedorDashboard:
         # )
         # Vista previa de datos
         st.markdown("### Vista Previa de Datos")
-        
+        data=df.to_csv(index=False)
         data=df[['fecha_fmt', 'idarticulo', 'descripcion', 'precio_total', 'costo_total', 'utilidad', 'margen_porcentual', 'cantidad_total']]
 ###############################################
         archivo_excel = generar_excel(data, sheet_name="ABC Clasificación")
@@ -2441,6 +2441,40 @@ class ProveedorDashboard:
         
         df_resumen = pd.DataFrame(resumen_data)
         st.dataframe(df_resumen, use_container_width=True, hide_index=True)
+
+        st.markdown("### Vista Previa de Datos")
+        data=df.to_csv(index=False)
+        data=df[['fecha_fmt', 'idarticulo', 'descripcion', 'precio_total', 'costo_total', 'utilidad', 'margen_porcentual', 'cantidad_total']]
+        archivo_excel = generar_excel(data, sheet_name="ABC Clasificación")
+        periodo_analisis = resumen_data['Valor'][1]
+
+        st.download_button(
+                label="📥 Descargar todos los datos del proveedor (Excel)",
+                data=archivo_excel,
+                file_name=f"{proveedor}_{periodo_analisis}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
+            # Mostrar muestra de datos
+        st.dataframe(
+                data.head(10),
+                use_container_width=True,
+                column_config={
+                    "fecha_fmt": st.column_config.DateColumn("Fecha"),
+                    "precio_total": st.column_config.NumberColumn("Precio Total", format="$%.0f"),
+                    "costo_total": st.column_config.NumberColumn("Costo Total", format="$%.0f"),
+                    "utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f"),
+                    "margen_porcentual": st.column_config.NumberColumn("Margen %", format="%.1f%%"),
+                    "cantidad_total": st.column_config.NumberColumn("Cantidad", format="%.0f")
+                }
+            )
+            
+        if len(data) > 100:
+                st.info(f"ℹ️ Mostrando las primeras 10 filas de {len(data):,} registros totales. Descarga el CSV completo para ver todos los datos.")
+        
+
+
+
 
     def run(self):
         """Ejecutar dashboard"""
