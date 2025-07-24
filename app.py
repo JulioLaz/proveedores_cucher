@@ -1694,82 +1694,129 @@ class ProveedorDashboard:
             )
             st.plotly_chart(fig, use_container_width=True)
 
-            with col1:
-                st.markdown(generar_insight_cantidad(abc_counts))
+        #     with col1:
+        # === CSS Profesional ===
+        st.markdown("""
+        <style>
+        .insight-box {
+            background: #f9f9f9;
+            padding: 0.7rem 1rem;
+            margin-bottom: 0.5rem;
+            border-left: 6px solid #2a5298;
+            border-radius: 6px;
+            font-size: 0.92rem;
+        }
+        .insight-box.red {
+            border-left: 6px solid #d9534f;
+            background: #fbeaea;
+        }
+        .insight-box.green {
+            border-left: 6px solid #5cb85c;
+            background: #e7f7ec;
+        }
+        </style>
+        """, unsafe_allow_html=True)
 
-            with col2:
-                st.markdown(generar_insight_ventas(abc_ventas))
+        # === Insights debajo de gráficos ABC ===
+        with col1:
+            st.markdown(generar_insight_cantidad(abc_counts))
 
+        with col2:
+            st.markdown(generar_insight_ventas(abc_ventas))
 
-        # st.markdown("### 📊 Análisis ABC de Productos")
-        
-        # productos_abc = df.groupby(['idarticulo', 'descripcion']).agg({
-        #     'precio_total': 'sum',
-        #     'utilidad': 'sum'
-        # }).sort_values('precio_total', ascending=False)
-        
-        # # Calcular categorías ABC
-        # productos_abc['participacion_acum'] = (productos_abc['precio_total'].cumsum() / productos_abc['precio_total'].sum() * 100)
-        
-        # def categorizar_abc(participacion):
-        #     if participacion <= 80:
-        #         return 'A (Alto valor)'
-        #     elif participacion <= 95:
-        #         return 'B (Valor medio)'
-        #     else:
-        #         return 'C (Bajo valor)'
-        
-        # productos_abc['categoria_abc'] = productos_abc['participacion_acum'].apply(categorizar_abc)
-        
-        # # Contar productos por categoría
-        # abc_counts = productos_abc['categoria_abc'].value_counts()
-        # abc_ventas = productos_abc.groupby('categoria_abc')['precio_total'].sum()
-        
-        # col1, col2 = st.columns(2)
-        
-        # with col1:
-        #     fig = px.bar(
-        #         x=abc_counts.index,
-        #         y=abc_counts.values,
-        #         title="📈 Distribución de Productos ABC",
-        #         labels={'x': 'Categoría', 'y': 'Cantidad de Productos'},
-        #         color=abc_counts.values,
-        #         color_continuous_scale='Blues'
-        #     )
-        #     st.plotly_chart(fig, use_container_width=True)
-        
-        # with col2:
-        #     fig = px.pie(
-        #         values=abc_ventas.values,
-        #         names=abc_ventas.index,
-        #         title="💰 Participación de Ventas ABC"
-        #     )
-        #     st.plotly_chart(fig, use_container_width=True)
-        
-        # Recomendaciones basadas en análisis
+        # === Recomendaciones Estratégicas ===
         st.markdown("### 💡 Recomendaciones Estratégicas")
-        
-        recomendaciones = []
-        
-        # Análisis de productos A
+
+        recomendaciones_criticas = []
+        recomendaciones_medias = []
+        recomendaciones_bajas = []
+
+        # Productos A
         productos_a = productos_abc[productos_abc['categoria_abc'] == 'A (Alto valor)']
-        if len(productos_a) > 0:
-            recomendaciones.append(f"🎯 **Productos A:** {len(productos_a)} productos generan el 80% de las ventas. Priorizar su disponibilidad y promoción.")
-        
-        # Análisis de margen
+        if not productos_a.empty:
+            ventas_a = abc_ventas.get('A (Alto valor)', 0)
+            porcentaje_a = ventas_a / abc_ventas.sum() * 100
+            recomendaciones_criticas.append(
+                f"🔺 **Productos A:** {len(productos_a)} productos generan el {porcentaje_a:.1f}% de las ventas. Priorizá disponibilidad y promoción."
+            )
+
+        # Margen bajo
         if metrics['margen_promedio'] < 20:
-            recomendaciones.append("⚠️ **Margen bajo:** Revisar precios y costos. Considerar renegociación con proveedores.")
-        
-        # Análisis de diversificación
+            recomendaciones_criticas.append(
+                f"🔴 **Margen bajo ({metrics['margen_promedio']:.1f}%):** Revisar precios y negociar con proveedores."
+            )
+        elif metrics['margen_promedio'] >= 30:
+            recomendaciones_bajas.append(
+                f"✅ **Margen saludable:** Excelente rentabilidad promedio ({metrics['margen_promedio']:.1f}%). ¡Seguir así!"
+            )
+
+        # Diversificación
         if metrics['productos_unicos'] < 10:
-            recomendaciones.append("📈 **Ampliar catálogo:** Pocos productos únicos. Considerar expandir línea de productos.")
-        
-        # Análisis de ticket promedio
+            recomendaciones_medias.append(
+                f"📈 **Ampliar catálogo:** Solo {metrics['productos_unicos']} productos únicos. Evaluar incorporar nuevas líneas."
+            )
+        else:
+            recomendaciones_bajas.append(
+                f"🟢 **Catálogo variado:** {metrics['productos_unicos']} productos activos. Diversificación saludable."
+            )
+
+        # Ticket promedio
         if metrics['ticket_promedio'] < 2000:
-            recomendaciones.append("💡 **Cross-selling:** Ticket promedio bajo. Implementar estrategias de venta cruzada.")
+            recomendaciones_medias.append(
+                f"💡 **Cross-selling:** Ticket promedio de ${metrics['ticket_promedio']:.0f}. Promover ventas combinadas."
+            )
+        else:
+            recomendaciones_bajas.append(
+                f"🟢 **Ticket alto:** Excelente ticket promedio (${metrics['ticket_promedio']:.0f})."
+            )
+
+        # === Mostrar recomendaciones ordenadas ===
+        if recomendaciones_criticas:
+            st.markdown("#### 🔺 Alta Prioridad")
+            for rec in recomendaciones_criticas:
+                st.markdown(f'<div class="insight-box red">{rec}</div>', unsafe_allow_html=True)
+
+        if recomendaciones_medias:
+            st.markdown("#### ⚠️ Prioridad Media")
+            for rec in recomendaciones_medias:
+                st.markdown(f'<div class="insight-box">{rec}</div>', unsafe_allow_html=True)
+
+        if recomendaciones_bajas:
+            st.markdown("#### ✅ Aspectos Positivos")
+            for rec in recomendaciones_bajas:
+                st.markdown(f'<div class="insight-box green">{rec}</div>', unsafe_allow_html=True)
+
+        #     with col1:
+        #         st.markdown(generar_insight_cantidad(abc_counts))
+
+        #     with col2:
+        #         st.markdown(generar_insight_ventas(abc_ventas))
+
         
-        for rec in recomendaciones:
-            st.markdown(f'<div class="insight-box">{rec}</div>', unsafe_allow_html=True)
+        # # Recomendaciones basadas en análisis
+        # st.markdown("### 💡 Recomendaciones Estratégicas")
+        
+        # recomendaciones = []
+        
+        # # Análisis de productos A
+        # productos_a = productos_abc[productos_abc['categoria_abc'] == 'A (Alto valor)']
+        # if len(productos_a) > 0:
+        #     recomendaciones.append(f"🎯 **Productos A:** {len(productos_a)} productos generan el 80% de las ventas. Priorizar su disponibilidad y promoción.")
+        
+        # # Análisis de margen
+        # if metrics['margen_promedio'] < 20:
+        #     recomendaciones.append("⚠️ **Margen bajo:** Revisar precios y costos. Considerar renegociación con proveedores.")
+        
+        # # Análisis de diversificación
+        # if metrics['productos_unicos'] < 10:
+        #     recomendaciones.append("📈 **Ampliar catálogo:** Pocos productos únicos. Considerar expandir línea de productos.")
+        
+        # # Análisis de ticket promedio
+        # if metrics['ticket_promedio'] < 2000:
+        #     recomendaciones.append("💡 **Cross-selling:** Ticket promedio bajo. Implementar estrategias de venta cruzada.")
+        
+        # for rec in recomendaciones:
+        #     st.markdown(f'<div class="insight-box">{rec}</div>', unsafe_allow_html=True)
     
     def show_reports_section(self, df, proveedor, metrics):
         """Sección de reportes y exportación"""
