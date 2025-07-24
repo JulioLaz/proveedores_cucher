@@ -1756,11 +1756,11 @@ class ProveedorDashboard:
 
         with col1:
             df_margenes_flia = df.groupby('familia')['margen_porcentual'].mean()
-            st.markdown(generar_insight_margen(df_margenes_flia, 'Familia'), unsafe_allow_html=True)
+            st.markdown(generar_insight_margen(df_margenes_flia, "Familia"), unsafe_allow_html=True)
 
         with col2:
             df_margenes_subflia = df.groupby('subfamilia')['margen_porcentual'].mean()
-            st.markdown(generar_insight_margen(df_margenes_subflia, 'Subfamilia'), unsafe_allow_html=True)
+            st.markdown(generar_insight_margen(df_margenes_subflia, "Subfamilia"), unsafe_allow_html=True)
 
 
 
