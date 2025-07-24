@@ -1278,11 +1278,11 @@ class ProveedorDashboard:
     def show_advanced_analysis(self, df, metrics):
         """Análisis avanzado"""
         # st.subheader("🎯 Análisis Avanzado")
-        st.subheader("🎯 Análisis Avanzado")
+        # st.subheader("🎯 Análisis Avanzado")
 
         # Análisis por familia
         if 'familia' in df.columns and df['familia'].notna().any():
-            st.markdown("### 🌿 Análisis por Familia de Productos")
+            # st.markdown("### 🌿 Análisis por Familia de Productos")
 
             familia_stats = df.groupby('familia').agg({
                 'precio_total': 'sum',
@@ -1301,7 +1301,20 @@ class ProveedorDashboard:
                 "Participación %": "participacion"
             }
 
-            metrica_seleccionada = st.selectbox("📌 Selecciona la métrica a analizar:", list(metricas_opciones.keys()), index=0)
+            col1, col2 = st.columns([3, 2])
+
+            with col1:
+                st.markdown("### 🌿 Análisis por Familia de Productos")
+
+            with col2:
+                metrica_seleccionada = st.selectbox(
+                    "Selecciona una métrica:",
+                    ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"],
+                    index=0
+                )
+
+
+            # metrica_seleccionada = st.selectbox("📌 Selecciona la métrica a analizar:", list(metricas_opciones.keys()), index=0)
 
             columna = metricas_opciones[metrica_seleccionada]
             familia_stats = familia_stats.sort_values(columna, ascending=False)
