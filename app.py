@@ -1320,6 +1320,15 @@ class ProveedorDashboard:
             col1, col2 = st.columns(2)
 
             with col1:
+                # Crear columna con % participación para uso en etiquetas
+                familia_stats['participacion'] = (familia_stats[columna] / familia_stats[columna].sum()) * 100
+
+                # Pull dinámico: cuanto menor la participación, mayor el pull
+                pulls = familia_stats['participacion'].apply(lambda x: 0.12 if x < 5 else 0.04 if x < 15 else 0.01).tolist()
+
+                # Texto interior: % + valor abreviado
+                text_mode = 'percent+label' if 'porcentual' in columna or 'participa' in columna else 'label+value'
+
                 fig = px.pie(
                     familia_stats,
                     values=columna,
@@ -1328,28 +1337,21 @@ class ProveedorDashboard:
                     hole=0.35
                 )
 
-                # Elegimos si mostrar porcentaje o valor
-                text_mode = 'percent+label' if 'porcentual' in columna or 'participa' in columna else 'label+value'
-
-                # Texto con formato abreviado
-                familia_stats["valor_fmt"] = familia_stats[columna].apply(
-                    lambda x: f"{x:,.0f}" if x < 1_000 else f"{x/1_000:.0f}K" if x < 1_000_000 else f"{x/1_000_000:.1f}M"
-                )
-
                 fig.update_traces(
                     textinfo=text_mode,
                     textposition='inside',
-                    pull=[0.02] * len(familia_stats),
+                    pull=pulls,
                     marker=dict(line=dict(width=0)),
                     hovertemplate="<b>%{label}</b><br>" +
-                                f"{metrica_seleccionada}: " + "%{value:,.0f}<extra></extra>"
+                                f"{metrica_seleccionada}: " +
+                                "%{value:,.0f} <br>Participación: %{percent}<extra></extra>"
                 )
 
                 fig.update_layout(
                     title_font=dict(size=18, color='#454448', family='Arial Black'),
                     title_x=0.08,
                     legend=dict(
-                        bgcolor='rgba(0,0,0,0)',  # fondo transparente
+                        bgcolor='rgba(0,0,0,0)',
                         bordercolor='rgba(0,0,0,0)',
                         font=dict(size=11)
                     ),
@@ -1358,6 +1360,46 @@ class ProveedorDashboard:
                 )
 
                 st.plotly_chart(fig, use_container_width=True)
+
+            # with col1:
+            #     fig = px.pie(
+            #         familia_stats,
+            #         values=columna,
+            #         names=familia_stats.index,
+            #         title=f"🥧 Distribución de {metrica_seleccionada} por Familia",
+            #         hole=0.35
+            #     )
+
+            #     # Elegimos si mostrar porcentaje o valor
+            #     text_mode = 'percent+label' if 'porcentual' in columna or 'participa' in columna else 'label+value'
+
+            #     # Texto con formato abreviado
+            #     familia_stats["valor_fmt"] = familia_stats[columna].apply(
+            #         lambda x: f"{x:,.0f}" if x < 1_000 else f"{x/1_000:.0f}K" if x < 1_000_000 else f"{x/1_000_000:.1f}M"
+            #     )
+
+            #     fig.update_traces(
+            #         textinfo=text_mode,
+            #         textposition='inside',
+            #         pull=[0.02] * len(familia_stats),
+            #         marker=dict(line=dict(width=0)),
+            #         hovertemplate="<b>%{label}</b><br>" +
+            #                     f"{metrica_seleccionada}: " + "%{value:,.0f}<extra></extra>"
+            #     )
+
+            #     fig.update_layout(
+            #         title_font=dict(size=18, color='#454448', family='Arial Black'),
+            #         title_x=0.08,
+            #         legend=dict(
+            #             bgcolor='rgba(0,0,0,0)',  # fondo transparente
+            #             bordercolor='rgba(0,0,0,0)',
+            #             font=dict(size=11)
+            #         ),
+            #         showlegend=True,
+            #         margin=dict(t=60, b=30, l=10, r=10)
+            #     )
+
+            #     st.plotly_chart(fig, use_container_width=True)
 
 
             # with col1:
