@@ -1735,6 +1735,11 @@ class ProveedorDashboard:
         
         # col1, col2 = st.columns(2)
         # with col1:
+        #     st.markdown(generar_insight_cantidad(abc_counts))
+            
+        # with col2:
+        #     st.markdown(generar_insight_ventas(abc_ventas))
+        # with col1:
         #     st.markdown(generar_insight_margen(abc_counts))
 
         # with col2:
@@ -1776,15 +1781,6 @@ class ProveedorDashboard:
                 f"🟢 **Catálogo variado:** {metrics['productos_unicos']} productos activos. Diversificación saludable."
             )
 
-        # Ticket promedio
-        # if metrics['ticket_promedio'] < 2000:
-        #     recomendaciones_medias.append(
-        #         f"💡 **Cross-selling:** Ticket promedio de ${metrics['ticket_promedio']:.0f}. Promover ventas combinadas."
-        #     )
-        # else:
-        #     recomendaciones_bajas.append(
-        #         f"🟢 **Ticket alto:** Excelente ticket promedio (${metrics['ticket_promedio']:.0f})."
-        #     )
 
         # === Mostrar recomendaciones ordenadas ===
         if recomendaciones_criticas:
@@ -2466,7 +2462,6 @@ class ProveedorDashboard:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             key=f"descarga_excel_{proveedor_key}"
 )
-
 
 
         # st.download_button(

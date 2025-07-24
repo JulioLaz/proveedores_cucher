@@ -1,43 +1,8 @@
-# # ====== TEXTO AUTOMÁTICO PARA INSIGHT POR CATEGORÍA ======
-# def generar_insight_cantidad(counts):
-#     total = counts.sum()
-#     mayor_cat = counts.idxmax()
-#     pct_mayor = counts.max() / total * 100
-
-#     texto = f"""
-#     🧠 **Insight:**
-#     La categoría **{mayor_cat}** concentra la mayor cantidad de productos, con un total de **{counts.max()} artículos**, lo que representa aproximadamente **{pct_mayor:.1f}%** del total.
-#     Esto sugiere que una gran parte del surtido se encuentra en esta categoría, lo cual puede implicar una amplia variedad de productos con menor impacto individual.
-#     """
-#     return texto
-
-# def generar_insight_ventas(ventas):
-#     total = ventas.sum()
-#     top_cat = ventas.idxmax()
-#     val_top = ventas.max()
-#     pct_top = val_top / total * 100
-#    #  val_fmt = format_currency(val_top, '$', locale='es_AR', format='#,##0')
-#    #  val_fmt = f'val_top:.0f'.replace('.', ',')  # Formatear sin símbolo de moneda
-#     val_fmt = "$" + f"{val_top:,.0f}".replace(',', '.').replace('$', '$ ')
-
-
-#     texto = f"""
-#     🧠 **Insight:**
-#     En términos de ventas, la categoría **{top_cat}** domina con un total de **{val_fmt}** representando el **{pct_top:.1f}%** del total.
-#     Esta categoría es estratégica para los ingresos y debe ser priorizada en promociones, disponibilidad y análisis de margen.
-#     """
-#     return texto
-
-
 def generar_insight_cantidad(counts):
     """Genera insights inteligentes sobre la distribución de cantidad de productos"""
     
     if counts.empty or counts.sum() == 0:
-        return """
-        <div class="insight-box">
-        🚫 **Sin datos disponibles:** No se encontraron productos para analizar la distribución por cantidad.
-        </div>
-        """
+        return "🚫 **Sin datos disponibles:** No se encontraron productos para analizar la distribución por cantidad."
     
     total = counts.sum()
     mayor_cat = counts.idxmax()
@@ -51,22 +16,18 @@ def generar_insight_cantidad(counts):
     if pct_mayor >= 70:
         concentracion = "muy alta"
         riesgo = "alto"
-        color_class = "warning-box"
         emoji = "🚨"
     elif pct_mayor >= 50:
         concentracion = "alta"
         riesgo = "medio-alto"
-        color_class = "warning-box"
         emoji = "⚠️"
     elif pct_mayor >= 30:
         concentracion = "moderada"
         riesgo = "medio"
-        color_class = "insight-box"
         emoji = "📊"
     else:
         concentracion = "baja"
         riesgo = "bajo"
-        color_class = "success-box"
         emoji = "✅"
     
     # Análisis de las otras categorías
@@ -89,46 +50,34 @@ def generar_insight_cantidad(counts):
     
     # Recomendaciones específicas
     if concentracion in ["muy alta", "alta"]:
-        recomendacion = f"**Recomendación crítica:** Diversificar el portafolio para reducir la dependencia de {mayor_cat}. Considerar expandir categorías complementarias."
+        recomendacion = f"💡 **Recomendación crítica:** Diversificar el portafolio para reducir la dependencia de {mayor_cat}."
     elif concentracion == "moderada":
-        recomendacion = f"**Oportunidad:** {mayor_cat} tiene buen potencial. Evaluar si aumentar su participación o equilibrar con otras categorías."
+        recomendacion = f"💡 **Oportunidad:** {mayor_cat} tiene buen potencial. Evaluar si aumentar su participación."
     else:
-        recomendacion = f"**Fortaleza:** Excelente diversificación del portafolio. {mayor_cat} lidera sin crear dependencia excesiva."
+        recomendacion = f"💡 **Fortaleza:** Excelente diversificación del portafolio."
     
     # Construir insight personalizado
-    base_text = f"""
-    {emoji} **Análisis de Distribución por Cantidad:**
+    insight_text = f"{emoji} **Análisis de Distribución por Cantidad**\n\n"
+    insight_text += f"La categoría **{mayor_cat}** {dominancia} {'a ' + segunda_cat if segunda_cat else 'el mercado'} con **{counts.max()} productos** (**{pct_mayor:.1f}%** del total).\n\n"
     
-    La categoría **{mayor_cat}** {dominancia} {'a ' + segunda_cat if segunda_cat else 'el mercado'} con **{counts.max()} productos** (**{pct_mayor:.1f}%** del total).
-    
-    **📈 Características del portafolio:**
-    - **Diversificación:** {diversificacion.capitalize()} ({num_categorias} categorías activas)
-    - **Concentración:** {concentracion.capitalize()} en categoría líder
-    - **Nivel de riesgo:** {riesgo.capitalize()}
-    """
+    insight_text += f"📈 **Características del portafolio:**\n"
+    insight_text += f"• Diversificación: {diversificacion.capitalize()} ({num_categorias} categorías activas)\n"
+    insight_text += f"• Concentración: {concentracion.capitalize()} en categoría líder\n"
+    insight_text += f"• Nivel de riesgo: {riesgo.capitalize()}\n"
     
     if segunda_cat:
-        base_text += f"""
-    - **Segunda categoría:** {segunda_cat} con {counts[segunda_cat]} productos ({pct_segunda:.1f}%)
-    """
+        insight_text += f"• Segunda categoría: {segunda_cat} con {counts[segunda_cat]} productos ({pct_segunda:.1f}%)\n"
     
-    base_text += f"""
+    insight_text += f"\n{recomendacion}"
     
-    {recomendacion}
-    """
-    
-    return f'<div class="{color_class}">{base_text}</div>'
+    return insight_text
 
 
 def generar_insight_ventas(ventas):
     """Genera insights inteligentes sobre la distribución de ventas por categoría"""
     
     if ventas.empty or ventas.sum() == 0:
-        return """
-        <div class="insight-box">
-        🚫 **Sin datos disponibles:** No se encontraron ventas para analizar la distribución por categoría.
-        </div>
-        """
+        return "🚫 **Sin datos disponibles:** No se encontraron ventas para analizar la distribución por categoría."
     
     total = ventas.sum()
     top_cat = ventas.idxmax()
@@ -140,31 +89,26 @@ def generar_insight_ventas(ventas):
     if pct_top >= 80:
         concentracion = "extrema"
         analisis_pareto = "monopolio comercial"
-        color_class = "warning-box"
         emoji = "🔴"
         urgencia = "CRÍTICO"
     elif pct_top >= 60:
         concentracion = "muy alta"
         analisis_pareto = "dominio claro (fuera del ideal 80/20)"
-        color_class = "warning-box"
         emoji = "🟠"
         urgencia = "ALTO"
     elif pct_top >= 40:
         concentracion = "alta"
         analisis_pareto = "liderazgo sólido"
-        color_class = "insight-box"
         emoji = "📈"
         urgencia = "MEDIO"
     elif pct_top >= 20:
         concentracion = "moderada"
         analisis_pareto = "participación equilibrada"
-        color_class = "success-box"
         emoji = "✅"
         urgencia = "BUENO"
     else:
         concentracion = "baja"
         analisis_pareto = "distribución muy fragmentada"
-        color_class = "insight-box"
         emoji = "📊"
         urgencia = "MEDIO"
     
@@ -200,73 +144,36 @@ def generar_insight_ventas(ventas):
     if urgencia == "CRÍTICO":
         recomendacion = f"🚨 **ACCIÓN INMEDIATA:** Diversificar urgentemente. La dependencia del {pct_top:.1f}% en {top_cat} es un riesgo comercial extremo."
     elif urgencia == "ALTO":
-        recomendacion = f"⚠️ **PRIORIDAD ALTA:** Desarrollar categorías alternativas. Reducir dependencia de {top_cat} fortaleciendo otras líneas."
+        recomendacion = f"⚠️ **PRIORIDAD ALTA:** Desarrollar categorías alternativas. Reducir dependencia de {top_cat}."
     elif urgencia == "MEDIO" and concentracion == "alta":
-        recomendacion = f"📈 **OPORTUNIDAD:** {top_cat} es un motor sólido. Optimizar su rentabilidad mientras se desarrollan categorías complementarias."
+        recomendacion = f"📈 **OPORTUNIDAD:** {top_cat} es un motor sólido. Optimizar su rentabilidad."
     elif urgencia == "BUENO":
-        recomendacion = f"✅ **FORTALEZA:** Excelente equilibrio. {top_cat} lidera sin crear riesgo de concentración excesiva."
+        recomendacion = f"✅ **FORTALEZA:** Excelente equilibrio. {top_cat} lidera sin crear riesgo excesivo."
     else:
-        recomendacion = f"🎯 **ESTRATEGIA:** Evaluar si consolidar liderazgo en {top_cat} o buscar mayor equilibrio entre categorías."
-    
-    # Análisis de potencial de crecimiento
-    if len(ventas) > 2:
-        tercera_cat = ventas.nlargest(3).index[2]
-        pct_tercera = ventas[tercera_cat] / total * 100
-        
-        if pct_tercera >= 10:
-            potencial = f"**Potencial emergente:** {tercera_cat} ({pct_tercera:.1f}%) muestra oportunidad de crecimiento."
-        else:
-            potencial = f"**Categorías menores:** El resto representa oportunidades de nicho ({(100-pct_top-pct_segunda):.1f}% total)."
-    else:
-        potencial = ""
-    
-    # ROI y eficiencia por categoría
-    if pct_top >= 50:
-        eficiencia = f"**Alta eficiencia:** {top_cat} es el motor principal del negocio - priorizar su gestión estratégica."
-    else:
-        eficiencia = f"**Gestión balanceada:** Múltiples categorías contribuyen significativamente - gestión diversificada recomendada."
+        recomendacion = f"🎯 **ESTRATEGIA:** Evaluar si consolidar liderazgo en {top_cat} o buscar mayor equilibrio."
     
     # Construir insight completo
-    insight_text = f"""
-    {emoji} **Análisis de Concentración de Ventas ({urgencia}):**
+    insight_text = f"{emoji} **Análisis de Concentración de Ventas ({urgencia})**\n\n"
+    insight_text += f"**{top_cat}** domina con **{val_fmt}** (**{pct_top:.1f}%** del total) y {comparacion}.\n\n"
     
-    **{top_cat}** domina con **{val_fmt}** (**{pct_top:.1f}%** del total) y {comparacion}.
-    
-    **📊 Análisis Pareto:**
-    - **Tipo de concentración:** {analisis_pareto}
-    - **Nivel de riesgo:** {urgencia}
-    {duopolio}
-    """
+    insight_text += f"📊 **Análisis Pareto:**\n"
+    insight_text += f"• Tipo de concentración: {analisis_pareto}\n"
+    insight_text += f"• Nivel de riesgo: {urgencia}\n"
+    insight_text += f"• {duopolio}\n"
     
     if segunda_cat:
-        insight_text += f"""
-    - **Segunda categoría:** {segunda_cat} con {val_segunda_fmt} ({pct_segunda:.1f}%)
-    """
+        insight_text += f"• Segunda categoría: {segunda_cat} con {val_segunda_fmt} ({pct_segunda:.1f}%)\n"
     
-    if potencial:
-        insight_text += f"""
-    - {potencial}
-    """
+    insight_text += f"\n{recomendacion}"
     
-    insight_text += f"""
-    
-    **💡 {eficiencia}**
-    
-    {recomendacion}
-    """
-    
-    return f'<div class="{color_class}">{insight_text}</div>'
+    return insight_text
 
 
 def generar_insight_margen(margenes):
     """Genera insights sobre la distribución de márgenes por categoría"""
     
     if margenes.empty or margenes.sum() == 0:
-        return """
-        <div class="insight-box">
-        🚫 **Sin datos disponibles:** No se encontraron datos de margen para analizar.
-        </div>
-        """
+        return "🚫 **Sin datos disponibles:** No se encontraron datos de margen para analizar."
     
     mejor_cat = margenes.idxmax()
     mejor_margen = margenes.max()
@@ -275,23 +182,18 @@ def generar_insight_margen(margenes):
     # Análisis de rentabilidad
     if mejor_margen >= 40:
         rentabilidad = "excelente"
-        color_class = "success-box"
         emoji = "💎"
     elif mejor_margen >= 30:
         rentabilidad = "muy buena"
-        color_class = "success-box"
         emoji = "📈"
     elif mejor_margen >= 20:
         rentabilidad = "aceptable"
-        color_class = "insight-box"
         emoji = "📊"
     elif mejor_margen >= 10:
         rentabilidad = "baja"
-        color_class = "warning-box"
         emoji = "⚠️"
     else:
         rentabilidad = "crítica"
-        color_class = "warning-box"
         emoji = "🚨"
     
     # Dispersión de márgenes
@@ -306,30 +208,21 @@ def generar_insight_margen(margenes):
     else:
         variabilidad = "única categoría disponible"
     
-    insight_text = f"""
-    {emoji} **Análisis de Rentabilidad por Categoría:**
+    insight_text = f"{emoji} **Análisis de Rentabilidad por Categoría**\n\n"
+    insight_text += f"**{mejor_cat}** lidera en rentabilidad con **{mejor_margen:.1f}%** de margen (rentabilidad {rentabilidad}).\n\n"
+    insight_text += f"📈 **Características:**\n"
+    insight_text += f"• Margen promedio general: {margen_promedio:.1f}%\n"
+    insight_text += f"• Dispersión: {variabilidad}\n\n"
+    insight_text += f"💡 **Recomendación:** {'Maximizar volumen en ' + mejor_cat if mejor_margen >= 25 else 'Revisar estrategia de precios en ' + mejor_cat}"
     
-    **{mejor_cat}** lidera en rentabilidad con **{mejor_margen:.1f}%** de margen (rentabilidad {rentabilidad}).
-    
-    **📈 Características:**
-    - **Margen promedio general:** {margen_promedio:.1f}%
-    - **Dispersión:** {variabilidad}
-    
-    **💡 Recomendación:** {'Maximizar volumen en ' + mejor_cat if mejor_margen >= 25 else 'Revisar estrategia de precios en ' + mejor_cat}
-    """
-    
-    return f'<div class="{color_class}">{insight_text}</div>'
+    return insight_text
 
 
 def generar_insight_abc_completo(abc_counts, abc_ventas):
     """Genera un insight integral combinando cantidad y ventas del análisis ABC"""
     
     if abc_counts.empty or abc_ventas.empty:
-        return """
-        <div class="insight-box">
-        🚫 **Sin datos disponibles:** No se puede realizar análisis ABC completo.
-        </div>
-        """
+        return "🚫 **Sin datos disponibles:** No se puede realizar análisis ABC completo."
     
     # Productos A
     productos_a = abc_counts.get('A (Alto valor)', 0)
@@ -346,19 +239,15 @@ def generar_insight_abc_completo(abc_counts, abc_ventas):
     # Análisis de eficiencia
     if eficiencia_ratio >= 4:
         eficiencia = "excepcional"
-        color_class = "success-box"
         emoji = "🏆"
     elif eficiencia_ratio >= 3:
         eficiencia = "excelente"
-        color_class = "success-box"
         emoji = "💎"
     elif eficiencia_ratio >= 2:
         eficiencia = "buena"
-        color_class = "insight-box"
         emoji = "📈"
     else:
         eficiencia = "mejorable"
-        color_class = "warning-box"
         emoji = "⚠️"
     
     # Productos B y C
@@ -376,19 +265,15 @@ def generar_insight_abc_completo(abc_counts, abc_ventas):
     else:
         estrategia = "**Equilibrio adecuado:** Los productos A están cumpliendo su función estratégica."
     
-    insight_text = f"""
-    {emoji} **Análisis ABC Integral - Eficiencia {eficiencia.capitalize()}:**
+    insight_text = f"{emoji} **Análisis ABC Integral - Eficiencia {eficiencia.capitalize()}**\n\n"
+    insight_text += f"**Productos Clase A:** {productos_a} productos ({pct_productos_a:.1f}%) generan **{pct_ventas_a:.1f}%** de las ventas.\n"
+    insight_text += f"**Ratio de eficiencia:** {eficiencia_ratio:.1f}x (cada producto A equivale a {eficiencia_ratio:.1f} productos promedio)\n\n"
     
-    **Productos Clase A:** {productos_a} productos ({pct_productos_a:.1f}%) generan **{pct_ventas_a:.1f}%** de las ventas.
-    **Ratio de eficiencia:** {eficiencia_ratio:.1f}x (cada producto A equivale a {eficiencia_ratio:.1f} productos promedio)
+    insight_text += f"📊 **Distribución completa:**\n"
+    insight_text += f"• Productos A: {productos_a} unidades - ${abc_ventas.get('A (Alto valor)', 0):,.0f}\n"
+    insight_text += f"• Productos B+C: {productos_bc} unidades - ${ventas_bc:,.0f} ({pct_ventas_bc:.1f}%)\n\n"
     
-    **📊 Distribución completa:**
-    - **Productos A:** {productos_a} unidades - ${abc_ventas.get('A (Alto valor)', 0):,.0f}
-    - **Productos B+C:** {productos_bc} unidades - ${ventas_bc:,.0f} ({pct_ventas_bc:.1f}%)
+    insight_text += f"{estrategia}\n\n"
+    insight_text += f"💡 **Foco recomendado:** {'Potenciar productos A' if eficiencia_ratio >= 2.5 else 'Revisar clasificación y optimizar productos B/C'}"
     
-    {estrategia}
-    
-    **💡 Foco recomendado:** {'Potenciar productos A' if eficiencia_ratio >= 2.5 else 'Revisar clasificación y optimizar productos B/C'}
-    """
-    
-    return f'<div class="{color_class}">{insight_text}</div>'
+    return insight_text
