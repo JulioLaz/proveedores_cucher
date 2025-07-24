@@ -1879,7 +1879,7 @@ class ProveedorDashboard:
             ],
             'Valor': [
                 proveedor,
-                f"{df['fecha'].min()} a {df['fecha'].max()}",
+                f"{df['fecha_fmt'].min()} a {df['fecha_fmt'].max()}",
                 f"${metrics['total_ventas']:,.0f}",
                 f"${metrics['total_utilidad']:,.0f}",
                 f"{metrics['margen_promedio']:.1f}%",
@@ -1937,8 +1937,8 @@ class ProveedorDashboard:
         reporte_completo = {
             'metadata': {
                 'proveedor': proveedor,
-                'fecha_inicio': str(df['fecha'].min()),
-                'fecha_fin': str(df['fecha'].max()),
+                'fecha_inicio': str(df['fecha_fmt'].min()),
+                'fecha_fin': str(df['fecha_fmt'].max()),
                 'generado_en': datetime.now().isoformat(),
                 'total_registros': len(df)
             },
