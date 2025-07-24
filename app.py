@@ -1334,14 +1334,26 @@ class ProveedorDashboard:
                 st.plotly_chart(fig, use_container_width=True)
 
             with col2:
+                df_bar = familia_stats.reset_index()
+
                 fig = px.bar(
-                    x=familia_stats.index,
+                    df_bar,
+                    x='familia',
                     y=columna,
-                    color=familia_stats[columna],
+                    color=columna,
                     text=texto_etiqueta,
                     title=f"📊 {metrica_seleccionada} por Familia",
                     color_continuous_scale='Viridis'
-                )
+)
+
+                # fig = px.bar(
+                #     x=familia_stats.index,
+                #     y=columna,
+                #     color=familia_stats[columna],
+                #     text=texto_etiqueta,
+                #     title=f"📊 {metrica_seleccionada} por Familia",
+                #     color_continuous_scale='Viridis'
+                # )
                 fig.update_traces(
                     textposition='outside',
                     hovertemplate="<b>%{x}</b><br>" + metrica_seleccionada + ": %{text}<extra></extra>"
