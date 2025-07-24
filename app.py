@@ -1950,15 +1950,19 @@ class ProveedorDashboard:
             'insights': [insight[1] for insight in self.generate_insights(df, metrics)]
         }
         
-        json_data = json.dumps(reporte_completo, indent=2, ensure_ascii=False)
-        st.download_button(
-            label="🗂️ Descargar Reporte Completo (JSON)",
-            data=json_data,
-            file_name=f"reporte_completo_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.json",
-            mime="application/json"
-        )
+        # json_data = json.dumps(reporte_completo, indent=2, ensure_ascii=False)
+        # st.download_button(
+        #     label="🗂️ Descargar Reporte Completo (JSON)",
+        #     data=json_data,
+        #     file_name=f"reporte_completo_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.json",
+        #     mime="application/json"
+        # )
+        # Vista previa de datos
+        st.markdown("### Vista Previa de Datos")
+        
+        data=df[['fecha_fmt', 'idarticulo', 'descripcion', 'precio_total', 'costo_total', 'utilidad', 'margen_porcentual', 'cantidad_total']]
 ###############################################
-        archivo_excel = generar_excel(reporte_completo, sheet_name="ABC Clasificación")
+        archivo_excel = generar_excel(data, sheet_name="ABC Clasificación")
         st.download_button(
             label="📥 Descargar Tabla ABC (Excel)",
             data=archivo_excel,
@@ -1966,12 +1970,7 @@ class ProveedorDashboard:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-
 ###############################################
-        # Vista previa de datos
-        st.markdown("### Vista Previa de Datos")
-        
-        data=df[['fecha_fmt', 'idarticulo', 'descripcion', 'precio_total', 'costo_total', 'utilidad', 'margen_porcentual', 'cantidad_total']]
         # Mostrar muestra de datos
         st.dataframe(
             data.head(100),
