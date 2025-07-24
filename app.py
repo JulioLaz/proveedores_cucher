@@ -13,7 +13,10 @@ from dotenv import load_dotenv
 from google.cloud import bigquery
 import warnings
 import io
-
+from io import BytesIO
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side, NamedStyle
+from openpyxl.utils.dataframe import dataframe_to_rows
 warnings.filterwarnings('ignore')
 
 from limpiar_datos import limpiar_datos
@@ -1787,86 +1790,7 @@ class ProveedorDashboard:
             for rec in recomendaciones_bajas:
                 st.markdown(f'<div class="insight-box green">{rec}</div>', unsafe_allow_html=True)
 
-        # st.markdown("""
-        # <style>
-        # .insight-box {
-        #     background: #f9f9f9;
-        #     padding: 0.7rem 1rem;
-        #     margin-bottom: 0.5rem;
-        #     border-left: 6px solid #2a5298;
-        #     border-radius: 6px;
-        #     font-size: 0.92rem;
-        # }
-        # .insight-box.red {
-        #     border-left: 6px solid #d9534f;
-        #     background: #fbeaea;
-        # }
-        # .insight-box.green {
-        #     border-left: 6px solid #5cb85c;
-        #     background: #e7f7ec;
-        # }
-        # </style>
-        # """, unsafe_allow_html=True)
-
-        # # === Insights debajo de gráficos ABC ===
-        # with col1:
-        #     st.markdown(generar_insight_cantidad(abc_counts))
-
-        # with col2:
-        #     st.markdown(generar_insight_ventas(abc_ventas))
-
-        # # === Recomendaciones Estratégicas ===
-        # st.markdown("### 💡 Recomendaciones Estratégicas")
-
-        # recomendaciones_criticas = []
-        # recomendaciones_medias = []
-        # recomendaciones_bajas = []
-
-        # # Productos A
-        # productos_a = productos_abc[productos_abc['categoria_abc'] == 'A (Alto valor)']
-        # if not productos_a.empty:
-        #     ventas_a = abc_ventas.get('A (Alto valor)', 0)
-        #     porcentaje_a = ventas_a / abc_ventas.sum() * 100
-        #     recomendaciones_criticas.append(
-        #         f"🔺 **Productos A:** {len(productos_a)} productos generan el {porcentaje_a:.1f}% de las ventas. Priorizá disponibilidad y promoción."
-        #     )
-
-        # # Margen bajo
-        # if metrics['margen_promedio'] < 20:
-        #     recomendaciones_criticas.append(
-        #         f"🔴 **Margen bajo ({metrics['margen_promedio']:.1f}%):** Revisar precios y negociar con proveedores."
-        #     )
-        # elif metrics['margen_promedio'] >= 30:
-        #     recomendaciones_bajas.append(
-        #         f"✅ **Margen saludable:** Excelente rentabilidad promedio ({metrics['margen_promedio']:.1f}%). ¡Seguir así!"
-        #     )
-
-        # # Diversificación
-        # if metrics['productos_unicos'] < 10:
-        #     recomendaciones_medias.append(
-        #         f"📈 **Ampliar catálogo:** Solo {metrics['productos_unicos']} productos únicos. Evaluar incorporar nuevas líneas."
-        #     )
-        # else:
-        #     recomendaciones_bajas.append(
-        #         f"🟢 **Catálogo variado:** {metrics['productos_unicos']} productos activos. Diversificación saludable."
-        #     )
-
-        # # Ticket promedio
-        # if metrics['ticket_promedio'] < 2000:
-        #     recomendaciones_medias.append(
-        #         f"💡 **Cross-selling:** Ticket promedio de ${metrics['ticket_promedio']:.0f}. Promover ventas combinadas."
-        #     )
-        # else:
-        #     recomendaciones_bajas.append(
-        #         f"🟢 **Ticket alto:** Excelente ticket promedio (${metrics['ticket_promedio']:.0f})."
-        #     )
-
         # === Mostrar recomendaciones ordenadas ===
-        from io import BytesIO
-        from openpyxl import Workbook
-        from openpyxl.styles import Font, Alignment, PatternFill, Border, Side, NamedStyle
-        from openpyxl.utils.dataframe import dataframe_to_rows
-
         # === Crear tabla ABC formateada ===
         tabla_abc = productos_abc.reset_index()[[
             'idarticulo', 'descripcion', 'precio_total', 'utilidad', 'participacion_acum', 'categoria_abc'
@@ -1952,19 +1876,19 @@ class ProveedorDashboard:
                 'Ventas Totales',
                 'Utilidad Total',
                 'Margen Promedio',
-                'Total Transacciones',
-                'Ticket Promedio',
+                # 'Total Transacciones',
+                # 'Ticket Promedio',
                 'Productos Únicos',
                 'Días con Ventas'
             ],
             'Valor': [
                 proveedor,
                 f"{df['fecha'].min()} a {df['fecha'].max()}",
-                f"${metrics['total_ventas']:,.2f}",
-                f"${metrics['total_utilidad']:,.2f}",
+                f"${metrics['total_ventas']:,.0f}",
+                f"${metrics['total_utilidad']:,.0f}",
                 f"{metrics['margen_promedio']:.1f}%",
-                f"{metrics['num_tickets']:,}",
-                f"${metrics['ticket_promedio']:,.2f}",
+                # f"{metrics['num_tickets']:,}",
+                # f"${metrics['ticket_promedio']:,.2f}",
                 f"{metrics['productos_unicos']:,}",
                 f"{metrics['dias_con_ventas']:,}"
             ]
@@ -1982,7 +1906,7 @@ class ProveedorDashboard:
             st.download_button(
                 label="📊 Descargar Datos Completos (CSV)",
                 data=csv_data,
-                file_name=f"analisis_completo_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                file_name=f"analisis_completo_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.csv",
                 mime="text/csv"
             )
         
@@ -1992,7 +1916,7 @@ class ProveedorDashboard:
             st.download_button(
                 label="📋 Descargar Resumen (CSV)",
                 data=resumen_csv,
-                file_name=f"resumen_ejecutivo_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                file_name=f"resumen_ejecutivo_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.csv",
                 mime="text/csv"
             )
         
@@ -2028,9 +1952,9 @@ class ProveedorDashboard:
                 'ventas_totales': float(metrics['total_ventas']),
                 'utilidad_total': float(metrics['total_utilidad']),
                 'margen_promedio': float(metrics['margen_promedio']),
-                'ticket_promedio': float(metrics['ticket_promedio']),
-                'productos_unicos': int(metrics['productos_unicos']),
-                'num_tickets': int(metrics['num_tickets'])
+                'productos_unicos': int(metrics['productos_unicos'])
+                # 'ticket_promedio': float(metrics['ticket_promedio']),
+                # 'num_tickets': int(metrics['num_tickets'])
             },
             'insights': [insight[1] for insight in self.generate_insights(df, metrics)]
         }
