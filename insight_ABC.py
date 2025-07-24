@@ -410,7 +410,7 @@ def generar_insight_margen(margenes):
 
     html = f"""
     <div class="insight-box">
-        <div class="insight-titulo">{emoji} <strong>Análisis de Rentabilidad por Categoría</strong></div>
+        <div class="insight-titulo">{emoji} <strong>Análisis de Rentabilidad por Familia</strong></div>
         <p><strong>{mejor_cat}</strong> lidera en rentabilidad con <strong>{mejor_margen:.1f}%</strong> de margen (<em>{rentabilidad}</em>).</p>
         <p><strong>📈 Características:</strong></p>
         <ul>
