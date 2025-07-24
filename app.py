@@ -1337,7 +1337,7 @@ class ProveedorDashboard:
                     title_font=dict(size=18, color='#454448', family='Arial Black'),
                     title_x=0.08,
                     height=350,
-                    showlegend=False,
+                    showlegend=True,
                     margin=dict(t=60, b=30, l=10, r=10)
                 )
                 st.plotly_chart(fig, use_container_width=True)
@@ -1353,16 +1353,8 @@ class ProveedorDashboard:
                     text=texto_etiqueta,
                     title=f"📊 {metrica_seleccionada} por Familia",
                     color_continuous_scale='Viridis'
-)
+                    )
 
-                # fig = px.bar(
-                #     x=familia_stats.index,
-                #     y=columna,
-                #     color=familia_stats[columna],
-                #     text=texto_etiqueta,
-                #     title=f"📊 {metrica_seleccionada} por Familia",
-                #     color_continuous_scale='Viridis'
-                # )
                 fig.update_traces(
                     textposition='outside',
                     hovertemplate="<b>%{x}</b><br>" + metrica_seleccionada + ": %{text}<extra></extra>"
@@ -1374,7 +1366,7 @@ class ProveedorDashboard:
                     yaxis_title=None,
                     height=350,
                     coloraxis_showscale=False,
-                    margin=dict(t=20, b=40, l=30, r=20)
+                    margin=dict(t=90, b=40, l=30, r=20)
                 )
                 fig.update_yaxes(
                     showticklabels=False
