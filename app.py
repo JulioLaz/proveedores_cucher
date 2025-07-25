@@ -368,11 +368,12 @@ class ProveedorDashboard:
 
         df_presu = None  # ✅ Inicializar para evitar UnboundLocalError
         st.write(df_proveedor_ids.head(3))
+        fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]
+        st.write(fila)
         if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
             else:
-                fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]
                 with st.spinner(f"🔄 Consultando datos de {proveedor}"):
                     df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
                     if df_tickets is not None:
@@ -382,7 +383,6 @@ class ProveedorDashboard:
                     else:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
                 # Buscar ID del proveedor seleccionado
-                st.write(fila)
                 if not fila.empty:
                     idproveedor = int(fila.iloc[0]['idproveedor'])
 
@@ -395,34 +395,9 @@ class ProveedorDashboard:
                 else:
                     st.sidebar.error("❌ No se encontró el ID del proveedor seleccionado")
 
-                # idproveedor = df_proveedor_ids[df_proveedor_ids['idproveedor'] == df_proveedor_ids['proveedor']]
-                # with st.spinner("🔄 Consultando datos..."):
-                #     df_presu = self.query_resultados_idarticulo(idproveedor)
-                #     if df_presu is not None:
-                #         st.session_state.df_presu = df_presu
-                #     else:
-                #         st.sidebar.error("❌ No se encontraron datos de presupuesto para el proveedor")
-
         # Si existe en session_state, recuperarlo
         if "df_presu" in st.session_state:
             df_presu = st.session_state.df_presu
-
-        # if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
-        #     if not proveedor:
-        #         st.sidebar.error("❌ Selecciona un proveedor")
-        #     else:
-        #         with st.spinner("🔄 Consultando datos..."):
-        #             df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
-        #             df_presu = self.query_resultados_idarticulo(proveedor)
-
-        #             if df_tickets is not None and df_presu is not None:
-        #                 st.session_state.analysis_data = df_tickets
-        #                 st.session_state.resultados_data = df_presu
-        #                 st.session_state.selected_proveedor = proveedor
-        #                 st.rerun()
-        #             else:
-        #                 st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
-
 
         # --- Resumen del período ---
         if st.session_state.get("analysis_data") is not None:
