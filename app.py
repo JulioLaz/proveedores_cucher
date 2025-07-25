@@ -421,7 +421,8 @@ class ProveedorDashboard:
                     with st.spinner(f"🔄 Consultando datos proveedor id: {fila}"):
                         df_presu = self.query_resultados_idarticulo(fila)
                         if df_presu is not None:
-                            st.session_state.df_presu = df_presu
+                            st.session_state.resultados_data = df_presu
+                            # st.session_state.df_presu = df_presu
                             # st.rerun()
                         else:
                             st.sidebar.error("❌ No se encontraron datos de presupuesto para el proveedor")
