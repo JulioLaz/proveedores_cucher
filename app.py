@@ -399,7 +399,8 @@ class ProveedorDashboard:
 
         df_presu = None  # ✅ Inicializar para evitar UnboundLocalError
         # st.write(df_proveedor_ids.head(3))
-        fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]['idproveedor'].unique()[0]
+        if self.df_proveedores is not None:
+            fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]['idproveedor'].unique()[0]
         # st.write('idproveedor: ', fila)
         # st.write('idproveedor: ', fila)
         # st.write('idproveedor type: ', type(fila))
@@ -424,6 +425,7 @@ class ProveedorDashboard:
                             # st.rerun()
                         else:
                             st.sidebar.error("❌ No se encontraron datos de presupuesto para el proveedor")
+                        st.write(df_presu.head(5))
                 else:
                     st.sidebar.error("❌ No se encontró el ID del proveedor seleccionado")
 
