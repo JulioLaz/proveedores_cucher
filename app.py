@@ -2364,9 +2364,9 @@ class ProveedorDashboard:
         self.show_main_dashboard()
 
         # Análisis detallado por artículo
-        st.markdown("---")
-        st.markdown("## 🔍 Análisis Detallado por Artículo")
-        self.show_idarticulo_analysis_01(df_presu)
+        # st.markdown("---")
+        # st.markdown("## 🔍 Análisis Detallado por Artículo")
+        # self.show_idarticulo_analysis_01(df_presu)
 
         # === Extraer datos de análisis por idarticulo ===
         self.df_resultados = query_resultados_idarticulo(
