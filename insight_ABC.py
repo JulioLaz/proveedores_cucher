@@ -275,3 +275,41 @@ def generar_insight_abc_completo(abc_counts, abc_ventas):
     </div>
     """
     return html
+
+def generar_insight_pareto(productos_pareto):
+    if productos_pareto.empty:
+        return '<div class="warning-box">🚫 <strong>Sin datos:</strong> No se encontraron productos para análisis de Pareto.</div>'
+
+    top1 = productos_pareto.iloc[0]
+    top3_pct = productos_pareto['Participación %'].head(3).sum()
+    top5_pct = productos_pareto['Participación %'].head(5).sum()
+    top10_pct = productos_pareto['Participación %'].head(10).sum()
+
+    if top1["Participación %"] >= 50:
+        riesgo = "🔴 Extremadamente concentrado"
+        recomendacion = f"🚨 <strong>Alerta:</strong> <strong>{top1['descripcion']}</strong> representa más del 50% de participación individual. Urge diversificar."
+    elif top3_pct >= 80:
+        riesgo = "🟠 Muy concentrado (Top 3 > 80%)"
+        recomendacion = "⚠️ <strong>Revisión necesaria:</strong> Los 3 principales productos concentran demasiado. Analizar estrategias de diversificación."
+    elif top10_pct >= 80:
+        riesgo = "📊 Concentración media (Top 10 > 80%)"
+        recomendacion = "📈 <strong>Oportunidad:</strong> Buena segmentación, pero todavía dependiente del top 10. Potenciar el middle tail."
+    else:
+        riesgo = "✅ Buena distribución"
+        recomendacion = "🎯 <strong>Fortaleza:</strong> Portafolio bien distribuido. Mantener estrategia actual y explorar productos emergentes."
+
+    html = f"""
+    <div class="insight-box">
+        <div class="insight-titulo">📊 <strong>Insight de Concentración de Ventas - Análisis de Pareto</strong></div>
+        <p><strong>Producto líder:</strong> {top1['descripcion']} con <strong>{top1['Participación %']:.1f}%</strong> de participación individual.</p>
+        <p><strong>Participación Acumulada:</strong></p>
+        <ul>
+            <li><strong>Top 3 productos:</strong> {top3_pct:.1f}%</li>
+            <li><strong>Top 5 productos:</strong> {top5_pct:.1f}%</li>
+            <li><strong>Top 10 productos:</strong> {top10_pct:.1f}%</li>
+        </ul>
+        <p><strong>Nivel de concentración:</strong> {riesgo}</p>
+        <p>{recomendacion}</p>
+    </div>
+    """
+    return html

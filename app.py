@@ -20,7 +20,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 warnings.filterwarnings('ignore')
 
 from limpiar_datos import limpiar_datos
-from insight_ABC import generar_insight_cantidad, generar_insight_ventas, generar_insight_margen, generar_insight_abc_completo
+from insight_ABC import generar_insight_cantidad, generar_insight_ventas, generar_insight_margen, generar_insight_abc_completo, generar_insight_pareto
 from generar_excel import generar_excel
 locale = Locale.parse('es_AR')
 
@@ -1055,6 +1055,8 @@ class ProveedorDashboard:
                 fig.update_yaxes(title_text="Participación Individual (%)", secondary_y=False)
                 fig.update_yaxes(title_text="Participación Acumulada (%)", secondary_y=True)
                 st.plotly_chart(fig, use_container_width=True)
+            
+            st.markdown(generar_insight_pareto(productos_pareto), unsafe_allow_html=True)
 
         except Exception as e:
             st.error(f"❌ Error en análisis de productos: {str(e)}")
