@@ -312,7 +312,8 @@ class ProveedorDashboard:
                 self.df_proveedores = self.load_proveedores()
 
         proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())
-        st.write(proveedores)
+        dfff = self.df_proveedores[['idproveedor', 'proveedor']]
+        st.write(dfff.head(5))
         proveedor_actual = st.session_state.get("selected_proveedor")
         df_proveedor_ids = self.df_proveedores[['proveedor', 'idproveedor']].dropna().drop_duplicates().sort_values(by='proveedor')
         if not proveedor_actual:
