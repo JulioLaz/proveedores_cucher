@@ -2202,6 +2202,17 @@ class ProveedorDashboard:
 
         # with tabs[3]:
         #     self.tab_estacionalidad(df_item)
+        # with tabs[0]:
+        #     self.tab_stock_y_cobertura(df_item)
+
+        # with tabs[1]:
+        #     self.tab_demanda_presupuesto(df_item)
+
+        # with tabs[2]:
+        #     self.tab_rentabilidad(df_item)
+
+        # with tabs[3]:
+        #     self.tab_estacionalidad(df_item)
 
     def show_idarticulo_analysis(self):
         if self.df_resultados is None or self.df_resultados.empty:
