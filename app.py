@@ -350,7 +350,7 @@ class ProveedorDashboard:
         # Si existe en session_state, recuperarlo
         if "df_presu" in st.session_state:
             df_presu = st.session_state.df_presu
-            
+
         # if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
         #     if not proveedor:
         #         st.sidebar.error("❌ Selecciona un proveedor")
@@ -2374,7 +2374,7 @@ class ProveedorDashboard:
         # Análisis detallado por artículo
         st.markdown("---")
         st.markdown("## 🔍 Análisis Detallado por Artículo")
-        self.show_idarticulo_analysis()
+        # self.show_idarticulo_analysis()
 
         # Footer
         # st.markdown("---")
