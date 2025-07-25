@@ -2406,6 +2406,11 @@ class ProveedorDashboard:
         if len(data) > 100:
                 st.info(f"ℹ️ Mostrando las primeras 10 filas de {len(data):,} registros totales. Descarga el CSV completo para ver todos los datos.")
 
+
+########################################################################
+##   ANALISIS DETALLADO POR ARTÍCULO
+########################################################################
+
     def show_idarticulo_analysis(self):
         if self.df_resultados is None or self.df_resultados.empty:
             st.warning("⚠️ No hay datos disponibles para análisis por artículo.")
@@ -2470,6 +2475,37 @@ class ProveedorDashboard:
                 st.write("**💸 Costo del Exceso:**", f"${costo_exceso:,.0f}")
             else:
                 st.success("✅ No hay exceso de stock.")
+
+    def tab_rentabilidad(self, df):
+        st.markdown("### 💰 Rentabilidad del Artículo")
+
+        margen_all = df.get("margen_porc_all", pd.Series([None])).iloc[0]
+        margen_90 = df.get("margen_a90", pd.Series([None])).iloc[0]
+        margen_30 = df.get("margen_a30", pd.Series([None])).iloc[0]
+        analisis = df.get("analisis_margen", pd.Series(["Sin análisis"])).iloc[0]
+        estrategia = df.get("estrategia", pd.Series(["No definida"])).iloc[0]
+        prioridad = df.get("prioridad", pd.Series(["N/A"])).iloc[0]
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            if margen_all is not None:
+                st.metric("📊 Margen Global", f"{margen_all:.1f}%")
+            if margen_90 is not None:
+                st.metric("📆 Margen 90 días", f"{margen_90:.1f}%")
+        
+        with col2:
+            if margen_30 is not None:
+                st.metric("🗓️ Margen 30 días", f"{margen_30:.1f}%")
+        
+        with col3:
+            st.markdown("#### 🧠 Análisis de Margen")
+            st.markdown(f"<div style='font-size:1.1rem'>{analisis}</div>", unsafe_allow_html=True)
+
+        st.markdown("#### 🧩 Estrategia y Prioridad")
+        st.write("**🎯 Estrategia Recomendada:**", estrategia)
+        st.write("**🏅 Prioridad:**", prioridad)
+
 
 
     def run(self):
