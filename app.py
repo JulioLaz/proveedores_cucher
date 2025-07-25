@@ -2026,7 +2026,10 @@ class ProveedorDashboard:
 ##################################################################################################
     def show_executive_summary_best(self, df, proveedor, metrics):
         """Resumen ejecutivo completo con análisis integral"""
-        
+        df['fecha_fmt'] = df['fecha'].apply(lambda x: format_date(x, format="d MMMM y", locale=locale))
+        'fecha_inicio'= str(df['fecha_fmt'].min())
+        'fecha_fin'= str(df['fecha_fmt'].max())
+        periodo_analisado = f"{df['fecha_fmt'].min()} a {df['fecha_fmt'].max()}"
         # === Estilos CSS personalizados ===
         st.markdown("""
         <style>
@@ -2124,7 +2127,7 @@ class ProveedorDashboard:
                     <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['dias_con_ventas']}</div>
                 </div>
                 <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
-                    {periodo_analisis}
+                    {periodo_analisado}
                 </div>
             </div>
             """, unsafe_allow_html=True)
