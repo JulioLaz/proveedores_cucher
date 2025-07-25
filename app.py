@@ -2449,7 +2449,7 @@ class ProveedorDashboard:
         st.write("**🚨 Alerta Stock**:", df["ALERTA_STK_Tirol_Central"].iloc[0])
         st.write("**📆 Días de Cobertura**:", df["dias_cobertura"].iloc[0])
         st.write("**⚠️ Nivel de Riesgo**:", df["nivel_riesgo"].iloc[0])
-        st.write("**✅ Acción Recomendada**:", df["accion_gral"].iloc[0])
+        st.write("**✅ Acción Recomendada**:", df["accion_gral%"].iloc[0])
         st.write("**% PRESUPUESTO ASOCIADO**:", f"{df['PRESU_accion_gral'].iloc[0]:,.2f}")
 
 
