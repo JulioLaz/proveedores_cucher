@@ -2458,8 +2458,8 @@ class ProveedorDashboard:
             st.write("**🔢 Pronóstico Final (cnt_corregida):**", int(df["cnt_corregida"].iloc[0]))
             st.write("**💰 Presupuesto ($):**", f"${df['PRESUPUESTO'].iloc[0]:,.0f}")
             # st.write("**📦 Cantidad Total Vendida:**", int(df["cant_total"].iloc[0]))
-            st.write("**📆 Meses Activos:**", int(df["cnt_meses_activos"].iloc[0]))
-            st.write("**📅 Meses con Demanda Activa:**", int(df["meses_activos"].iloc[0]))
+            st.write("**📆 Meses Activos:**", int(df["meses_act_estac"].iloc[0]))
+            # st.write("**📅 Meses con Demanda Activa:**", int(df["meses_activos"].iloc[0]))
 
             # Exceso de stock
             exceso_stk = df["exceso_STK"].iloc[0]
