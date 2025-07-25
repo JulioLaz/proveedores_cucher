@@ -2140,18 +2140,18 @@ class ProveedorDashboard:
             st.markdown(f"""
             <div class="metric-box">
                 <div style="text-align: center;">
-                    <div style="font-size: 1.2rem; color: #555;">🌿 Familias 
-                        <span style="font-size: 1.2rem; font-weight: bold; color: #1e3c72">
+                    <div style="font-size: 1.15rem; color: #555;">🌿 Familias 
+                        <span style="font-size: 1.15rem; font-weight: bold; color: #1e3c72">
                         {familias_count}
                         </span>
                     </div>
-                    <div style="font-size: 1.2rem; color: #555;">🌿 SubFamilias 
-                        <span style="font-size: 1.2rem; font-weight: bold; color: #1e3c72">
+                    <div style="font-size: 1.15rem; color: #555;">🌿 SubFamilias 
+                        <span style="font-size: 1.15rem; font-weight: bold; color: #1e3c72">
                         {subfamilias_count}
                         </span>
                     </div>
-                    <div style="font-size: 1.2rem; color: #555;">🌿 Artículos 
-                        <span style="font-size: 1.2rem; font-weight: bold; color: #1e3c72">
+                    <div style="font-size: 1.15rem; color: #555;">🌿 Artículos 
+                        <span style="font-size: 1.15rem; font-weight: bold; color: #1e3c72">
                         {art_count}
                         </span>
                     </div>
