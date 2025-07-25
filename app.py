@@ -170,7 +170,7 @@ class ProveedorDashboard:
                     mes_pico, mes_bajo, mes_actual, ranking_mes, meses_act_estac
                 FROM `{project_id}.{dataset}.{table}`
                 WHERE idarticulo IS NOT NULL
-                AND idproveedor = '43'
+                AND idproveedor = '{idproveedor}'
             """
 
             df = client.query(query).to_dataframe()
@@ -312,6 +312,7 @@ class ProveedorDashboard:
                 self.df_proveedores = self.load_proveedores()
 
         proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())
+        st.write(proveedores)
         proveedor_actual = st.session_state.get("selected_proveedor")
         df_proveedor_ids = self.df_proveedores[['proveedor', 'idproveedor']].dropna().drop_duplicates().sort_values(by='proveedor')
         if not proveedor_actual:
