@@ -251,7 +251,7 @@ def query_resultados_idarticulo(credentials_path, project_id, dataset, table):
 
         query = f"""
             SELECT idarticulo, descripcion, familia, subfamilia,
-                   stk_corrientes, stk_express, stk_formosa, stk_hiper, stk_TIROL, stk_central, STK_TOTAL,
+                   stk_corrientes, stk_express, stk_formosa, stk_hiper, stk_TIROL, stk_central, STK_TOTAL,PRESUPUESTO,
                    ALERTA_STK_Tirol_Central, dias_cobertura, nivel_riesgo, accion_gralporc, PRESU_accion_gral,
                    cnt_corregida, presu_10dias, presu_20dias, presu_33dias, exceso_STK, costo_exceso_STK,
                    margen_porc_all, margen_a90, margen_a30, analisis_margen, estrategia, prioridad,
