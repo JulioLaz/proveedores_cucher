@@ -168,7 +168,7 @@ class ProveedorDashboard:
                     cnt_corregida, presu_10dias, presu_20dias, presu_33dias, exceso_STK, costo_exceso_STK,
                     margen_porc_all, margen_a90, margen_a30, analisis_margen, estrategia, prioridad,
                     mes_pico, mes_bajo, mes_actual, ranking_mes, meses_act_estac
-                FROM `{project_id}.{dataset}.{table}`
+                FROM `{project_id}.{table}`
                 WHERE idarticulo IS NOT NULL
                 AND idproveedor = {idproveedor}
             """
