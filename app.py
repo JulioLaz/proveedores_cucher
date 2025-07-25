@@ -22,223 +22,20 @@ warnings.filterwarnings('ignore')
 from limpiar_datos import limpiar_datos
 from insight_ABC import generar_insight_cantidad, generar_insight_ventas, generar_insight_margen, generar_insight_abc_completo, generar_insight_pareto
 from generar_excel import generar_excel
+from custom_css import custom_css
+
 locale = Locale.parse('es_AR')
 
 def format_abbr(x):
-                if x >= 1_000_000:
-                    return f"${x/1_000_000:.1f}M"
-                elif x >= 1_000:
-                    return f"${x/1_000:.0f}K"
-                else:
-                    return f"${x:.0f}"
+    if x >= 1_000_000: return f"${x/1_000_000:.1f}M"
+    elif x >= 1_000: return f"${x/1_000:.0f}K"
+    else: return f"${x:.0f}"
 
 # === CONFIGURACION DE PAGINA ===
-st.set_page_config(
-    page_title="Proveedores",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title="Proveedores", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 
-# === CSS PERSONALIZADO ===
-st.markdown("""
-<style>
-    .main-header {
-        background: linear-gradient(90deg, #1e3c72, #2a5298);
-        border-radius: 5px;
-        text-align: center;
-        color: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        z-index: 100;
-    }
-    .metric-container {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        border-left: 4px solid #2a5298;
-    }
-    .insight-box {
-        background: #f8f9fa !important;
-        border: 1px solid #e9ecef !important;
-        border-radius: 10px !important;
-        padding: 0.75rem 1rem !important;
-        margin: 0.6rem 0 !important;
-        border-left: 5px solid #17a2b8 !important;
-        font-size: 0.93rem;
-        line-height: 1.4;
-        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.04);
-        transition: background 0.2s ease;
-    }
-
-    .warning-box {
-        background: #fff8e1 !important;
-        border: 1px solid #ffeaa7 !important;
-        border-radius: 10px !important;
-        padding: 0.75rem 1rem !important;
-        margin: 0.6rem 0 !important;
-        border-left: 5px solid #ffc107 !important;
-        font-size: 0.93rem;
-        line-height: 1.4;
-        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.04);
-    }
-
-    .success-box {
-        background: #e6f4ea !important;
-        border: 1px solid #c3e6cb !important;
-        border-radius: 10px !important;
-        padding: 0.75rem 1rem !important;
-        margin: 0.6rem 0 !important;
-        border-left: 5px solid #28a745 !important;
-        font-size: 0.93rem;
-        line-height: 1.4;
-        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.04);
-    }
-
-    .sidebar .sidebar-content {
-        background: #f1f3f4;
-        background: black;
-    }
-
-    /* 🎯 Estilo personalizado para el contenedor principal */
-    .block-container {
-        width: 100% !important;
-        padding: .5rem 1rem !important;
-        min-width: auto !important;
-        max-width: initial !important;
-    }
-            
-    /* Estilo personalizado al contenedor específico */
-    .st-emotion-cache-16txtl3 {
-        padding: 1rem 1rem !important;
-    }
-            
-    /* Estilo personalizado al contenedor específico */
-    /* Estilo personalizado al contenedor específico */
-    .st-emotion-cache-595tnf {
-            height: .5rem !important;
-    }
-
-    /* Estilo personalizado btn desplieque de sidebar */
-    .st-emotion-cache-595tnf.eu6y2f94 {
-        padding: 0.9rem !important;
-    }            
-
-    /* Ocultar el header superior de Streamlit */
-    header {
-        height: 2rem !important;
-        min-height: 2rem !important;
-        background-color: transparent !important;
-        box-shadow: none !important;
-        overflow: hidden !important;
-        }
-
-    /* ✅ Asegura que el botón de sidebar esté visible */
-    [data-testid="collapsedControl"] {
-        display: block !important;
-        position: fixed !important;
-        top: 1rem;
-        left: 1rem;
-        z-index: 1001;
-    }
-            
-    /* 🎨 Establece un fondo beige claro para toda la app */
-    body {
-        background-color: #f5f5dc !important; /* beige */
-    }
-
-    /* O si querés solo el fondo del contenedor principal */
-    .appview-container {
-        background-color: #f5f5dc !important;
-    }            
-
-
-    /* Opcional: darle margen interno y borde a todo el gráfico */
-    [data-testid="stPlotlyChart"] {
-        border-radius: 10px;
-        border: 1px solid #ddd;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .main-svg{
-        background-color: transparent !important;
-            }
-
-    .metric-box {
-        background-color: #e8f7fd;
-        border-radius: 12px;
-        padding: .5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        border-left: 5px solid #2a5298;
-        margin-bottom: .5rem;
-    }
-            
-        @keyframes bounce {
-            0%, 100% {
-                transform: translateX(0);
-            }
-            50% {
-                transform: translateX(-8px);
-            }
-        }
-
-        .bounce-info {
-            animation: bounce 1s infinite;
-            font-weight: bold;
-            color: #1e3c72;
-            background-color: #e9f5ff;
-            border-left: 6px solid #2a5298;
-            padding: .5rem;
-            border-radius: 8px;
-            margin-top: .5rem;
-            font-size: 1rem;
-        }
-
-        .st-cw {
-        padding-top: 0rem !important;
-        }
-
-        .st-an {
-            padding-top: 0rem !important;
-        }            
-
-        .sidebar-box {
-            background-color: #ffffff10;
-            padding: 1rem;
-            border-radius: 10px;
-            margin-top: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .sidebar-metric-title {
-            font-size: 0.85rem;
-            color: #555;
-            margin-bottom: 0.2rem;
-        }
-        .sidebar-metric-value {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: #1e3c72;
-            margin-bottom: 0.8rem;
-        }
-
-        /* Estilo marrón vintage para el sidebar */
-        section[data-testid="stSidebar"] {
-            background-color: #dcc594 !important;  /* Marrón vintage */
-            color: white;
-            padding: 0rem !important;
-        }
-
-        /* Opcional: mejorar contraste en los textos del sidebar */
-        section[data-testid="stSidebar"] .css-1cpxqw2, /* texto normal */
-        section[data-testid="stSidebar"] .css-10trblm, /* encabezados */
-        section[data-testid="stSidebar"] .st-emotion-cache-1wmy9hl {
-            color: #fff !important;
-        }
-        #tabs-bui42-tabpanel-0 {
-            padding-top: 0 !important;
-        }            
-
-</style>
-""", unsafe_allow_html=True)
+# === CARGAR CSS PERSONALIZADO ===
+st.markdown(custom_css(), unsafe_allow_html=True)
 
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
@@ -310,12 +107,9 @@ class ProveedorDashboard:
         """Consultar datos de BigQuery"""
         try:
             # Obtener IDs de artículos
-            ids = self.df_proveedores[
-                self.df_proveedores['proveedor'] == proveedor
-            ]['idarticulo'].dropna().astype(int).astype(str).unique()
+            ids = self.df_proveedores[self.df_proveedores['proveedor'] == proveedor ]['idarticulo'].dropna().astype(int).astype(str).unique()
             
-            if len(ids) == 0:
-                return None
+            if len(ids) == 0: return None
             
             id_str = ','.join(ids)
             
@@ -354,6 +148,35 @@ class ProveedorDashboard:
         except Exception as e:
             st.error(f"Error consultando BigQuery: {e}")
             return None
+
+    def query_resultados_idarticulo(self, proveedor):
+        credentials_path=self.credentials_path,
+        project_id=self.project_id,
+        dataset='presupuesto',
+        table='result_final_alert_all'
+        
+        try:
+            client = bigquery.Client.from_service_account_json(credentials_path)
+
+            query = f"""
+                SELECT idarticulo, descripcion, familia, subfamilia, proveedor,
+                    stk_corrientes, stk_express, stk_formosa, stk_hiper, stk_TIROL, stk_central, STK_TOTAL,PRESUPUESTO,
+                    ALERTA_STK_Tirol_Central, dias_cobertura, nivel_riesgo, accion_gralporc, PRESU_accion_gral,
+                    cnt_corregida, presu_10dias, presu_20dias, presu_33dias, exceso_STK, costo_exceso_STK,
+                    margen_porc_all, margen_a90, margen_a30, analisis_margen, estrategia, prioridad,
+                    mes_pico, mes_bajo, mes_actual, ranking_mes, meses_act_estac
+                FROM `{project_id}.{dataset}.{table}`
+                WHERE idarticulo IS NOT NULL
+                    and proveedor = '{proveedor}'
+
+            """
+
+            df = client.query(query).to_dataframe()
+            return df
+
+        except Exception as e:
+            st.error(f"❌ Error al consultar BigQuery: {e}")
+            return pd.DataFrame()
 
     def calculate_metrics(self, df):
         """Calcular métricas principales"""
