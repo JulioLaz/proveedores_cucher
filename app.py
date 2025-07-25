@@ -381,7 +381,9 @@ class ProveedorDashboard:
                     else:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
                 # Buscar ID del proveedor seleccionado
+
                 fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]
+                st.write({fila})
                 if not fila.empty:
                     idproveedor = int(fila.iloc[0]['idproveedor'])
 
