@@ -155,19 +155,14 @@ class ProveedorDashboard:
     def query_resultados_idarticulo(self, idproveedor):
         credentials_path = self.credentials_path
         project_id = self.project_id
-        dataset='presupuesto',
+        dataset = 'presupuesto'
         table = 'result_final_alert_all'
 
         try:
             client = bigquery.Client.from_service_account_json(credentials_path)
 
             query = f"""
-                SELECT idarticulo, descripcion, familia, subfamilia, proveedor, idproveedor,
-                    stk_corrientes, stk_express, stk_formosa, stk_hiper, stk_TIROL, stk_central, STK_TOTAL, PRESUPUESTO,
-                    ALERTA_STK_Tirol_Central, dias_cobertura, nivel_riesgo, accion_gralporc, PRESU_accion_gral,
-                    cnt_corregida, presu_10dias, presu_20dias, presu_33dias, exceso_STK, costo_exceso_STK,
-                    margen_porc_all, margen_a90, margen_a30, analisis_margen, estrategia, prioridad,
-                    mes_pico, mes_bajo, mes_actual, ranking_mes, meses_act_estac
+                SELECT *
                 FROM `{project_id}.{dataset}.{table}`
                 WHERE idarticulo IS NOT NULL
                 AND idproveedor = {idproveedor}
@@ -176,15 +171,51 @@ class ProveedorDashboard:
             df = client.query(query).to_dataframe()
 
             if df.empty:
-                st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: '{idproveedor}'")
+                st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: {idproveedor}")
             else:
-                st.success(f"✅ Se encontraron {len(df)} registros para idproveedor '{idproveedor}'")
+                st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
 
             return df
 
         except Exception as e:
             st.error(f"❌ Error al consultar BigQuery: {e}")
             return pd.DataFrame()
+
+
+
+    # def query_resultados_idarticulo(self, idproveedor):
+    #     credentials_path = self.credentials_path
+    #     project_id = self.project_id
+    #     dataset='presupuesto',
+    #     table = 'result_final_alert_all'
+
+    #     try:
+    #         client = bigquery.Client.from_service_account_json(credentials_path)
+
+    #         query = f"""
+    #             SELECT idarticulo, descripcion, familia, subfamilia, proveedor, idproveedor,
+    #                 stk_corrientes, stk_express, stk_formosa, stk_hiper, stk_TIROL, stk_central, STK_TOTAL, PRESUPUESTO,
+    #                 ALERTA_STK_Tirol_Central, dias_cobertura, nivel_riesgo, accion_gralporc, PRESU_accion_gral,
+    #                 cnt_corregida, presu_10dias, presu_20dias, presu_33dias, exceso_STK, costo_exceso_STK,
+    #                 margen_porc_all, margen_a90, margen_a30, analisis_margen, estrategia, prioridad,
+    #                 mes_pico, mes_bajo, mes_actual, ranking_mes, meses_act_estac
+    #             FROM `{project_id}.{dataset}.{table}`
+    #             WHERE idarticulo IS NOT NULL
+    #             AND idproveedor = {idproveedor}
+    #         """
+
+    #         df = client.query(query).to_dataframe()
+
+    #         if df.empty:
+    #             st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: '{idproveedor}'")
+    #         else:
+    #             st.success(f"✅ Se encontraron {len(df)} registros para idproveedor '{idproveedor}'")
+
+    #         return df
+
+    #     except Exception as e:
+    #         st.error(f"❌ Error al consultar BigQuery: {e}")
+    #         return pd.DataFrame()
 
 
 
