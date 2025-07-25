@@ -2452,6 +2452,25 @@ class ProveedorDashboard:
         st.write("**✅ Acción Recomendada**:", df["accion_gralporc"].iloc[0])
         st.write("**% PRESUPUESTO ASOCIADO**:", f"{df['PRESU_accion_gral'].iloc[0]:,.2f}")
 
+    def tab_demanda_presupuesto(self, df):
+            st.markdown("### 📈 Demanda y Presupuesto")
+
+            st.write("**🔢 Pronóstico Final (cnt_corregida):**", int(df["cnt_corregida"].iloc[0]))
+            st.write("**💰 Presupuesto ($):**", f"${df['PRESUPUESTO'].iloc[0]:,.0f}")
+            st.write("**📦 Cantidad Total Vendida:**", int(df["cant_total"].iloc[0]))
+            st.write("**📆 Meses Activos:**", int(df["cnt_meses_activos"].iloc[0]))
+            st.write("**📅 Meses con Demanda Activa:**", int(df["meses_activos"].iloc[0]))
+
+            # Exceso de stock
+            exceso_stk = df["exceso_STK"].iloc[0]
+            costo_exceso = df["costo_exceso_STK"].iloc[0]
+
+            if exceso_stk > 0:
+                st.write("**⚠️ Exceso de Stock:**", int(exceso_stk))
+                st.write("**💸 Costo del Exceso:**", f"${costo_exceso:,.0f}")
+            else:
+                st.success("✅ No hay exceso de stock.")
+
 
     def run(self):
         """Ejecutar dashboard"""
@@ -2473,8 +2492,6 @@ class ProveedorDashboard:
         st.markdown("---")
         st.markdown("## 🔍 Análisis Detallado por Artículo")
         self.show_idarticulo_analysis()
-
-
 
         # Footer
         # st.markdown("---")
