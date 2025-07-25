@@ -385,7 +385,7 @@ class ProveedorDashboard:
                 if not fila.empty:
                     idproveedor = int(fila.iloc[0]['idproveedor'])
 
-                    with st.spinner("🔄 Consultando datos..."):
+                    with st.spinner(f"🔄 Consultando datos...{idproveedor}"):
                         df_presu = self.query_resultados_idarticulo(idproveedor)
                         if df_presu is not None:
                             st.session_state.df_presu = df_presu
