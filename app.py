@@ -2027,9 +2027,7 @@ class ProveedorDashboard:
     def show_executive_summary_best(self, df, proveedor, metrics):
         """Resumen ejecutivo completo con análisis integral"""
         df['fecha_fmt'] = df['fecha'].apply(lambda x: format_date(x, format="d MMMM y", locale=locale))
-        # fecha_inicio = str(df['fecha_fmt'].min())
-        # fecha_fin = str(df['fecha_fmt'].max())
-        periodo_analisado = f"{df['fecha_fmt'].min()} a {df['fecha_fmt'].max()}"
+        periodo_analisado = f"{df['fecha_fmt'].min()} al {df['fecha_fmt'].max()}"
 
         # === Estilos CSS personalizados ===
         st.markdown("""
@@ -2127,7 +2125,7 @@ class ProveedorDashboard:
                     <div style="font-size: 1rem; color: #555;">📅 Días con Ventas</div>
                     <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['dias_con_ventas']}</div>
                 </div>
-                <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
+                <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;text-align: center;">
                     {periodo_analisado}
                 </div>
             </div>
@@ -2139,10 +2137,18 @@ class ProveedorDashboard:
             st.markdown(f"""
             <div class="metric-box">
                 <div style="text-align: center;">
-                    <div style="font-size: 1rem; color: #555;">🌿 Familias - Subfamilias</div>
-                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{familias_count} / {subfamilias_count}</div>
+                    <div style="font-size: 1.2rem; color: #555;">🌿 Familias 
+                        <span style="font-size: 1.5rem; font-weight: bold; color: #1e3c72>
+                        {familias_count}
+                        </span>
+                    </div>
+                    <div style="font-size: 1.2rem; color: #555;">🌿 SubFamilias 
+                        <span style="font-size: 1.5rem; font-weight: bold; color: #1e3c72>
+                        {subfamilias_count}
+                        </span>
+                    </div>
                 </div>
-                <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
+                <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem; text-align: center;">
                     Categorías principales
                 </div>
             </div>
