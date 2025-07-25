@@ -441,7 +441,12 @@ class ProveedorDashboard:
         
         # Si hay datos, mostrar análisis
         df = st.session_state.analysis_data
-        df_presu = st.session_state.resultados_data
+        try:
+            df_presu = st.session_state.resultados_data
+        except AttributeError:
+            df_presu = None
+
+        # df_presu = st.session_state.resultados_data
         proveedor = st.session_state.selected_proveedor
         metrics = self.calculate_metrics(df)
         
@@ -2372,8 +2377,8 @@ class ProveedorDashboard:
         )
 
         # Análisis detallado por artículo
-        st.markdown("---")
-        st.markdown("## 🔍 Análisis Detallado por Artículo")
+        # st.markdown("---")
+        # st.markdown("## 🔍 Análisis Detallado por Artículo")
         # self.show_idarticulo_analysis()
 
         # Footer
