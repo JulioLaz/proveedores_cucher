@@ -2506,6 +2506,30 @@ class ProveedorDashboard:
         st.write("**🎯 Estrategia Recomendada:**", estrategia)
         st.write("**🏅 Prioridad:**", prioridad)
 
+    def tab_estacionalidad(self, df):
+        st.markdown("### 📊 Estacionalidad del Artículo")
+
+        # Mostrar los valores crudos
+        st.write("**📆 Mes Pico:**", df["mes_pico"].iloc[0].capitalize())
+        st.write("**📉 Mes Bajo:**", df["mes_bajo"].iloc[0].capitalize())
+        st.write("**📈 Contraste Relativo Mensual:**", f"{df['Contr_Rel_Mensual'].iloc[0]:.2f}%")
+        st.write("**📊 Nivel Mensual:**", df["ranking_mes"].iloc[0])
+        st.write("**📅 Meses Activos Estacionalidad:**", df["meses_act_estac"].iloc[0])
+
+        # Interpretación automática
+        contraste = df["Contr_Rel_Mensual"].iloc[0]
+        meses_activos = df["meses_act_estac"].iloc[0]
+        nivel = df["ranking_mes"].iloc[0]
+
+        if contraste > 30 and meses_activos <= 4:
+            interpretacion = "🌞 Alta estacionalidad: ventas concentradas en pocos meses"
+        elif contraste > 20:
+            interpretacion = "📈 Estacionalidad moderada"
+        else:
+            interpretacion = "📉 Estacionalidad baja o estable"
+
+        st.info(f"**🔍 Interpretación:** {interpretacion}")
+
 
 
     def run(self):
