@@ -881,57 +881,13 @@ class ProveedorDashboard:
 
             st.plotly_chart(fig, use_container_width=True, key="top_productos")
 
-
     def show_products_analysis(self, df):
         """Análisis detallado de productos"""
+        # st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
 
         try:
-            # === Encabezado y controles ===
-            col1, col2, col3, col4 = st.columns([3, 1, 2.5, 2.5])
-
-            with col1:
-                st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
-
-            with col2:
-                orden_por = st.selectbox(
-                    "Ordenar por",
-                    ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"],
-                    label_visibility="collapsed"
-                )
-
-            with col3:
-                familias = sorted(df["familia"].dropna().unique())
-                filtro_familia = st.multiselect(
-                    "Filtrar por Familia",
-                    options=familias,
-                    default=familias,
-                    label_visibility="collapsed",
-                    placeholder="Seleccionar Familia..."
-                )
-
-            with col4:
-                subfamilias = sorted(df["subfamilia"].dropna().unique())
-                filtro_subfamilia = st.multiselect(
-                    "Filtrar por Subfamilia",
-                    options=subfamilias,
-                    default=subfamilias,
-                    label_visibility="collapsed",
-                    placeholder="Seleccionar Subfamilia..."
-                )
-
-            # === Aplicar filtros ===
-            df_filtrado = df.copy()
-            if filtro_familia:
-                df_filtrado = df_filtrado[df_filtrado["familia"].isin(filtro_familia)]
-            if filtro_subfamilia:
-                df_filtrado = df_filtrado[df_filtrado["subfamilia"].isin(filtro_subfamilia)]
-
-            if df_filtrado.empty:
-                st.warning("⚠️ No hay datos para mostrar con los filtros seleccionados.")
-                return
-
-            # === Agrupación y cálculo ===
-            productos_stats = df_filtrado.groupby("descripcion").agg({
+            # === Agrupar por descripción ===
+            productos_stats = df.groupby("descripcion").agg({
                 "precio_total": "sum",
                 "costo_total": "sum",
                 "cantidad_total": "sum"
@@ -947,12 +903,20 @@ class ProveedorDashboard:
                 "cantidad_total": "Cantidad"
             }, inplace=True)
 
-            # === Top ordenado ===
+            # === Título y selector alineados en una fila ===
+            col1, col2 = st.columns([5, 1])  # Ajusta proporción según el espacio que desees
+            with col1:
+                st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
+            with col2:
+                orden_por = st.selectbox(
+                    "",["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"])
+
+            # === Obtener top ordenado ===
             productos_top = productos_stats[productos_stats[orden_por].notna()].copy()
             productos_top = productos_top.sort_values(orden_por, ascending=False).head(20).copy()
             productos_top["Producto"] = productos_top["descripcion"].apply(lambda x: x[:40] + "..." if len(x) > 40 else x)
 
-            # === Título dinámico ===
+            # === Títulos ===
             titulo_dict = {
                 "Ventas": "Top 20 Productos por Ventas 💰",
                 "Utilidad": "Top 20 Productos por Utilidad 📈",
@@ -974,7 +938,7 @@ class ProveedorDashboard:
             fig.update_layout(
                 title_font=dict(size=22, color='#454448', family='Arial Black'),
                 title_x=0.3,
-                height=420,
+                height=400,
                 xaxis_title=None,
                 yaxis_title=None,
                 margin=dict(t=80, b=120),
@@ -983,99 +947,17 @@ class ProveedorDashboard:
                 paper_bgcolor='rgba(0,0,0,0)',
                 font=dict(size=12),
                 yaxis=dict(
-                    showticklabels=False,
-                    showgrid=False,
-                    zeroline=False
-                )
+                    showticklabels=False,  # ⛔ oculta los valores del eje x
+                    showgrid=False,        # opcional: oculta líneas de grilla
+                    zeroline=False         # opcional: oculta línea cero
+                    
+                    )
             )
             fig.update_traces(marker_color='#8966c6')
             st.plotly_chart(fig, use_container_width=True)
 
             if len(productos_top) < 5:
-                st.info(f"📌 Solo hay {len(productos_top)} productos disponibles para el orden seleccionado.")
-
-        except Exception as e:
-            st.error(f"❌ Error al generar análisis de productos: {str(e)}")
-
-    # def show_products_analysis(self, df):
-#         """Análisis detallado de productos"""
-#         # st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
-
-#         try:
-#             # === Agrupar por descripción ===
-#             productos_stats = df.groupby("descripcion").agg({
-#                 "precio_total": "sum",
-#                 "costo_total": "sum",
-#                 "cantidad_total": "sum"
-#             }).reset_index()
-
-#             productos_stats["Utilidad"] = productos_stats["precio_total"] - productos_stats["costo_total"]
-#             productos_stats["Margen %"] = 100 * productos_stats["Utilidad"] / productos_stats["precio_total"].replace(0, pd.NA)
-#             productos_stats["Participación %"] = 100 * productos_stats["precio_total"] / productos_stats["precio_total"].sum()
-
-#             productos_stats.rename(columns={
-#                 "precio_total": "Ventas",
-#                 "costo_total": "Costos",
-#                 "cantidad_total": "Cantidad"
-#             }, inplace=True)
-
-#             # === Título y selector alineados en una fila ===
-#             # ✅ Primero: definí los filtros sobre `df`
-# ###########################
-#             col1, col2 = st.columns([5, 1])  # Ajusta proporción según el espacio que desees
-#             with col1:
-#                 st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
-#             with col2:
-#                 orden_por = st.selectbox(
-#                     "",["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"])
-
-#             # === Obtener top ordenado ===
-#             productos_top = productos_stats[productos_stats[orden_por].notna()].copy()
-#             productos_top = productos_top.sort_values(orden_por, ascending=False).head(20).copy()
-#             productos_top["Producto"] = productos_top["descripcion"].apply(lambda x: x[:40] + "..." if len(x) > 40 else x)
-
-#             # === Títulos ===
-#             titulo_dict = {
-#                 "Ventas": "Top 20 Productos por Ventas 💰",
-#                 "Utilidad": "Top 20 Productos por Utilidad 📈",
-#                 "Margen %": "Top 20 Productos por Margen (%) 🧮",
-#                 "Cantidad": "Top 20 Productos por Cantidad Vendida 📦",
-#                 "Participación %": "Top 20 por Participación (%) del Total 🧭"
-#             }
-
-#             # === Gráfico principal ===
-#             fig = px.bar(
-#                 productos_top,
-#                 x="Producto",
-#                 y=orden_por,
-#                 text_auto='.2s' if orden_por in ["Ventas", "Utilidad"] else '.1f',
-#                 title=titulo_dict[orden_por],
-#                 labels={"Producto": "Producto", orden_por: orden_por}
-#             )
-
-#             fig.update_layout(
-#                 title_font=dict(size=22, color='#454448', family='Arial Black'),
-#                 title_x=0.3,
-#                 height=400,
-#                 xaxis_title=None,
-#                 yaxis_title=None,
-#                 margin=dict(t=80, b=120),
-#                 xaxis_tickangle=-45,
-#                 plot_bgcolor='rgba(0,0,0,0)',
-#                 paper_bgcolor='rgba(0,0,0,0)',
-#                 font=dict(size=12),
-#                 yaxis=dict(
-#                     showticklabels=False,  # ⛔ oculta los valores del eje x
-#                     showgrid=False,        # opcional: oculta líneas de grilla
-#                     zeroline=False         # opcional: oculta línea cero
-                    
-#                     )
-#             )
-#             fig.update_traces(marker_color='#8966c6')
-#             st.plotly_chart(fig, use_container_width=True)
-
-#             if len(productos_top) < 5:
-#                 st.warning(f"⚠️ Solo hay {len(productos_top)} productos disponibles con datos en '{orden_por}'.")
+                st.warning(f"⚠️ Solo hay {len(productos_top)} productos disponibles con datos en '{orden_por}'.")
 
             # === GRAFICOS ADICIONALES ===
             col1, col2 = st.columns(2)
