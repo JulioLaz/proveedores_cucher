@@ -1767,30 +1767,6 @@ class ProveedorDashboard:
 
         st.markdown(generar_insight_abc_completo(abc_counts, abc_ventas), unsafe_allow_html=True)
 
-        # col1, col2 = st.columns(2)
-        # with col1:
-        #     df_margenes_flia = df.groupby('familia')['margen_porcentual'].mean()
-        #     st.markdown(generar_insight_margen(df_margenes_flia, "Familia"), unsafe_allow_html=True)
-
-        # with col2:
-        #     df_margenes_subflia = df.groupby('subfamilia')['margen_porcentual'].mean()
-        #     st.markdown(generar_insight_margen(df_margenes_subflia, "Subfamilia"), unsafe_allow_html=True)
-
-
-        # === Insights debajo de gráficos ABC ===
-         
-        # col1, col2 = st.columns(2)
-        # with col1:
-        #     st.markdown(generar_insight_cantidad(abc_counts))
-            
-        # with col2:
-        #     st.markdown(generar_insight_ventas(abc_ventas))
-        # with col1:
-        #     st.markdown(generar_insight_margen(abc_counts))
-
-        # with col2:
-        #     st.markdown(generar_insight_abc_completo(abc_ventas))
-
         # === Recomendaciones Estratégicas ===
         st.markdown("### 💡 Recomendaciones Estratégicas")
 
@@ -2148,18 +2124,19 @@ class ProveedorDashboard:
                     <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['dias_con_ventas']}</div>
                 </div>
                 <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
-                    Período analizado
+                    {periodo_analisis}
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
         with col5:
             familias_count = df['familia'].nunique() if 'familia' in df.columns else 0
+            subfamilias_count = df['subfamilia'].nunique() if 'subfamilia' in df.columns else 0
             st.markdown(f"""
             <div class="metric-box">
                 <div style="text-align: center;">
-                    <div style="font-size: 1rem; color: #555;">🌿 Familias</div>
-                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{familias_count}</div>
+                    <div style="font-size: 1rem; color: #555;">🌿 Familias - Subfamilias</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{familias_count} / {subfamilias_count}</div>
                 </div>
                 <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
                     Categorías principales
