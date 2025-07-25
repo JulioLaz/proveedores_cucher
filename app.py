@@ -380,7 +380,7 @@ class ProveedorDashboard:
                     if df_tickets is not None:
                         st.session_state.analysis_data = df_tickets
                         st.session_state.selected_proveedor = proveedor
-                        st.rerun()
+                        # st.rerun()
                     else:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
                 # Buscar ID del proveedor seleccionado
@@ -391,6 +391,7 @@ class ProveedorDashboard:
                         df_presu = self.query_resultados_idarticulo(fila)
                         if df_presu is not None:
                             st.session_state.df_presu = df_presu
+                            st.rerun()
                         else:
                             st.sidebar.error("❌ No se encontraron datos de presupuesto para el proveedor")
                 else:
