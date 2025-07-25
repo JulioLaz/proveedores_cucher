@@ -198,3 +198,71 @@ def custom_css():
 
 </style>
 """
+
+def custom_sidebar():
+    return """
+            <style>
+            .sidebar-logo-box img {
+                max-width: 100%;
+                border-radius: 8px;
+                margin-bottom: 0.5rem;
+            }
+
+            .animated-title {
+                font-weight: bold;
+                color: #721c24;
+                padding: 0.5rem 1rem;
+            color: #1e3c72;
+            background-color: #e9f5ff;
+            border-left: 6px solid #2a5298;                            
+                animation: pulse 1.5s infinite;
+                border-radius: 5px;
+                margin-bottom: .5rem;
+            }
+
+            .highlight-period {
+                font-weight: bold;
+                color: #856404;
+                background: linear-gradient(90deg, #fff3cd, #ffeeba);
+                padding: 0.5rem 1rem;
+                border-left: 5px solid #ffc107;
+                animation: blink 1.2s infinite;
+                border-radius: 5px;
+                margin-bottom: .5rem;
+            }
+
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.04); }
+                100% { transform: scale(1); }
+            }
+
+            @keyframes blink {
+                0% { opacity: 1; }
+                50% { opacity: 0.6; }
+                100% { opacity: 1; }
+            }
+
+            .stButton > button {
+                background-color: #4368d6 !important;
+                color: white !important;
+                font-weight: bold;
+                border-radius: 8px;
+                border: none;
+                padding: 0.6rem 1rem;
+            }
+
+            .stButton > button:hover {
+                background-color: #294ebc !important;
+            }
+                            
+            /* Oculta el label específico apuntando al selector detallado */
+            #root > div:nth-child(1) > div.withScreencast > div > div.stAppViewContainer.appview-container.st-emotion-cache-1yiq2ps.e4man110 > section > div.hideScrollbar.st-emotion-cache-jx6q2s.eu6y2f92 > div.st-emotion-cache-ja5xo9.eu6y2f91 > div > div > div:nth-child(3) > div > label {
+                display: none !important;
+            }
+
+            </style>
+            <div class="sidebar-logo-box">
+                <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
+            </div>
+        """

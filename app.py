@@ -22,7 +22,7 @@ warnings.filterwarnings('ignore')
 from limpiar_datos import limpiar_datos
 from insight_ABC import generar_insight_cantidad, generar_insight_ventas, generar_insight_margen, generar_insight_abc_completo, generar_insight_pareto
 from generar_excel import generar_excel
-from custom_css import custom_css
+from custom_css import custom_css, custom_sidebar
 
 locale = Locale.parse('es_AR')
 
@@ -262,74 +262,8 @@ class ProveedorDashboard:
 
 
     def show_sidebar_filters(self):
-        """Mostrar filtros en sidebar con animaciones y lógica UX mejorada"""
         # --- CSS & LOGO ---
-        st.sidebar.markdown("""
-            <style>
-            .sidebar-logo-box img {
-                max-width: 100%;
-                border-radius: 8px;
-                margin-bottom: 0.5rem;
-            }
-
-            .animated-title {
-                font-weight: bold;
-                color: #721c24;
-                padding: 0.5rem 1rem;
-            color: #1e3c72;
-            background-color: #e9f5ff;
-            border-left: 6px solid #2a5298;                            
-                animation: pulse 1.5s infinite;
-                border-radius: 5px;
-                margin-bottom: .5rem;
-            }
-
-            .highlight-period {
-                font-weight: bold;
-                color: #856404;
-                background: linear-gradient(90deg, #fff3cd, #ffeeba);
-                padding: 0.5rem 1rem;
-                border-left: 5px solid #ffc107;
-                animation: blink 1.2s infinite;
-                border-radius: 5px;
-                margin-bottom: .5rem;
-            }
-
-            @keyframes pulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.04); }
-                100% { transform: scale(1); }
-            }
-
-            @keyframes blink {
-                0% { opacity: 1; }
-                50% { opacity: 0.6; }
-                100% { opacity: 1; }
-            }
-
-            .stButton > button {
-                background-color: #4368d6 !important;
-                color: white !important;
-                font-weight: bold;
-                border-radius: 8px;
-                border: none;
-                padding: 0.6rem 1rem;
-            }
-
-            .stButton > button:hover {
-                background-color: #294ebc !important;
-            }
-                            
-            /* Oculta el label específico apuntando al selector detallado */
-            #root > div:nth-child(1) > div.withScreencast > div > div.stAppViewContainer.appview-container.st-emotion-cache-1yiq2ps.e4man110 > section > div.hideScrollbar.st-emotion-cache-jx6q2s.eu6y2f92 > div.st-emotion-cache-ja5xo9.eu6y2f91 > div > div > div:nth-child(3) > div > label {
-                display: none !important;
-            }
-
-            </style>
-            <div class="sidebar-logo-box">
-                <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
-            </div>
-        """, unsafe_allow_html=True)
+        st.sidebar.markdown(custom_sidebar(), unsafe_allow_html=True)
 
         # --- Cargar proveedores ---
         if self.df_proveedores is None:
@@ -350,7 +284,6 @@ class ProveedorDashboard:
             index=proveedores.index(proveedor_actual) if proveedor_actual in proveedores else None,
             placeholder="Seleccionar proveedor..."
         )
-
 
         # --- Rango de fechas ---
         rango_opciones = {
@@ -397,12 +330,16 @@ class ProveedorDashboard:
             else:
                 with st.spinner("🔄 Consultando datos..."):
                     df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
-                    if df_tickets is not None:
+                    df_presu = self.query_resultados_idarticulo(self, proveedor)
+
+                    if df_tickets is not None and df_presu is not None:
                         st.session_state.analysis_data = df_tickets
+                        st.session_state.resultados_data = df_presu
                         st.session_state.selected_proveedor = proveedor
                         st.rerun()
                     else:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
+
 
         # --- Resumen del período ---
         if st.session_state.get("analysis_data") is not None:
@@ -477,17 +414,18 @@ class ProveedorDashboard:
         
         # Si hay datos, mostrar análisis
         df = st.session_state.analysis_data
+        df_presu = st.session_state.resultados_data
         proveedor = st.session_state.selected_proveedor
         metrics = self.calculate_metrics(df)
         
         # Tabs principales
-        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
             "📈 Resumen Ejecutivo", 
             "🏆 Análisis de Productos", 
             "📅 Evolución Temporal",
             "🎯 Análisis Avanzado",
-            # "📁 Reportes",
-            "📋 Sintesis Final"
+            "📋 Sintesis Final",
+            "📁 Articulos"
         ])
         
         with tab1:
@@ -502,13 +440,11 @@ class ProveedorDashboard:
         with tab4:
             self.show_advanced_analysis(df, metrics)
         
-        # with tab5:
-        #     self.show_reports_section(df, proveedor, metrics)
-        
         with tab5:
-        #     self.show_executive_summary(df, proveedor, metrics)
-
             self.show_executive_summary_best(df, proveedor, metrics)
+
+        with tab6:
+            self.show_idarticulo_analysis(df_presu)
 
     def show_executive_summary(self, df, proveedor, metrics):
         # === Estilos CSS personalizados ===
@@ -2234,6 +2170,39 @@ class ProveedorDashboard:
 ##   ANALISIS DETALLADO POR ARTÍCULO
 ########################################################################
 
+    def show_idarticulo_analysis_01(df_presu):
+        if df_presu is None or df_presu.empty:
+            st.warning("⚠️ No hay datos disponibles para análisis por artículo.")
+            return
+
+        # === Selector de artículo ===
+        opciones = df_presu[["idarticulo", "descripcion"]].drop_duplicates()
+        opciones["etiqueta"] = opciones["idarticulo"].astype(str) + " - " + opciones["descripcion"]
+        seleccion = st.selectbox("Seleccionar artículo para análisis detallado:", opciones["etiqueta"].tolist())
+
+        # === Filtrar artículo seleccionado ===
+        id_seleccionado = int(seleccion.split(" - ")[0])
+        df_item = df_presu[df_presu["idarticulo"] == id_seleccionado].copy()
+
+        if df_item.empty:
+            st.info("No se encontraron datos para el artículo seleccionado.")
+            return
+
+        # === Mostrar pestañas ===
+        tabs = st.tabs(["📦 Stock y Cobertura", "📈 Demanda y Presupuesto", "💰 Rentabilidad", "📊 Estacionalidad"])
+
+        # with tabs[0]:
+        #     self.tab_stock_y_cobertura(df_item)
+
+        # with tabs[1]:
+        #     self.tab_demanda_presupuesto(df_item)
+
+        # with tabs[2]:
+        #     self.tab_rentabilidad(df_item)
+
+        # with tabs[3]:
+        #     self.tab_estacionalidad(df_item)
+
     def show_idarticulo_analysis(self):
         if self.df_resultados is None or self.df_resultados.empty:
             st.warning("⚠️ No hay datos disponibles para análisis por artículo.")
@@ -2355,7 +2324,8 @@ class ProveedorDashboard:
         """Ejecutar dashboard"""
         # Sidebar con filtros (guardar en atributos de instancia)
         self.proveedor, self.fecha_inicio, self.fecha_fin = self.show_sidebar_filters()
-        
+        # self.df_resultados = st.session_state.get("resultados_data", pd.DataFrame())
+        self.df_presu = st.session_state.get("presu_data", pd.DataFrame())
         # Dashboard principal
         self.show_main_dashboard()
 
