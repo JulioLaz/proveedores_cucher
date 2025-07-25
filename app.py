@@ -2512,12 +2512,12 @@ class ProveedorDashboard:
         # Mostrar los valores crudos
         st.write("**📆 Mes Pico:**", df["mes_pico"].iloc[0].capitalize())
         st.write("**📉 Mes Bajo:**", df["mes_bajo"].iloc[0].capitalize())
-        st.write("**📈 Contraste Relativo Mensual:**", f"{df['Contr_Rel_Mensual'].iloc[0]:.2f}%")
+        st.write("**📈 Contraste Relativo Mensual:**", f"{df['mes_actual'].iloc[0]:.2f}%")
         st.write("**📊 Nivel Mensual:**", df["ranking_mes"].iloc[0])
         st.write("**📅 Meses Activos Estacionalidad:**", df["meses_act_estac"].iloc[0])
 
         # Interpretación automática
-        contraste = df["Contr_Rel_Mensual"].iloc[0]
+        contraste = df["mes_actual"].iloc[0]
         meses_activos = df["meses_act_estac"].iloc[0]
 
         if contraste > 30 and meses_activos <= 4:
