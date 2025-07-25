@@ -386,6 +386,10 @@ class ProveedorDashboard:
                 # Buscar ID del proveedor seleccionado
                 if fila > 0:
                     st.write(f'los ids son: {fila}')
+                    st.write(f'los ids son: {fila}')
+                    st.write(f'los ids son: {fila}')
+                    st.write(f'los ids son: {fila}')
+                    st.write(f'los ids son: {fila}')
                     with st.spinner(f"🔄 Consultando datos proveedor id: {fila}"):
                         df_presu = self.query_resultados_idarticulo(fila)
                         if df_presu is not None:
