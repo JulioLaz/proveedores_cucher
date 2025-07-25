@@ -367,7 +367,7 @@ class ProveedorDashboard:
         # --- Botón ---
 
         df_presu = None  # ✅ Inicializar para evitar UnboundLocalError
-        st.write(df_proveedor_ids.head(5))
+        st.write(df_proveedor_ids.head(3))
         if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
@@ -382,6 +382,7 @@ class ProveedorDashboard:
                     else:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
                 # Buscar ID del proveedor seleccionado
+                st.write(fila)
                 if not fila.empty:
                     idproveedor = int(fila.iloc[0]['idproveedor'])
 
