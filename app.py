@@ -370,6 +370,7 @@ class ProveedorDashboard:
         # st.write(df_proveedor_ids.head(3))
         fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]['idproveedor'].unique()[0]
         st.write('idproveedor: ', fila)
+        # st.write('idproveedor: ', fila)
         # st.write('idproveedor type: ', type(fila))
         if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
@@ -384,9 +385,9 @@ class ProveedorDashboard:
                     else:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
                 # Buscar ID del proveedor seleccionado
-                st.write(f'los ids son: {fila}')
+                # st.write(f'los ids son: {fila}')
                 if fila > 0:
-                    # st.write(f'los ids son: {fila}')
+                    st.write('idproveedor: ', fila)
                     with st.spinner(f"🔄 Consultando datos proveedor id: {fila}"):
                         df_presu = self.query_resultados_idarticulo(fila)
                         if df_presu is not None:
