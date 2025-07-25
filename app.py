@@ -904,25 +904,58 @@ class ProveedorDashboard:
             }, inplace=True)
 
             # === Título y selector alineados en una fila ===
-
             col1, col2, col3, col4 = st.columns([3, 1, 2, 2])
 
             with col1:
                 st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
 
             with col2:
-                orden_por = st.selectbox(
-                    "Ordenar por", ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"]
-                )
+                orden_por = st.selectbox("Ordenar por", ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"])
 
             with col3:
                 familias_disponibles = df["familia"].dropna().unique().tolist()
-                filtro_familia = st.multiselect("Filtrar por Familia", opciones := sorted(familias_disponibles), default=opciones)
+                filtro_familia = st.multiselect("Filtrar por Familia", sorted(familias_disponibles), default=sorted(familias_disponibles))
 
             with col4:
                 subfamilias_disponibles = df["subfamilia"].dropna().unique().tolist()
-                filtro_subfamilia = st.multiselect("Filtrar por Subfamilia", opciones2 := sorted(subfamilias_disponibles), default=opciones2)
+                filtro_subfamilia = st.multiselect("Filtrar por Subfamilia", sorted(subfamilias_disponibles), default=sorted(subfamilias_disponibles))
 
+            # === Aplicar filtros al DataFrame base ===
+            df_filtrado = df.copy()
+            if filtro_familia:
+                df_filtrado = df_filtrado[df_filtrado["familia"].isin(filtro_familia)]
+            if filtro_subfamilia:
+                df_filtrado = df_filtrado[df_filtrado["subfamilia"].isin(filtro_subfamilia)]
+
+            # === Agrupar productos filtrados ===
+            productos_stats = df_filtrado.groupby("descripcion").agg({
+                "precio_total": "sum",
+                "costo_total": "sum",
+                "cantidad_total": "sum"
+            }).reset_index()
+
+
+#######################
+            # col1, col2, col3, col4 = st.columns([3, 1, 2, 2])
+
+            # with col1:
+            #     st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
+
+            # with col2:
+            #     orden_por = st.selectbox(
+            #         "Ordenar por", ["Ventas", "Utilidad", "Margen %", "Cantidad", "Participación %"]
+            #     )
+
+            # with col3:
+            #     familias_disponibles = df["familia"].dropna().unique().tolist()
+            #     filtro_familia = st.multiselect("Filtrar por Familia", opciones := sorted(familias_disponibles), default=opciones)
+
+            # with col4:
+            #     subfamilias_disponibles = df["subfamilia"].dropna().unique().tolist()
+            #     filtro_subfamilia = st.multiselect("Filtrar por Subfamilia", opciones2 := sorted(subfamilias_disponibles), default=opciones2)
+
+
+###########################
             # col1, col2 = st.columns([5, 1])  # Ajusta proporción según el espacio que desees
             # with col1:
             #     st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
