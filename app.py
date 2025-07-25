@@ -359,7 +359,7 @@ class ProveedorDashboard:
             st.sidebar.markdown(f"📅 **Día más ventas:** `{dia_top}`")
             st.sidebar.markdown(f"📆 **Mes más ventas:** `{mes_top}`")
 
-        return proveedor, fecha_inicio, fecha_fin
+        return proveedor, fecha_inicio, fecha_fin, df_presu
    
     def show_main_dashboard(self):
         proveedor = self.proveedor if hasattr(self, 'proveedor') else None
@@ -2170,7 +2170,7 @@ class ProveedorDashboard:
 ##   ANALISIS DETALLADO POR ARTÍCULO
 ########################################################################
 
-    def show_idarticulo_analysis_01(df_presu):
+    def show_idarticulo_analysis_01(self, df_presu):
         if df_presu is None or df_presu.empty:
             st.warning("⚠️ No hay datos disponibles para análisis por artículo.")
             return
@@ -2205,14 +2205,6 @@ class ProveedorDashboard:
         # with tabs[0]:
         #     self.tab_stock_y_cobertura(df_item)
 
-        # with tabs[1]:
-        #     self.tab_demanda_presupuesto(df_item)
-
-        # with tabs[2]:
-        #     self.tab_rentabilidad(df_item)
-
-        # with tabs[3]:
-        #     self.tab_estacionalidad(df_item)
 
     def show_idarticulo_analysis(self):
         if self.df_resultados is None or self.df_resultados.empty:
@@ -2333,12 +2325,16 @@ class ProveedorDashboard:
 
     def run(self):
         """Ejecutar dashboard"""
-        # Sidebar con filtros (guardar en atributos de instancia)
-        self.proveedor, self.fecha_inicio, self.fecha_fin = self.show_sidebar_filters()
-        # self.df_resultados = st.session_state.get("resultados_data", pd.DataFrame())
-        self.df_presu = st.session_state.get("presu_data", pd.DataFrame())
-        # Dashboard principal
+        # Filtros del sidebar → ahora devuelve también df_presu
+        self.proveedor, self.fecha_inicio, self.fecha_fin, df_presu = self.show_sidebar_filters()
+        
+        # Mostrar análisis principal
         self.show_main_dashboard()
+
+        # Análisis detallado por artículo
+        st.markdown("---")
+        st.markdown("## 🔍 Análisis Detallado por Artículo")
+        self.show_idarticulo_analysis_01(df_presu)
 
         # === Extraer datos de análisis por idarticulo ===
         self.df_resultados = query_resultados_idarticulo(
