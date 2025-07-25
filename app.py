@@ -100,6 +100,7 @@ class ProveedorDashboard:
         """Cargar datos de proveedores desde Google Sheet público"""
         url = f"https://docs.google.com/spreadsheets/d/{_self.sheet_id}/gviz/tq?tqx=out:csv&sheet={_self.sheet_name}"
         df = pd.read_csv(url)
+        df['idproveedor'] = df['idproveedor'].astype(int)
         df['proveedor'] = df['proveedor'].astype(str).str.strip().str.upper()
         return df
     
@@ -378,13 +379,27 @@ class ProveedorDashboard:
                         st.rerun()
                     else:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
-                idproveedor = df_proveedor_ids[df_proveedor_ids['idproveedor'] == df_proveedor_ids['proveedor']]
-                with st.spinner("🔄 Consultando datos..."):
-                    df_presu = self.query_resultados_idarticulo(idproveedor)
-                    if df_presu is not None:
-                        st.session_state.df_presu = df_presu
-                    else:
-                        st.sidebar.error("❌ No se encontraron datos de presupuesto para el proveedor")
+                # Buscar ID del proveedor seleccionado
+                fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]
+                if not fila.empty:
+                    idproveedor = int(fila.iloc[0]['idproveedor'])
+
+                    with st.spinner("🔄 Consultando datos..."):
+                        df_presu = self.query_resultados_idarticulo(idproveedor)
+                        if df_presu is not None:
+                            st.session_state.df_presu = df_presu
+                        else:
+                            st.sidebar.error("❌ No se encontraron datos de presupuesto para el proveedor")
+                else:
+                    st.sidebar.error("❌ No se encontró el ID del proveedor seleccionado")
+
+                # idproveedor = df_proveedor_ids[df_proveedor_ids['idproveedor'] == df_proveedor_ids['proveedor']]
+                # with st.spinner("🔄 Consultando datos..."):
+                #     df_presu = self.query_resultados_idarticulo(idproveedor)
+                #     if df_presu is not None:
+                #         st.session_state.df_presu = df_presu
+                #     else:
+                #         st.sidebar.error("❌ No se encontraron datos de presupuesto para el proveedor")
 
         # Si existe en session_state, recuperarlo
         if "df_presu" in st.session_state:
