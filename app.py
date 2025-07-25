@@ -372,7 +372,7 @@ class ProveedorDashboard:
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
             else:
-                with st.spinner("🔄 Consultando datos..."):
+                with st.spinner(f"🔄 Consultando datos de {proveedor}"):
                     df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
                     if df_tickets is not None:
                         st.session_state.analysis_data = df_tickets
