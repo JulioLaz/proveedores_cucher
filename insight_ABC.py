@@ -276,6 +276,7 @@ def generar_insight_abc_completo(abc_counts, abc_ventas):
     """
     return html
 
+
 def generar_insight_pareto(productos_pareto):
     if productos_pareto.empty:
         return '<div class="warning-box">🚫 <strong>Sin datos:</strong> No se encontraron productos para análisis de Pareto.</div>'

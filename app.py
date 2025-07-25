@@ -239,12 +239,34 @@ st.markdown("""
 
 </style>
 """, unsafe_allow_html=True)
-    # /* O si preferís que no tenga fondo visible: */
-    # [data-testid="stPlotlyChart"] {
-    # }          
 
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
+
+from google.cloud import bigquery
+
+def query_resultados_idarticulo(credentials_path, project_id, dataset, table):
+    try:
+        client = bigquery.Client.from_service_account_json(credentials_path)
+
+        query = f"""
+            SELECT idarticulo, descripcion, familia, subfamilia,
+                   stk_corrientes, stk_express, stk_formosa, stk_hiper, stk_TIROL, stk_central, STK_TOTAL,
+                   ALERTA_STK_Tirol_Central, dias_cobertura, nivel_riesgo, accion_gral, `%PRESU_accion_gral`,
+                   cnt_corregida, presu_10dias, presu_20dias, presu_33dias, exceso_STK, costo_exceso_STK,
+                   margen_porc_all, margen_a90, margen_a30, analisis_margen, estrategia, prioridad,
+                   mes_pico, mes_bajo, Contr_Rel_Mensual, nivel_mes, meses_act_estac
+            FROM `{project_id}.{dataset}.{table}`
+            WHERE idarticulo IS NOT NULL
+        """
+
+        df = client.query(query).to_dataframe()
+        return df
+
+    except Exception as e:
+        st.error(f"❌ Error al consultar BigQuery: {e}")
+        return pd.DataFrame()
+
 class ProveedorDashboard:
     def __init__(self):
         self.df_proveedores = None
@@ -332,7 +354,7 @@ class ProveedorDashboard:
         except Exception as e:
             st.error(f"Error consultando BigQuery: {e}")
             return None
-    
+
     def calculate_metrics(self, df):
         """Calcular métricas principales"""
         
@@ -1892,140 +1914,6 @@ class ProveedorDashboard:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-
-
-#     def show_reports_section(self, df, proveedor, metrics):
-#         """Sección de reportes y exportación"""
-#         st.subheader("📁 Generación de Reportes")
-#         st.markdown("### 📊 Resumen Ejecutivo")
-#         df['fecha_fmt'] = df['fecha'].apply(lambda x: format_date(x, format="d MMMM y", locale=locale))
-#         resumen_data = {
-#             'Métrica': [
-#                 'Proveedor',
-#                 'Período de Análisis',
-#                 'Ventas Totales',
-#                 'Utilidad Total',
-#                 'Margen Promedio',
-#                 'Productos Únicos',
-#                 'Días con Ventas'
-#             ],
-#             'Valor': [
-#                 proveedor,
-#                 f"{df['fecha_fmt'].min()} a {df['fecha_fmt'].max()}",
-#                 f"${metrics['total_ventas']:,.0f}",
-#                 f"${metrics['total_utilidad']:,.0f}",
-#                 f"{metrics['margen_promedio']:.1f}%",
-#                 f"{metrics['productos_unicos']:,}",
-#                 f"{metrics['dias_con_ventas']:,}"
-#             ]
-#         }
-        
-#         df_resumen = pd.DataFrame(resumen_data)
-#         st.dataframe(df_resumen, use_container_width=True, hide_index=True)
-        
-#         # Botones de exportación
-#         col1, col2, col3 = st.columns(3)
-        
-#         with col1:
-#             # Exportar datos completos
-#             csv_data = df.to_csv(index=False)
-#             st.download_button(
-#                 label="📊 Descargar Datos Completos (CSV)",
-#                 data=csv_data,
-#                 file_name=f"analisis_completo_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.csv",
-#                 mime="text/csv"
-#             )
-        
-#         with col2:
-#             # Exportar resumen ejecutivo
-#             resumen_csv = df_resumen.to_csv(index=False)
-#             st.download_button(
-#                 label="📋 Descargar Resumen (CSV)",
-#                 data=resumen_csv,
-#                 file_name=f"resumen_ejecutivo_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.csv",
-#                 mime="text/csv"
-#             )
-        
-#         with col3:
-#             # Exportar top productos
-#             top_productos = df.groupby(['idarticulo', 'descripcion']).agg({
-#                 'precio_total': 'sum',
-#                 'utilidad': 'sum',
-#                 'cantidad_total': 'sum',
-#                 'margen_porcentual': 'mean'
-#             }).round(2).sort_values('precio_total', ascending=False).head(50)
-            
-#             top_productos_csv = top_productos.to_csv()
-#             st.download_button(
-#                 label="🏆 Descargar Top Productos (CSV)",
-#                 data=top_productos_csv,
-#                 file_name=f"top_productos_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-#                 mime="text/csv"
-#             )
-        
-#         # Generar reporte en JSON
-#         # st.markdown("### 🔧 Exportación Avanzada")
-        
-#         reporte_completo = {
-#             'metadata': {
-#                 'proveedor': proveedor,
-#                 'fecha_inicio': str(df['fecha_fmt'].min()),
-#                 'fecha_fin': str(df['fecha_fmt'].max()),
-#                 'generado_en': datetime.now().isoformat(),
-#                 'total_registros': len(df)
-#             },
-#             'metricas_principales': {
-#                 'ventas_totales': float(metrics['total_ventas']),
-#                 'utilidad_total': float(metrics['total_utilidad']),
-#                 'margen_promedio': float(metrics['margen_promedio']),
-#                 'productos_unicos': int(metrics['productos_unicos'])
-#             },
-#             'insights': [insight[1] for insight in self.generate_insights(df, metrics)]
-#         }
-        
-#         # json_data = json.dumps(reporte_completo, indent=2, ensure_ascii=False)
-#         # st.download_button(
-#         #     label="🗂️ Descargar Reporte Completo (JSON)",
-#         #     data=json_data,
-#         #     file_name=f"reporte_completo_{proveedor.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.json",
-#         #     mime="application/json"
-#         # )
-#         # Vista previa de datos
-#         st.markdown("### Vista Previa de Datos")
-#         data=df.to_csv(index=False)
-#         data=df[['fecha_fmt', 'idarticulo', 'descripcion', 'precio_total', 'costo_total', 'utilidad', 'margen_porcentual', 'cantidad_total']]
-# ###############################################
-#         archivo_excel = generar_excel(data, sheet_name="ABC Clasificación")
-#         periodo_analisis = resumen_data['Valor'][1]
-
-#         st.download_button(
-#             label="📥 Descargar todos los datos del proveedor (Excel)",
-#             data=archivo_excel,
-#             file_name=f"{proveedor}_{periodo_analisis}.xlsx",
-#             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-#         )
-
-# ###############################################
-#         # Mostrar muestra de datos
-#         st.dataframe(
-#             data.head(10),
-#             use_container_width=True,
-#             column_config={
-#                 "fecha_fmt": st.column_config.DateColumn("Fecha"),
-#                 "precio_total": st.column_config.NumberColumn("Precio Total", format="$%.0f"),
-#                 "costo_total": st.column_config.NumberColumn("Costo Total", format="$%.0f"),
-#                 "utilidad": st.column_config.NumberColumn("Utilidad", format="$%.0f"),
-#                 "margen_porcentual": st.column_config.NumberColumn("Margen %", format="%.1f%%"),
-#                 "cantidad_total": st.column_config.NumberColumn("Cantidad", format="%.0f")
-#             }
-#         )
-        
-#         if len(data) > 100:
-#             st.info(f"ℹ️ Mostrando las primeras 10 filas de {len(data):,} registros totales. Descarga el CSV completo para ver todos los datos.")
-    
-##################################################################################################
-##################################################################################################
-##################################################################################################
     def show_executive_summary_best(self, df, proveedor, metrics):
         """Resumen ejecutivo completo con análisis integral"""
         df['fecha_fmt'] = df['fecha'].apply(lambda x: format_date(x, format="d MMMM y", locale=locale))
@@ -2501,14 +2389,6 @@ class ProveedorDashboard:
             key=f"descarga_excel_{proveedor_key}"
 )
 
-
-        # st.download_button(
-        #         label="📥 Descargar todos los datos del proveedor (Excel)",
-        #         data=archivo_excel,
-        #         file_name=f"{proveedor}_{periodo_analisis}.xlsx",
-        #         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        #     )
-
             # Mostrar muestra de datos
         st.dataframe(
                 data.head(10),
@@ -2525,7 +2405,54 @@ class ProveedorDashboard:
             
         if len(data) > 100:
                 st.info(f"ℹ️ Mostrando las primeras 10 filas de {len(data):,} registros totales. Descarga el CSV completo para ver todos los datos.")
+
+    def show_idarticulo_analysis(self):
+        if self.df_resultados is None or self.df_resultados.empty:
+            st.warning("⚠️ No hay datos disponibles para análisis por artículo.")
+            return
+
+        # === Selector de artículo ===
+        opciones = self.df_resultados[["idarticulo", "descripcion"]].drop_duplicates()
+        opciones["etiqueta"] = opciones["idarticulo"].astype(str) + " - " + opciones["descripcion"]
+        seleccion = st.selectbox("Seleccionar artículo para análisis detallado:", opciones["etiqueta"].tolist())
+
+        # === Filtrar artículo seleccionado ===
+        id_seleccionado = int(seleccion.split(" - ")[0])
+        df_item = self.df_resultados[self.df_resultados["idarticulo"] == id_seleccionado].copy()
+
+        if df_item.empty:
+            st.info("No se encontraron datos para el artículo seleccionado.")
+            return
+
+        # === Mostrar pestañas ===
+        tabs = st.tabs(["📦 Stock y Cobertura", "📈 Demanda y Presupuesto", "💰 Rentabilidad", "📊 Estacionalidad"])
+
+        with tabs[0]:
+            self.tab_stock_y_cobertura(df_item)
+
+        with tabs[1]:
+            self.tab_demanda_presupuesto(df_item)
+
+        with tabs[2]:
+            self.tab_rentabilidad(df_item)
+
+        with tabs[3]:
+            self.tab_estacionalidad(df_item)
+
+    def tab_stock_y_cobertura(self, df):
+        st.markdown("### 🏪 Stock por Sucursal")
+        cols = ['stk_corrientes', 'stk_express', 'stk_formosa', 'stk_hiper', 'stk_TIROL', 'stk_central']
+        for col in cols:
+            st.write(f"**{col.upper()}**: {int(df[col].iloc[0])}")
         
+        st.write("**🔄 Stock Total**:", int(df["STK_TOTAL"].iloc[0]))
+        st.write("**🚨 Alerta Stock**:", df["ALERTA_STK_Tirol_Central"].iloc[0])
+        st.write("**📆 Días de Cobertura**:", df["dias_cobertura"].iloc[0])
+        st.write("**⚠️ Nivel de Riesgo**:", df["nivel_riesgo"].iloc[0])
+        st.write("**✅ Acción Recomendada**:", df["accion_gral"].iloc[0])
+        st.write("**% PRESUPUESTO ASOCIADO**:", f"{df['%PRESU_accion_gral'].iloc[0]:,.2f}")
+
+
     def run(self):
         """Ejecutar dashboard"""
         # Sidebar con filtros (guardar en atributos de instancia)
@@ -2533,7 +2460,22 @@ class ProveedorDashboard:
         
         # Dashboard principal
         self.show_main_dashboard()
+
+        # === Extraer datos de análisis por idarticulo ===
+        self.df_resultados = query_resultados_idarticulo(
+            credentials_path=self.credentials_path,
+            project_id=self.project_id,
+            dataset='presupuesto',
+            table='result_final_alert_all'
+        )
         
+        # Análisis detallado por artículo
+        st.markdown("---")
+        st.markdown("## 🔍 Análisis Detallado por Artículo")
+        self.show_idarticulo_analysis()
+
+
+
         # Footer
         # st.markdown("---")
         st.markdown("""
