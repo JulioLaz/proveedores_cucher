@@ -372,7 +372,8 @@ class ProveedorDashboard:
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
             else:
-                with st.spinner(f"🔄 Consultando datos de {proveedor}"):
+                fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]
+                with st.spinner(f"🔄 Consultando datos de {proveedor} - id {idproveedor}"):
                     df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
                     if df_tickets is not None:
                         st.session_state.analysis_data = df_tickets
@@ -381,9 +382,6 @@ class ProveedorDashboard:
                     else:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
                 # Buscar ID del proveedor seleccionado
-
-                fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]
-                st.write({fila})
                 if not fila.empty:
                     idproveedor = int(fila.iloc[0]['idproveedor'])
 
