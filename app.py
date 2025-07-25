@@ -2441,8 +2441,8 @@ class ProveedorDashboard:
         with tabs[2]:
             self.tab_rentabilidad(df_item)
 
-        with tabs[3]:
-            self.tab_estacionalidad(df_item)
+        # with tabs[3]:
+        #     self.tab_estacionalidad(df_item)
 
     def tab_stock_y_cobertura(self, df):
         st.markdown("### 🏪 Stock por Sucursal")
