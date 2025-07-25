@@ -904,6 +904,7 @@ class ProveedorDashboard:
             }, inplace=True)
 
             # === Título y selector alineados en una fila ===
+            # ✅ Primero: definí los filtros sobre `df`
             col1, col2, col3, col4 = st.columns([3, 1, 2, 2])
 
             with col1:
@@ -920,19 +921,20 @@ class ProveedorDashboard:
                 subfamilias_disponibles = df["subfamilia"].dropna().unique().tolist()
                 filtro_subfamilia = st.multiselect("Filtrar por Subfamilia", sorted(subfamilias_disponibles), default=sorted(subfamilias_disponibles))
 
-            # === Aplicar filtros al DataFrame base ===
+            # ✅ Aplicá los filtros
             df_filtrado = df.copy()
             if filtro_familia:
                 df_filtrado = df_filtrado[df_filtrado["familia"].isin(filtro_familia)]
             if filtro_subfamilia:
                 df_filtrado = df_filtrado[df_filtrado["subfamilia"].isin(filtro_subfamilia)]
 
-            # === Agrupar productos filtrados ===
+            # ✅ Ahora sí agrupás el df filtrado
             productos_stats = df_filtrado.groupby("descripcion").agg({
                 "precio_total": "sum",
                 "costo_total": "sum",
                 "cantidad_total": "sum"
             }).reset_index()
+
 
 
 #######################
