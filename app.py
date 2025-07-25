@@ -398,12 +398,14 @@ class ProveedorDashboard:
         # --- Botón ---
 
         df_presu = None  # ✅ Inicializar para evitar UnboundLocalError
-        # st.write(df_proveedor_ids.head(3))
-        if self.df_proveedores is not None:
-            fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]['idproveedor'].unique()[0]
-        # st.write('idproveedor: ', fila)
-        # st.write('idproveedor: ', fila)
-        # st.write('idproveedor type: ', type(fila))
+
+        filtro = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]
+        if not filtro.empty:
+            fila = int(filtro['idproveedor'].iloc[0])
+        else:
+            st.sidebar.error("❌ No se encontró el ID del proveedor seleccionado.")
+            return proveedor, fecha_inicio, fecha_fin, None
+
         if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
@@ -426,7 +428,7 @@ class ProveedorDashboard:
                             # st.rerun()
                         else:
                             st.sidebar.error("❌ No se encontraron datos de presupuesto para el proveedor")
-                        st.write(df_presu.head(5))
+                        # st.write(df_presu.head(5))
                 else:
                     st.sidebar.error("❌ No se encontró el ID del proveedor seleccionado")
 
