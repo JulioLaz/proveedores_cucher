@@ -384,10 +384,8 @@ class ProveedorDashboard:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
                 # Buscar ID del proveedor seleccionado
                 if not fila.empty:
-                    idproveedor = int(fila.iloc[0]['idproveedor'])
-
-                    with st.spinner(f"🔄 Consultando datos...{idproveedor}"):
-                        df_presu = self.query_resultados_idarticulo(idproveedor)
+                    with st.spinner(f"🔄 Consultando datos...{fila}"):
+                        df_presu = self.query_resultados_idarticulo(fila)
                         if df_presu is not None:
                             st.session_state.df_presu = df_presu
                         else:
