@@ -330,7 +330,7 @@ class ProveedorDashboard:
             else:
                 with st.spinner("🔄 Consultando datos..."):
                     df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
-                    df_presu = self.query_resultados_idarticulo(self, proveedor)
+                    df_presu = self.query_resultados_idarticulo(proveedor)
 
                     if df_tickets is not None and df_presu is not None:
                         st.session_state.analysis_data = df_tickets
