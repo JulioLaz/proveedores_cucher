@@ -324,21 +324,48 @@ class ProveedorDashboard:
         st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio_fmt} / {fecha_fin_fmt}")
 
         # --- Botón ---
+
+        df_presu = None  # ✅ Inicializar para evitar UnboundLocalError
+
         if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
             else:
                 with st.spinner("🔄 Consultando datos..."):
                     df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
-                    df_presu = self.query_resultados_idarticulo(proveedor)
-
-                    if df_tickets is not None and df_presu is not None:
+                    if df_tickets is not None:
                         st.session_state.analysis_data = df_tickets
-                        st.session_state.resultados_data = df_presu
                         st.session_state.selected_proveedor = proveedor
                         st.rerun()
                     else:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
+
+                with st.spinner("🔄 Consultando datos..."):
+                    df_presu = self.query_resultados_idarticulo(proveedor)
+                    if df_presu is not None:
+                        st.session_state.df_presu = df_presu
+                    else:
+                        st.sidebar.error("❌ No se encontraron datos de presupuesto para el proveedor")
+
+        # Si existe en session_state, recuperarlo
+        if "df_presu" in st.session_state:
+            df_presu = st.session_state.df_presu
+            
+        # if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
+        #     if not proveedor:
+        #         st.sidebar.error("❌ Selecciona un proveedor")
+        #     else:
+        #         with st.spinner("🔄 Consultando datos..."):
+        #             df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
+        #             df_presu = self.query_resultados_idarticulo(proveedor)
+
+        #             if df_tickets is not None and df_presu is not None:
+        #                 st.session_state.analysis_data = df_tickets
+        #                 st.session_state.resultados_data = df_presu
+        #                 st.session_state.selected_proveedor = proveedor
+        #                 st.rerun()
+        #             else:
+        #                 st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
 
 
         # --- Resumen del período ---
