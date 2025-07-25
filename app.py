@@ -370,6 +370,7 @@ class ProveedorDashboard:
         st.write(df_proveedor_ids.head(3))
         fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]['idproveedor'].unique()[0]
         st.write('idproveedor: ', fila)
+        st.write('idproveedor type: ', type(fila))
         if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
