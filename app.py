@@ -170,7 +170,7 @@ class ProveedorDashboard:
                     mes_pico, mes_bajo, mes_actual, ranking_mes, meses_act_estac
                 FROM `{project_id}.{dataset}.{table}`
                 WHERE idarticulo IS NOT NULL
-                AND idproveedor = '{idproveedor}'
+                AND idproveedor = {idproveedor}
             """
 
             df = client.query(query).to_dataframe()
