@@ -100,6 +100,7 @@ class ProveedorDashboard:
         """Cargar datos de proveedores desde Google Sheet público"""
         url = f"https://docs.google.com/spreadsheets/d/{_self.sheet_id}/gviz/tq?tqx=out:csv&sheet={_self.sheet_name}"
         df = pd.read_csv(url)
+        df = df.dropna(subset=['idproveedor'])  # elimina filas sin idproveedor
         df['idproveedor'] = df['idproveedor'].astype(int)
         df['proveedor'] = df['proveedor'].astype(str).str.strip().str.upper()
         return df
