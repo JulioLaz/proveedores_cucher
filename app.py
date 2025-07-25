@@ -444,7 +444,7 @@ class ProveedorDashboard:
             self.show_executive_summary_best(df, proveedor, metrics)
 
         with tab6:
-            self.show_idarticulo_analysis(df_presu)
+            self.show_idarticulo_analysis_01(df_presu)
 
     def show_executive_summary(self, df, proveedor, metrics):
         # === Estilos CSS personalizados ===
