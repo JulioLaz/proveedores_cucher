@@ -384,15 +384,13 @@ class ProveedorDashboard:
                         # st.rerun()
                     else:
                         st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
-                # Buscar ID del proveedor seleccionado
-                # st.write(f'los ids son: {fila}')
                 if fila > 0:
                     st.write('idproveedor: ', fila)
                     with st.spinner(f"🔄 Consultando datos proveedor id: {fila}"):
                         df_presu = self.query_resultados_idarticulo(fila)
                         if df_presu is not None:
                             st.session_state.df_presu = df_presu
-                            st.rerun()
+                            # st.rerun()
                         else:
                             st.sidebar.error("❌ No se encontraron datos de presupuesto para el proveedor")
                 else:
