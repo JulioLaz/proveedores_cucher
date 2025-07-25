@@ -2519,7 +2519,6 @@ class ProveedorDashboard:
         # Interpretación automática
         contraste = df["Contr_Rel_Mensual"].iloc[0]
         meses_activos = df["meses_act_estac"].iloc[0]
-        nivel = df["ranking_mes"].iloc[0]
 
         if contraste > 30 and meses_activos <= 4:
             interpretacion = "🌞 Alta estacionalidad: ventas concentradas en pocos meses"
@@ -2527,10 +2526,7 @@ class ProveedorDashboard:
             interpretacion = "📈 Estacionalidad moderada"
         else:
             interpretacion = "📉 Estacionalidad baja o estable"
-
         st.info(f"**🔍 Interpretación:** {interpretacion}")
-
-
 
     def run(self):
         """Ejecutar dashboard"""
