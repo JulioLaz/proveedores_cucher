@@ -367,7 +367,7 @@ class ProveedorDashboard:
         # --- Botón ---
 
         df_presu = None  # ✅ Inicializar para evitar UnboundLocalError
-        st.write(df_proveedor_ids.head(3))
+        # st.write(df_proveedor_ids.head(3))
         fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]['idproveedor'].unique()[0]
         st.write('idproveedor: ', fila)
         # st.write('idproveedor type: ', type(fila))
@@ -386,7 +386,7 @@ class ProveedorDashboard:
                 # Buscar ID del proveedor seleccionado
                 st.write(f'los ids son: {fila}')
                 if fila > 0:
-                    st.write(f'los ids son: {fila}')
+                    # st.write(f'los ids son: {fila}')
                     with st.spinner(f"🔄 Consultando datos proveedor id: {fila}"):
                         df_presu = self.query_resultados_idarticulo(fila)
                         if df_presu is not None:
