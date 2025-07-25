@@ -252,7 +252,7 @@ def query_resultados_idarticulo(credentials_path, project_id, dataset, table):
         query = f"""
             SELECT idarticulo, descripcion, familia, subfamilia,
                    stk_corrientes, stk_express, stk_formosa, stk_hiper, stk_TIROL, stk_central, STK_TOTAL,
-                   ALERTA_STK_Tirol_Central, dias_cobertura, nivel_riesgo, accion_gral, `%PRESU_accion_gral`,
+                   ALERTA_STK_Tirol_Central, dias_cobertura, nivel_riesgo, `accion_gral%`, PRESU_accion_gral,
                    cnt_corregida, presu_10dias, presu_20dias, presu_33dias, exceso_STK, costo_exceso_STK,
                    margen_porc_all, margen_a90, margen_a30, analisis_margen, estrategia, prioridad,
                    mes_pico, mes_bajo, Contr_Rel_Mensual, nivel_mes, meses_act_estac
@@ -2450,7 +2450,7 @@ class ProveedorDashboard:
         st.write("**📆 Días de Cobertura**:", df["dias_cobertura"].iloc[0])
         st.write("**⚠️ Nivel de Riesgo**:", df["nivel_riesgo"].iloc[0])
         st.write("**✅ Acción Recomendada**:", df["accion_gral"].iloc[0])
-        st.write("**% PRESUPUESTO ASOCIADO**:", f"{df['%PRESU_accion_gral'].iloc[0]:,.2f}")
+        st.write("**% PRESUPUESTO ASOCIADO**:", f"{df['PRESU_accion_gral'].iloc[0]:,.2f}")
 
 
     def run(self):
@@ -2468,7 +2468,7 @@ class ProveedorDashboard:
             dataset='presupuesto',
             table='result_final_alert_all'
         )
-        
+
         # Análisis detallado por artículo
         st.markdown("---")
         st.markdown("## 🔍 Análisis Detallado por Artículo")
