@@ -149,7 +149,44 @@ class ProveedorDashboard:
             st.error(f"Error consultando BigQuery: {e}")
             return None
 
-    def query_resultados_idarticulo(self, proveedor):
+
+    def query_resultados_idarticulo(self, idproveedor):
+        credentials_path = self.credentials_path
+        project_id = self.project_id
+        dataset = 'presupuesto'
+        table = 'result_final_alert_all'
+
+        try:
+            client = bigquery.Client.from_service_account_json(credentials_path)
+
+            query = f"""
+                SELECT idarticulo, descripcion, familia, subfamilia, proveedor, idproveedor,
+                    stk_corrientes, stk_express, stk_formosa, stk_hiper, stk_TIROL, stk_central, STK_TOTAL, PRESUPUESTO,
+                    ALERTA_STK_Tirol_Central, dias_cobertura, nivel_riesgo, accion_gralporc, PRESU_accion_gral,
+                    cnt_corregida, presu_10dias, presu_20dias, presu_33dias, exceso_STK, costo_exceso_STK,
+                    margen_porc_all, margen_a90, margen_a30, analisis_margen, estrategia, prioridad,
+                    mes_pico, mes_bajo, mes_actual, ranking_mes, meses_act_estac
+                FROM `{project_id}.{dataset}.{table}`
+                WHERE idarticulo IS NOT NULL
+                AND idproveedor = '{idproveedor}'
+            """
+
+            df = client.query(query).to_dataframe()
+
+            if df.empty:
+                st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: '{idproveedor}'")
+            else:
+                st.success(f"✅ Se encontraron {len(df)} registros para idproveedor '{idproveedor}'")
+
+            return df
+
+        except Exception as e:
+            st.error(f"❌ Error al consultar BigQuery: {e}")
+            return pd.DataFrame()
+
+
+
+    def query_resultados_idarticulo00(self, proveedor):
         credentials_path=self.credentials_path,
         project_id=self.project_id,
         dataset='presupuesto',
@@ -166,6 +203,8 @@ class ProveedorDashboard:
                     margen_porc_all, margen_a90, margen_a30, analisis_margen, estrategia, prioridad,
                     mes_pico, mes_bajo, mes_actual, ranking_mes, meses_act_estac
                 FROM `{project_id}.{dataset}.{table}`
+                WHERE LOWER(proveedor) LIKE LOWER('%arc%')
+
                 WHERE idarticulo IS NOT NULL
                     and proveedor = '{proveedor}'
 
@@ -260,8 +299,115 @@ class ProveedorDashboard:
         
         return insights
 
-
     def show_sidebar_filters(self):
+        # --- CSS & LOGO ---
+        st.sidebar.markdown(custom_sidebar(), unsafe_allow_html=True)
+
+        # --- Cargar proveedores ---
+        if self.df_proveedores is None:
+            with st.spinner("Cargando proveedores..."):
+                self.df_proveedores = self.load_proveedores()
+
+        # Construir lista de opciones (etiqueta visible pero valor = idproveedor)
+        opciones = self.df_proveedores.dropna(subset=['idproveedor', 'proveedor'])
+        opciones["etiqueta"] = opciones["idproveedor"].astype(str) + " - " + opciones["proveedor"].str.strip().str.upper()
+
+        proveedor_actual = st.session_state.get("selected_proveedor")
+
+        if not proveedor_actual:
+            st.sidebar.markdown('<div class="animated-title">🔎 proveedor ⬇️</div>', unsafe_allow_html=True)
+        else:
+            st.sidebar.markdown("#### 🏪 Selección de Proveedor")
+
+        seleccion = st.sidebar.selectbox(
+            "",
+            options=opciones["etiqueta"].tolist(),
+            index=opciones["etiqueta"].tolist().index(proveedor_actual) if proveedor_actual in opciones["etiqueta"].tolist() else 0,
+            placeholder="Seleccionar proveedor..."
+        )
+
+        idproveedor = int(seleccion.split(" - ")[0])
+        nombre_proveedor = seleccion.split(" - ")[1]
+
+        # --- Rango de fechas ---
+        rango_opciones = {
+            "Último mes": 30,
+            "Últimos 3 meses": 90,
+            "Últimos 6 meses": 180,
+            "Último año": 365,
+            "Personalizado": None
+        }
+
+        if seleccion and "analysis_data" not in st.session_state:
+            st.sidebar.markdown('<div class="highlight-period">📅 Elige un período de análisis</div>', unsafe_allow_html=True)
+
+        rango_seleccionado = st.sidebar.selectbox(
+            "📅 Período de Análisis:",
+            options=list(rango_opciones.keys()),
+            index=2
+        )
+
+        # Fechas
+        locale_es = Locale.parse("es")
+        if rango_seleccionado == "Personalizado":
+            col1, col2 = st.sidebar.columns(2)
+            fecha_inicio = col1.date_input("Desde:", value=datetime.now().date() - timedelta(days=180))
+            fecha_fin = col2.date_input("Hasta:", value=datetime.now().date())
+        else:
+            dias = rango_opciones[rango_seleccionado]
+            fecha_fin = datetime.now().date()
+            fecha_inicio = fecha_fin - timedelta(days=dias)
+
+        fecha_inicio_fmt = format_date(fecha_inicio, format="d MMMM y", locale=locale_es).capitalize()
+        fecha_fin_fmt = format_date(fecha_fin, format="d MMMM y", locale=locale_es).capitalize()
+
+        st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio_fmt} / {fecha_fin_fmt}")
+
+        df_presu = None
+
+        if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
+            with st.spinner("🔄 Consultando datos..."):
+                df_tickets = self.query_bigquery_data(idproveedor, fecha_inicio, fecha_fin)
+                if df_tickets is not None and not df_tickets.empty:
+                    st.session_state.analysis_data = df_tickets
+                    st.session_state.selected_proveedor = seleccion
+                else:
+                    st.sidebar.error("❌ No se encontraron tickets para el período seleccionado")
+
+            with st.spinner("🔄 Consultando datos de presupuesto..."):
+                df_presu = self.query_resultados_idarticulo(idproveedor)
+                if df_presu is not None and not df_presu.empty:
+                    st.session_state.df_presu = df_presu
+                else:
+                    st.sidebar.error("❌ No se encontraron datos de presupuesto para el proveedor")
+
+            st.rerun()
+
+        if "df_presu" in st.session_state:
+            df_presu = st.session_state.df_presu
+
+        # Resumen de métricas del período
+        if st.session_state.get("analysis_data") is not None:
+            df_tickets = st.session_state.analysis_data
+            df_tickets['fecha'] = pd.to_datetime(df_tickets['fecha'])
+
+            productos_unicos = df_tickets['idarticulo'].nunique()
+            familias = df_tickets['familia'].nunique()
+            subfamilias = df_tickets['subfamilia'].nunique()
+            dia_top = df_tickets['fecha'].dt.day_name().value_counts().idxmax()
+            mes_top = df_tickets['fecha'].dt.strftime('%B').value_counts().idxmax()
+
+            st.sidebar.markdown(f"🛒 **Productos Únicos:** `{productos_unicos}`")
+            st.sidebar.markdown(f"🧩 **Familias:** `{familias}`")
+            st.sidebar.markdown(f"🧬 **Subfamilias:** `{subfamilias}`")
+            st.sidebar.markdown(f"📅 **Día más ventas:** `{dia_top}`")
+            st.sidebar.markdown(f"📆 **Mes más ventas:** `{mes_top}`")
+
+        # Se retorna nombre para mostrar en métricas, y el id para usar en queries
+        return nombre_proveedor, fecha_inicio, fecha_fin, df_presu
+
+
+    def show_sidebar_filters00(self):
         # --- CSS & LOGO ---
         st.sidebar.markdown(custom_sidebar(), unsafe_allow_html=True)
 
