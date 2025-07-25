@@ -312,10 +312,8 @@ class ProveedorDashboard:
                 self.df_proveedores = self.load_proveedores()
 
         proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())
-        dfff = self.df_proveedores[['idproveedor', 'proveedor']]
-        st.write(dfff.head(5))
         proveedor_actual = st.session_state.get("selected_proveedor")
-        df_proveedor_ids = self.df_proveedores[['proveedor', 'idproveedor']].dropna().drop_duplicates().sort_values(by='proveedor')
+        df_proveedor_ids = self.df_proveedores[['idproveedor', 'proveedor']]
         if not proveedor_actual:
             st.sidebar.markdown('<div class="animated-title">🔎 proveedor ⬇️</div>', unsafe_allow_html=True)
         else:
@@ -369,7 +367,7 @@ class ProveedorDashboard:
         # --- Botón ---
 
         df_presu = None  # ✅ Inicializar para evitar UnboundLocalError
-
+        st.write(df_proveedor_ids.head(5))
         if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
