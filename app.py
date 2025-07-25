@@ -368,8 +368,8 @@ class ProveedorDashboard:
 
         df_presu = None  # ✅ Inicializar para evitar UnboundLocalError
         st.write(df_proveedor_ids.head(3))
-        fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]
-        st.write(fila)
+        fila = df_proveedor_ids[df_proveedor_ids['proveedor'] == proveedor]['idproveedor'].unique()
+        st.write('idproveedor: ', fila)
         if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
