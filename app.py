@@ -872,7 +872,7 @@ class ProveedorDashboard:
             # else:
             #     st.warning("⚠️ No se encontraron resultados para análisis de presupuesto.")
 
-            self.show_presupuesto_estrategico(df)
+            self.show_presupuesto_estrategico(df_presu)
 
     def show_executive_summary(self, df, proveedor, metrics):
         # === Estilos CSS personalizados ===
