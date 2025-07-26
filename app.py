@@ -462,6 +462,7 @@ class InventoryDashboard:
         
         exec_time = time.time() - start_time
         st.info(f"⏱️ Análisis completado en {exec_time:.2f} segundos")
+
 class ProveedorDashboard:
     def __init__(self):
         self.df_proveedores = None
@@ -836,13 +837,15 @@ class ProveedorDashboard:
         metrics = self.calculate_metrics(df)
         
         # Tabs principales
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
             "📈 Resumen Ejecutivo", 
             "🏆 Análisis de Productos", 
             "📅 Evolución Temporal",
             "🎯 Análisis Avanzado",
             "📋 Sintesis Final",
-            "📁 Articulos"
+            "📁 Articulos",
+            "🧮 Presupuesto"
+
         ])
         
         with tab1:
@@ -862,6 +865,10 @@ class ProveedorDashboard:
 
         with tab6:
             self.show_idarticulo_analysis_01(df_presu)
+
+        with tab7:
+            self.show_presupuesto_estrategico(self.df_resultados)
+
     def show_executive_summary(self, df, proveedor, metrics):
         # === Estilos CSS personalizados ===
         st.markdown("""
@@ -2644,8 +2651,7 @@ class ProveedorDashboard:
             with col3:
                 if st.button("📧 Generar Reporte"):
                     st.info("📋 Reporte ejecutivo generado")
-
-    def show_idarticulo_analysis_001(self, df_presu):
+    def show_idarticulo_analysis(self, df_presu):
         if df_presu is None or df_presu.empty:
             st.warning("⚠️ No hay datos disponibles para análisis por artículo.")
             return
@@ -2807,6 +2813,83 @@ class ProveedorDashboard:
         else:
             interpretacion = "📉 Estacionalidad baja o estable"
         st.info(f"**🔍 Interpretación:** {interpretacion}")
+    def show_presupuesto_estrategico(self, df):
+        if df is None or df.empty:
+            st.warning("⚠️ No hay datos disponibles para el análisis de presupuesto.")
+            return
+
+        tabs = st.tabs([
+            "🔄 Reposición Inmediata",
+            "🏬 Presupuesto por Sucursal",
+            "⚠️ Riesgo de Quiebre",
+            "📦 Exceso de Stock",
+            "📆 Estacionalidad",
+            "📉 Oportunidad Perdida",
+            "💲 Ajuste de Precios",
+            "📋 DataFrame"
+        ])
+
+        with tabs[0]:
+            self.tab_reposicion_inmediata(df)
+
+        with tabs[1]:
+            self.tab_presupuesto_sucursal(df)
+
+        with tabs[2]:
+            self.tab_riesgo_quiebre(df)
+
+        with tabs[3]:
+            self.tab_exceso_stock(df)
+
+        with tabs[4]:
+            self.tab_estacionalidad_presu(df)
+
+        with tabs[5]:
+            self.tab_oportunidad_perdida(df)
+
+        with tabs[6]:
+            self.tab_ajuste_precios(df)
+
+        with tabs[7]:
+            st.dataframe(df, use_container_width=True)
+    def analisis_reposicion(self):
+        df_reponer = self.df[self.df['cantidad_optima'] > 0].copy()
+        st.subheader("🔄 Artículos a Reponer")
+        st.metric("Costo Total de Reposición", f"${df_reponer['PRESUPUESTO'].sum():,.0f}")
+        columnas = ["idarticulo", "descripcion", "cantidad_optima", "PRESUPUESTO",
+                    "stk_corrientes", "stk_express", "stk_formosa", "stk_hiper", "stk_TIROL", "stk_central", "STK_TOTAL",
+                    "cor_abastecer", "exp_abastecer", "for_abastecer", "hip_abastecer"]
+        st.dataframe(df_reponer[columnas], use_container_width=True)
+    def analisis_presupuesto_sucursal(self):
+        st.subheader("🏬 Presupuesto Estimado por Sucursal")
+        sucursales = ['cor_abastecer', 'exp_abastecer', 'for_abastecer', 'hip_abastecer']
+        costos = {suc: (self.df[suc] * self.df['costo_unit']).sum() for suc in sucursales}
+        df_costos = pd.DataFrame(costos.items(), columns=["Sucursal", "Presupuesto ($)"])
+        fig = px.bar(df_costos, x="Sucursal", y="Presupuesto ($)", text="Presupuesto ($)")
+        st.plotly_chart(fig, use_container_width=True)
+    def analisis_riesgo_quiebre(self):
+        st.subheader("⚠️ Riesgo de Quiebre")
+        riesgo_orden = ["🔴 Alto", "🟠 Medio", "🟡 Bajo", "🟢 Muy Bajo"]
+        df_quiebre = self.df[self.df['nivel_riesgo'].isin(riesgo_orden)]
+        st.dataframe(df_quiebre[["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima", "valor_perdido_TOTAL"]], use_container_width=True)
+    def analisis_exceso_stock(self):
+        st.subheader("📦 Exceso de Stock")
+        df_exceso = self.df[self.df['exceso_STK'] > 0].copy()
+        st.dataframe(df_exceso[["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK", "dias_cobertura"]], use_container_width=True)
+    def analisis_estacionalidad(self):
+        st.subheader("📆 Estacionalidad y Demanda")
+        df_estacional = self.df.copy()
+        df_estacional['Etiqueta Estacional'] = df_estacional['nivel_mes'].apply(lambda x: "📈 Mes Pico" if x >= 10 else ("📉 Mes Bajo" if x <= 3 else "Mes Intermedio"))
+        st.dataframe(df_estacional[["idarticulo", "descripcion", "mes_pico", "mes_bajo", "nivel_mes", "Etiqueta Estacional", "cnt_pronosticada"]], use_container_width=True)
+    def analisis_oportunidad_perdida(self):
+        st.subheader("📉 Valor Perdido por Falta de Stock")
+        df_perdido = self.df[self.df['valor_perdido_TOTAL'] > 0].copy()
+        st.dataframe(df_perdido[["idarticulo", "descripcion", "valor_perdido_TOTAL", "unidades_perdidas_TOTAL", "cnt_reabastecer"]], use_container_width=True)
+    def analisis_ajuste_precios(self):
+        st.subheader("💲 Propuesta de Ajuste de Precios")
+        df_precio = self.df[self.df['decision_precio'] != "mantener"].copy()
+        st.dataframe(df_precio[["idarticulo", "descripcion", "precio_actual", "precio_optimo_ventas", "decision_precio", "pred_ventas_actual"]], use_container_width=True)
+
     def run(self):
         """Ejecutar dashboard"""
         # Filtros del sidebar → ahora devuelve también df_presu
