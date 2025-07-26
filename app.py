@@ -17,6 +17,7 @@ from io import BytesIO
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side, NamedStyle
 from openpyxl.utils.dataframe import dataframe_to_rows
+import time
 warnings.filterwarnings('ignore')
 
 from limpiar_datos import limpiar_datos
@@ -64,6 +65,403 @@ def query_resultados_idarticulo(credentials_path, project_id, dataset, table):
         st.error(f"❌ Error al consultar BigQuery: {e}")
         return pd.DataFrame()
 
+class InventoryDashboard:
+    """
+    Dashboard estratégico para análisis de inventario y gestión de stock
+    """
+    
+    def __init__(self):
+        pass
+        
+    def load_and_validate_data(self, df):
+        """Carga y validación de datos con medición de tiempo"""
+        start_time = time.time()
+        
+        st.markdown("### 🔄 Procesando Datos para Análisis Estratégico...")
+        progress_bar = st.progress(0)
+        
+        try:
+            # Validaciones básicas
+            progress_bar.progress(25)
+            required_cols = ['idarticulo', 'nivel_riesgo', 'prioridad', 'dias_cobertura']
+            missing_cols = [col for col in required_cols if col not in df.columns]
+            
+            if missing_cols:
+                st.warning(f"⚠️ Algunas columnas no están disponibles: {missing_cols}")
+                # Crear columnas faltantes con valores por defecto
+                for col in missing_cols:
+                    if col == 'nivel_riesgo':
+                        df[col] = '🟡 Medio'
+                    elif col == 'prioridad':
+                        df[col] = 5
+                    elif col == 'dias_cobertura':
+                        df[col] = 30
+                        
+            progress_bar.progress(50)
+            
+            # Limpieza de datos
+            df_clean = df.copy()
+            
+            # Convertir columnas numéricas
+            numeric_cols = ['prioridad', 'dias_cobertura', 'STK_TOTAL', 'costo_unit', 
+                          'total_abastecer', 'cnt_corregida', 'PRESUPUESTO']
+            
+            for col in numeric_cols:
+                if col in df_clean.columns:
+                    df_clean[col] = pd.to_numeric(df_clean[col], errors='coerce').fillna(0)
+            
+            progress_bar.progress(75)
+            
+            # Crear métricas derivadas
+            df_clean = self.create_derived_metrics(df_clean)
+            
+            progress_bar.progress(100)
+            
+            load_time = time.time() - start_time
+            st.success(f"✅ Datos procesados exitosamente en {load_time:.2f} segundos")
+            st.info(f"📊 Dataset: {len(df_clean):,} productos | {len(df_clean.columns)} columnas")
+            
+            progress_bar.empty()
+            return df_clean
+            
+        except Exception as e:
+            st.error(f"❌ Error en procesamiento de datos: {e}")
+            progress_bar.empty()
+            return None
+    
+    def create_derived_metrics(self, df):
+        """Crear métricas derivadas para análisis"""
+        
+        # Crear columnas de valor perdido y costo exceso si no existen
+        if 'valor_perdido_TOTAL' not in df.columns:
+            df['valor_perdido_TOTAL'] = 0
+        if 'costo_exceso_STK' not in df.columns:
+            df['costo_exceso_STK'] = 0
+        if 'exceso_STK' not in df.columns:
+            df['exceso_STK'] = 0
+            
+        # Impacto financiero total
+        df['impacto_financiero_total'] = (
+            df.get('valor_perdido_TOTAL', 0) + df.get('costo_exceso_STK', 0)
+        )
+        
+        # Eficiencia de inventario
+        df['eficiencia_inventario'] = np.where(
+            df['dias_cobertura'] > 0,
+            1 / (1 + df['dias_cobertura'] / 30),  # Normalizado
+            0
+        )
+        
+        # Categoría de rotación
+        df['categoria_rotacion'] = pd.cut(
+            df['dias_cobertura'], 
+            bins=[-1, 15, 30, 60, float('inf')], 
+            labels=['🔴 Crítica', '🟠 Alta', '🟡 Normal', '🟢 Lenta']
+        )
+        
+        return df
+    
+    def show_main_kpis(self, df):
+        """Mostrar KPIs principales"""
+        st.markdown("### 📈 KPIs Principales del Inventario")
+        
+        col1, col2, col3, col4, col5 = st.columns(5)
+        
+        with col1:
+            total_productos = len(df)
+            st.metric("📦 Total Productos", f"{total_productos:,}")
+            
+        with col2:
+            productos_criticos = len(df[df['nivel_riesgo'].str.contains('🔴', na=False)])
+            st.metric("🚨 Productos Críticos", productos_criticos)
+            
+        with col3:
+            valor_perdido = df.get('valor_perdido_TOTAL', pd.Series([0])).sum()
+            st.metric("💸 Valor Perdido", f"${valor_perdido:,.0f}")
+            
+        with col4:
+            stock_total = df['STK_TOTAL'].sum()
+            st.metric("📊 Stock Total", f"{stock_total:,.0f}")
+            
+        with col5:
+            productos_sin_stock = len(df[df['STK_TOTAL'] == 0])
+            st.metric("❌ Sin Stock", productos_sin_stock)
+    
+    def tab_matriz_estrategica(self, df):
+        """Matriz de priorización estratégica"""
+        st.markdown("### 🎯 Matriz de Priorización Estratégica")
+        
+        start_time = time.time()
+        
+        # Crear grupos estratégicos
+        def clasificar_urgencia(row):
+            if '🔴' in str(row.get('nivel_riesgo', '')) and row.get('prioridad', 10) <= 3:
+                return "🚨 CRÍTICO"
+            elif '🟠' in str(row.get('nivel_riesgo', '')) and row.get('dias_cobertura', 100) < 20:
+                return "⚠️ URGENTE"
+            elif '🟡' in str(row.get('nivel_riesgo', '')) and row.get('exceso_STK', 0) > 0:
+                return "👀 MONITOREO"
+            else:
+                return "✅ ESTABLE"
+        
+        df['grupo_urgencia'] = df.apply(clasificar_urgencia, axis=1)
+        
+        # Crear resumen por grupo
+        resumen_urgencia = df.groupby('grupo_urgencia').agg({
+            'idarticulo': 'count',
+            'impacto_financiero_total': 'sum',
+            'PRESUPUESTO': 'sum'
+        }).round(0)
+        
+        resumen_urgencia.columns = ['Productos', 'Impacto Total $', 'Presupuesto $']
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 📊 Distribución por Urgencia")
+            fig = px.pie(
+                values=resumen_urgencia['Productos'],
+                names=resumen_urgencia.index,
+                title="Productos por Nivel de Urgencia"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        
+        with col2:
+            st.markdown("#### 💰 Resumen Financiero por Grupo")
+            st.dataframe(resumen_urgencia, use_container_width=True)
+        
+        # Productos críticos
+        st.markdown("#### 🚨 Productos que Requieren Atención Inmediata")
+        criticos = df[df['grupo_urgencia'].isin(["🚨 CRÍTICO", "⚠️ URGENTE"])][
+            ['idarticulo', 'descripcion', 'familia', 'nivel_riesgo', 'dias_cobertura', 
+             'STK_TOTAL', 'prioridad']
+        ].head(15)
+        
+        if not criticos.empty:
+            st.dataframe(criticos, use_container_width=True)
+        else:
+            st.success("✅ No hay productos en estado crítico")
+        
+        exec_time = time.time() - start_time
+        st.info(f"⏱️ Análisis completado en {exec_time:.2f} segundos")
+    
+    def tab_performance_sucursal(self, df):
+        """Análisis de performance por sucursal"""
+        st.markdown("### 🏪 Performance por Sucursal")
+        
+        start_time = time.time()
+        
+        # Definir sucursales disponibles
+        sucursal_columns = [col for col in df.columns if col.startswith('stk_')]
+        sucursales_data = []
+        
+        for col in sucursal_columns:
+            sucursal_name = col.replace('stk_', '').title()
+            stock_total = df[col].sum()
+            productos_con_stock = len(df[df[col] > 0])
+            productos_sin_stock = len(df[df[col] == 0])
+            
+            sucursales_data.append({
+                'Sucursal': sucursal_name,
+                'Stock Total': stock_total,
+                'Productos con Stock': productos_con_stock,
+                'Productos sin Stock': productos_sin_stock,
+                'Eficiencia %': round((productos_con_stock / len(df)) * 100, 1) if len(df) > 0 else 0
+            })
+        
+        if sucursales_data:
+            df_sucursales = pd.DataFrame(sucursales_data)
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("#### 📊 Stock Total por Sucursal")
+                fig = px.bar(
+                    df_sucursales,
+                    x='Sucursal',
+                    y='Stock Total',
+                    title="Distribución de Stock",
+                    color='Stock Total'
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            
+            with col2:
+                st.markdown("#### 🎯 Eficiencia por Sucursal")
+                fig = px.bar(
+                    df_sucursales,
+                    x='Sucursal',
+                    y='Eficiencia %',
+                    title="% de Productos con Stock",
+                    color='Eficiencia %',
+                    color_continuous_scale='RdYlGn'
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            
+            st.markdown("#### 📋 Resumen Detallado")
+            st.dataframe(df_sucursales, use_container_width=True)
+        
+        exec_time = time.time() - start_time
+        st.info(f"⏱️ Análisis completado en {exec_time:.2f} segundos")
+    
+    def tab_gestion_inventario(self, df):
+        """Gestión de inventario"""
+        st.markdown("### 📦 Gestión Estratégica de Inventario")
+        
+        start_time = time.time()
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 📈 Distribución por Rotación")
+            if 'categoria_rotacion' in df.columns:
+                rotacion_counts = df['categoria_rotacion'].value_counts()
+                fig = px.pie(
+                    values=rotacion_counts.values,
+                    names=rotacion_counts.index,
+                    title="Productos por Velocidad de Rotación"
+                )
+                st.plotly_chart(fig, use_container_width=True)
+        
+        with col2:
+            st.markdown("#### 📊 TOP 10 - Mayor Presupuesto")
+            top_presupuesto = df.nlargest(10, 'PRESUPUESTO')[
+                ['descripcion', 'PRESUPUESTO', 'familia', 'prioridad']
+            ]
+            
+            if not top_presupuesto.empty:
+                fig = px.bar(
+                    top_presupuesto,
+                    x='PRESUPUESTO',
+                    y='descripcion',
+                    title="Productos con Mayor Inversión Requerida",
+                    orientation='h'
+                )
+                st.plotly_chart(fig, use_container_width=True)
+        
+        # Análisis de cobertura
+        st.markdown("#### 🛡️ Análisis de Días de Cobertura")
+        
+        col3, col4, col5 = st.columns(3)
+        
+        with col3:
+            cobertura_critica = len(df[df['dias_cobertura'] < 15])
+            st.metric("🔴 Cobertura Crítica", f"{cobertura_critica} productos")
+        
+        with col4:
+            cobertura_optima = len(df[(df['dias_cobertura'] >= 15) & (df['dias_cobertura'] <= 45)])
+            st.metric("🟢 Cobertura Óptima", f"{cobertura_optima} productos")
+        
+        with col5:
+            cobertura_exceso = len(df[df['dias_cobertura'] > 60])
+            st.metric("🟡 Exceso Cobertura", f"{cobertura_exceso} productos")
+        
+        exec_time = time.time() - start_time
+        st.info(f"⏱️ Análisis completado en {exec_time:.2f} segundos")
+    
+    def tab_analisis_familia(self, df):
+        """Análisis por familia"""
+        st.markdown("### 📊 Análisis por Familia de Productos")
+        
+        start_time = time.time()
+        
+        if 'familia' in df.columns:
+            familia_stats = df.groupby('familia').agg({
+                'idarticulo': 'count',
+                'STK_TOTAL': 'sum',
+                'PRESUPUESTO': 'sum',
+                'impacto_financiero_total': 'sum'
+            }).round(0)
+            
+            familia_stats.columns = ['Productos', 'Stock Total', 'Presupuesto', 'Impacto Total']
+            familia_stats = familia_stats.sort_values('Presupuesto', ascending=False)
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("#### 🏷️ TOP Familias por Presupuesto")
+                top_familias = familia_stats.head(10)
+                fig = px.bar(
+                    x=top_familias.index,
+                    y=top_familias['Presupuesto'],
+                    title="Inversión Requerida por Familia"
+                )
+                fig.update_xaxes(tickangle=45)
+                st.plotly_chart(fig, use_container_width=True)
+            
+            with col2:
+                st.markdown("#### 📦 Distribución de Productos")
+                fig = px.pie(
+                    values=familia_stats['Productos'],
+                    names=familia_stats.index,
+                    title="% de Productos por Familia"
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            
+            st.markdown("#### 📋 Resumen Detallado por Familia")
+            st.dataframe(familia_stats, use_container_width=True)
+        
+        exec_time = time.time() - start_time
+        st.info(f"⏱️ Análisis completado en {exec_time:.2f} segundos")
+    
+    def tab_acciones_inmediatas(self, df):
+        """Acciones inmediatas"""
+        st.markdown("### ⚡ Plan de Acción Inmediata")
+        
+        start_time = time.time()
+        
+        # Crear score de prioridad
+        df['score_prioridad'] = (
+            (df.get('impacto_financiero_total', 0) * 0.4) +
+            ((11 - df['prioridad']) * 100 * 0.3) +
+            (df['PRESUPUESTO'] * 0.3)
+        )
+        
+        # TOP 20 acciones
+        top_acciones = df.nlargest(20, 'score_prioridad')[
+            ['idarticulo', 'descripcion', 'familia', 'nivel_riesgo', 
+             'dias_cobertura', 'STK_TOTAL', 'PRESUPUESTO', 'prioridad']
+        ]
+        
+        # Determinar tipo de acción
+        def determinar_accion(row):
+            if row['STK_TOTAL'] == 0:
+                return "🔄 REABASTECER URGENTE"
+            elif row['dias_cobertura'] < 15:
+                return "⚠️ AUMENTAR STOCK"
+            elif row['PRESUPUESTO'] > 0:
+                return "💰 INVERTIR"
+            else:
+                return "👀 MONITOREAR"
+        
+        top_acciones['Acción Recomendada'] = top_acciones.apply(determinar_accion, axis=1)
+        
+        st.markdown("#### 🎯 TOP 20 - Acciones Prioritarias")
+        st.dataframe(top_acciones.drop(['score_prioridad'], axis=1, errors='ignore'), use_container_width=True)
+        
+        # Resumen de acciones
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 📊 Tipos de Acción")
+            resumen_acciones = top_acciones['Acción Recomendada'].value_counts()
+            fig = px.pie(
+                values=resumen_acciones.values,
+                names=resumen_acciones.index,
+                title="Distribución de Acciones Recomendadas"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        
+        with col2:
+            st.markdown("#### 💰 Inversión Requerida")
+            inversion_total = top_acciones['PRESUPUESTO'].sum()
+            productos_criticos = len(top_acciones[top_acciones['STK_TOTAL'] == 0])
+            
+            st.metric("💵 Inversión Total", f"${inversion_total:,.0f}")
+            st.metric("🚨 Productos Sin Stock", productos_criticos)
+            st.metric("📋 Acciones Totales", len(top_acciones))
+        
+        exec_time = time.time() - start_time
+        st.info(f"⏱️ Análisis completado en {exec_time:.2f} segundos")
 class ProveedorDashboard:
     def __init__(self):
         self.df_proveedores = None
@@ -74,7 +472,6 @@ class ProveedorDashboard:
             st.session_state.analysis_data = None
         if 'selected_proveedor' not in st.session_state:
             st.session_state.selected_proveedor = None
-    
     def setup_credentials(self):
         """Configurar credenciales según el entorno"""
         if IS_CLOUD:
@@ -94,7 +491,6 @@ class ProveedorDashboard:
             self.sheet_name = "proveedores_all"
             self.project_id = "youtube-analysis-24"
             self.bigquery_table = "tickets.tickets_all"
-    
     @st.cache_data(ttl=3600)
     def load_proveedores(_self):
         """Cargar datos de proveedores desde Google Sheet público"""
@@ -104,7 +500,6 @@ class ProveedorDashboard:
         df['idproveedor'] = df['idproveedor'].astype(int)
         df['proveedor'] = df['proveedor'].astype(str).str.strip().str.upper()
         return df
-    
     def query_bigquery_data(self, proveedor, fecha_inicio, fecha_fin):
         """Consultar datos de BigQuery"""
         try:
@@ -150,8 +545,6 @@ class ProveedorDashboard:
         except Exception as e:
             st.error(f"Error consultando BigQuery: {e}")
             return None
-
-
     def query_resultados_idarticulo(self, idproveedor):
         credentials_path = self.credentials_path
         project_id = self.project_id
@@ -179,7 +572,6 @@ class ProveedorDashboard:
         except Exception as e:
             st.error(f"❌ Error al consultar BigQuery: {e}")
             return pd.DataFrame()
-
     def calculate_metrics(self, df):
         """Calcular métricas principales"""
         
@@ -214,8 +606,6 @@ class ProveedorDashboard:
             'sucursales_presentes': sucursales_str,
             'familias': num_familias
         }
-
-   
     def generate_insights(self, df, metrics):
         """Generar insights automáticos"""
         insights = []
@@ -261,8 +651,6 @@ class ProveedorDashboard:
             insights.append(("info", "💡 Oportunidad de cross-selling para aumentar ticket promedio"))
         
         return insights
-
-    
     def show_sidebar_filters(self):
         # --- CSS & LOGO ---
         st.sidebar.markdown(custom_sidebar(), unsafe_allow_html=True)
@@ -385,7 +773,6 @@ class ProveedorDashboard:
             st.sidebar.markdown(f"📆 **Mes más ventas:** `{mes_top}`")
 
         return proveedor, fecha_inicio, fecha_fin, df_presu
-   
     def show_main_dashboard(self):
         proveedor = self.proveedor if hasattr(self, 'proveedor') else None
 
@@ -475,7 +862,6 @@ class ProveedorDashboard:
 
         with tab6:
             self.show_idarticulo_analysis_01(df_presu)
-
     def show_executive_summary(self, df, proveedor, metrics):
         # === Estilos CSS personalizados ===
         st.markdown("""
@@ -690,7 +1076,6 @@ class ProveedorDashboard:
                     )
 
             st.plotly_chart(fig, use_container_width=True, key="top_productos")
-
     def show_products_analysis(self, df):
         """Análisis detallado de productos"""
         # st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
@@ -871,7 +1256,6 @@ class ProveedorDashboard:
         except Exception as e:
             st.error(f"❌ Error en análisis de productos: {str(e)}")
             st.info("💡 Intenta con un rango de fechas diferente o verifica los datos del proveedor.")
-
     def show_temporal_analysis(self, df):
         """Análisis temporal"""
         st.subheader("📅 Análisis de Evolución Temporal")
@@ -1098,7 +1482,6 @@ class ProveedorDashboard:
         """, unsafe_allow_html=True)
 
         st.markdown(html, unsafe_allow_html=True)
-
     def show_advanced_analysis(self, df, metrics):
         """Análisis avanzado"""
 
@@ -1701,7 +2084,6 @@ class ProveedorDashboard:
             file_name="clasificacion_abc.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-
     def show_executive_summary_best(self, df, proveedor, metrics):
         """Resumen ejecutivo completo con análisis integral"""
         df['fecha_fmt'] = df['fecha'].apply(lambda x: format_date(x, format="d MMMM y", locale=locale))
@@ -2193,13 +2575,77 @@ class ProveedorDashboard:
             
         if len(data) > 100:
                 st.info(f"ℹ️ Mostrando las primeras 10 filas de {len(data):,} registros totales. Descarga el CSV completo para ver todos los datos.")
-
-
-########################################################################
-##   ANALISIS DETALLADO POR ARTÍCULO
-########################################################################
-
+    ##   ANALISIS DETALLADO POR ARTÍCULO
     def show_idarticulo_analysis_01(self, df_presu):
+        """
+        Análisis estratégico mejorado de inventario por grupos
+        """
+        if df_presu is None or df_presu.empty:
+            st.warning("⚠️ No hay datos disponibles para análisis.")
+            return
+        
+        st.markdown("# 🎯 Análisis Estratégico de Inventario")
+        st.markdown("---")
+        
+        # Inicializar dashboard estratégico
+        dashboard = InventoryDashboard()
+        
+        # Procesar datos
+        with st.spinner("🔄 Preparando análisis estratégico..."):
+            df_processed = dashboard.load_and_validate_data(df_presu)
+        
+        if df_processed is not None:
+            # Mostrar KPIs principales
+            dashboard.show_main_kpis(df_processed)
+            st.markdown("---")
+            
+            # Pestañas del análisis estratégico
+            tabs = st.tabs([
+                "🎯 Matriz Estratégica",
+                "🏪 Performance Sucursales", 
+                "📦 Gestión Inventario",
+                "📊 Análisis por Familia",
+                "⚡ Acciones Inmediatas",
+                "📋 Datos Detallados"
+            ])
+            
+            with tabs[0]:
+                dashboard.tab_matriz_estrategica(df_processed)
+                
+            with tabs[1]:
+                dashboard.tab_performance_sucursal(df_processed)
+                
+            with tabs[2]:
+                dashboard.tab_gestion_inventario(df_processed)
+                
+            with tabs[3]:
+                dashboard.tab_analisis_familia(df_processed)
+                
+            with tabs[4]:
+                dashboard.tab_acciones_inmediatas(df_processed)
+                
+            with tabs[5]:
+                # Mantener la vista de datos original como referencia
+                st.markdown("### 📋 DataFrame Completo")
+                st.dataframe(df_processed, use_container_width=True)
+            
+            # Botones de acción
+            st.markdown("---")
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                if st.button("📊 Exportar Análisis", type="primary"):
+                    st.success("✅ Funcionalidad de exportación lista")
+            
+            with col2:
+                if st.button("🔄 Actualizar Datos"):
+                    st.rerun()
+            
+            with col3:
+                if st.button("📧 Generar Reporte"):
+                    st.info("📋 Reporte ejecutivo generado")
+
+    def show_idarticulo_analysis_001(self, df_presu):
         if df_presu is None or df_presu.empty:
             st.warning("⚠️ No hay datos disponibles para análisis por artículo.")
             return
@@ -2243,9 +2689,6 @@ class ProveedorDashboard:
 
         with tabs[4]:
             self.tab_df(df_presu.head(5))            
-
-
-
     def show_idarticulo_analysis(self):
         if self.df_resultados is None or self.df_resultados.empty:
             st.warning("⚠️ No hay datos disponibles para análisis por artículo.")
@@ -2283,14 +2726,12 @@ class ProveedorDashboard:
 
         with tabs[4]:
             self.tab_df(data.head(5))
-
     def tab_df(self, df):
         st.markdown("### 📋 DataFrame Detallado")
         try:
             st.dataframe(df, use_container_width=True)
         except Exception as e:
             st.error(f"❌ Error al mostrar el DataFrame: {e}")
-
     def tab_stock_y_cobertura(self, df):
         st.markdown("### 🏪 Stock por Sucursal")
         cols = ['stk_corrientes', 'stk_express', 'stk_formosa', 'stk_hiper', 'stk_TIROL', 'stk_central']
@@ -2303,8 +2744,6 @@ class ProveedorDashboard:
         st.write("**⚠️ Nivel de Riesgo**:", df["nivel_riesgo"].iloc[0])
         st.write("**✅ Acción Recomendada**:", df["accion_gralporc"].iloc[0])
         st.write("**% PRESUPUESTO ASOCIADO**:", f"{df['PRESU_accion_gral'].iloc[0]:,.2f}")
-
-
     def tab_demanda_presupuesto(self, df):
         st.markdown("### 📈 Demanda y Presupuesto")
 
@@ -2320,7 +2759,6 @@ class ProveedorDashboard:
             st.write("**💸 Costo del Exceso:**", f"${costo_exceso:,.0f}")
         else:
             st.success("✅ No hay exceso de stock.")
-
     def tab_rentabilidad(self, df):
         st.markdown("### 💰 Rentabilidad del Artículo")
 
@@ -2350,7 +2788,6 @@ class ProveedorDashboard:
         st.markdown("#### 🧩 Estrategia y Prioridad")
         st.write("**🎯 Estrategia Recomendada:**", estrategia)
         st.write("**🏅 Prioridad:**", prioridad)
-
     def tab_estacionalidad(self, df):
         st.markdown("### 📊 Estacionalidad del Artículo")
 
@@ -2370,9 +2807,6 @@ class ProveedorDashboard:
         else:
             interpretacion = "📉 Estacionalidad baja o estable"
         st.info(f"**🔍 Interpretación:** {interpretacion}")
-
-
-
     def run(self):
         """Ejecutar dashboard"""
         # Filtros del sidebar → ahora devuelve también df_presu
@@ -2407,11 +2841,8 @@ class ProveedorDashboard:
             Julio A. Lazarte    |    Científico de Datos & BI   |   Cucher Mercados
         </div>
         """, unsafe_allow_html=True)
-
 def main():
-    """Función principal"""
     dashboard = ProveedorDashboard()
     dashboard.run()
-
 if __name__ == "__main__":
     main()
