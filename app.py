@@ -867,12 +867,12 @@ class ProveedorDashboard:
             self.show_idarticulo_analysis_01(df_presu)
 
         with tab7:
-            if hasattr(self, 'df_resultados') and self.df_resultados is not None:
-                self.show_presupuesto_estrategico(self.df_resultados)
-            else:
-                st.warning("⚠️ No se encontraron resultados para análisis de presupuesto.")
+            # if hasattr(self, 'df_resultados') and self.df_resultados is not None:
+            #     self.show_presupuesto_estrategico(self.df_resultados)
+            # else:
+            #     st.warning("⚠️ No se encontraron resultados para análisis de presupuesto.")
 
-            # self.show_presupuesto_estrategico(self.df_resultados)
+            self.show_presupuesto_estrategico(df)
 
     def show_executive_summary(self, df, proveedor, metrics):
         # === Estilos CSS personalizados ===
