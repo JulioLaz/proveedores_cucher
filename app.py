@@ -173,7 +173,7 @@ class ProveedorDashboard:
             if df.empty:
                 st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: {idproveedor}")
             # else:
-            #     st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
+                st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
             return df
 
         except Exception as e:
@@ -2262,7 +2262,7 @@ class ProveedorDashboard:
             return
 
         # === Mostrar pestañas ===
-        tabs = st.tabs(["📦 Stock y Cobertura", "📈 Demanda y Presupuesto", "💰 Rentabilidad", "📊 Estacionalidad"])
+        tabs = st.tabs(["📦 Stock y Cobertura", "📈 Demanda y Presupuesto", "💰 Rentabilidad", "📊 Estacionalidad", "DataFrame"])
 
         with tabs[0]:
             self.tab_stock_y_cobertura(df_item)
@@ -2275,6 +2275,9 @@ class ProveedorDashboard:
 
         with tabs[3]:
             self.tab_estacionalidad(df_item)
+
+        with tabs[4]:
+            self.tab_df(df_item)
 
 
     def tab_stock_y_cobertura(self, df):
@@ -2289,6 +2292,10 @@ class ProveedorDashboard:
         st.write("**⚠️ Nivel de Riesgo**:", df["nivel_riesgo"].iloc[0])
         st.write("**✅ Acción Recomendada**:", df["accion_gralporc"].iloc[0])
         st.write("**% PRESUPUESTO ASOCIADO**:", f"{df['PRESU_accion_gral'].iloc[0]:,.2f}")
+
+    def tab_df(self, df):
+        st.markdown("### 🏪 dataframe")
+        st.dataframe(df)
 
     def tab_demanda_presupuesto(self, df):
         st.markdown("### 📈 Demanda y Presupuesto")
