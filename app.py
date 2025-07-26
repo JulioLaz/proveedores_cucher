@@ -2835,25 +2835,25 @@ class ProveedorDashboard:
         ])
 
         with tabs[0]:
-            self.tab_reposicion_inmediata(df)
+            self.tab_reposicion_inmediata(self, df)
 
         with tabs[1]:
-            self.tab_presupuesto_sucursal(df)
+            self.tab_presupuesto_sucursal(self, df)
 
         with tabs[2]:
-            self.tab_riesgo_quiebre(df)
+            self.tab_riesgo_quiebre(self, df)
 
         with tabs[3]:
-            self.tab_exceso_stock(df)
+            self.tab_exceso_stock(self, df)
 
         with tabs[4]:
-            self.tab_estacionalidad_presu(df)
+            self.tab_estacionalidad_presu(self, df)
 
         with tabs[5]:
-            self.tab_oportunidad_perdida(df)
+            self.tab_oportunidad_perdida(self, df)
 
         with tabs[6]:
-            self.tab_ajuste_precios(df)
+            self.tab_ajuste_precios(self, df)
 
         with tabs[7]:
             st.dataframe(df, use_container_width=True)
