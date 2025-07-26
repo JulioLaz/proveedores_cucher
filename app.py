@@ -2857,7 +2857,7 @@ class ProveedorDashboard:
             self.analisis_ajuste_precios(df)
 
         with tabs[7]:
-            st.dataframe(self.df, use_container_width=True)
+            st.dataframe(df)
 
     def analisis_reposicion(self,df):
         df_reponer = df[df['cantidad_optima'] > 0].copy()
