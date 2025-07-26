@@ -2241,6 +2241,9 @@ class ProveedorDashboard:
         with tabs[3]:
             self.tab_estacionalidad(df_item)
 
+        with tabs[4]:
+            self.tab_df(df_presu)            
+
 
 
     def show_idarticulo_analysis(self):
@@ -2263,7 +2266,8 @@ class ProveedorDashboard:
             return
 
         # === Mostrar pestañas ===
-        tabs = st.tabs(["📦 Stock y Cobertura", "📈 Demanda y Presupuesto", "💰 Rentabilidad", "📊 Estacionalidad", "DataFrame"])
+        st.markdown("### 📋 DataFrame Detallado")
+        tabs = st.tabs(["📦 Stock y Cobertura", "📈 Demanda y Presupuesto", "💰 Rentabilidad", "📊 Estacionalidad", "📋 DataFrame"])
 
         with tabs[0]:
             self.tab_stock_y_cobertura(df_item)
@@ -2280,6 +2284,12 @@ class ProveedorDashboard:
         with tabs[4]:
             self.tab_df(data.head(5))
 
+    def tab_df(self, df):
+        st.markdown("### 📋 DataFrame Detallado")
+        try:
+            st.dataframe(df, use_container_width=True)
+        except Exception as e:
+            st.error(f"❌ Error al mostrar el DataFrame: {e}")
 
     def tab_stock_y_cobertura(self, df):
         st.markdown("### 🏪 Stock por Sucursal")
@@ -2294,9 +2304,6 @@ class ProveedorDashboard:
         st.write("**✅ Acción Recomendada**:", df["accion_gralporc"].iloc[0])
         st.write("**% PRESUPUESTO ASOCIADO**:", f"{df['PRESU_accion_gral'].iloc[0]:,.2f}")
 
-    def tab_df(self, df):
-        st.markdown("### 🏪 dataframe")
-        st.dataframe(df)
 
     def tab_demanda_presupuesto(self, df):
         st.markdown("### 📈 Demanda y Presupuesto")
