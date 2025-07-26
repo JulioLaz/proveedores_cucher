@@ -2877,11 +2877,13 @@ class ProveedorDashboard:
         df_costos = pd.DataFrame(costos.items(), columns=["Sucursal", "Presupuesto ($)"])
         fig = px.bar(df_costos, x="Sucursal", y="Presupuesto ($)", text="Presupuesto ($)")
         st.plotly_chart(fig, use_container_width=True)
+
     def analisis_riesgo_quiebre(self,df):
         st.subheader("⚠️ Riesgo de Quiebre")
         riesgo_orden = ["🔴 Alto", "🟠 Medio", "🟡 Bajo", "🟢 Muy Bajo"]
         df_quiebre = df[df['nivel_riesgo'].isin(riesgo_orden)]
-        st.dataframe(df_quiebre[["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima", "valor_perdido_TOTAL"]], use_container_width=True)
+        st.dataframe(df_quiebre[["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima"]], use_container_width=True)
+        # st.dataframe(df_quiebre[["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima", "valor_perdido_TOTAL"]], use_container_width=True)
     def analisis_exceso_stock(self,df):
         st.subheader("📦 Exceso de Stock")
         df_exceso = df[df['exceso_STK'] > 0].copy()
