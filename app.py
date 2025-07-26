@@ -2255,6 +2255,7 @@ class ProveedorDashboard:
 
         # === Filtrar artículo seleccionado ===
         id_seleccionado = int(seleccion.split(" - ")[0])
+        data = self.df_resultados
         df_item = self.df_resultados[self.df_resultados["idarticulo"] == id_seleccionado].copy()
 
         if df_item.empty:
@@ -2277,7 +2278,7 @@ class ProveedorDashboard:
             self.tab_estacionalidad(df_item)
 
         with tabs[4]:
-            self.tab_df(df_item)
+            self.tab_df(data.head(5))
 
 
     def tab_stock_y_cobertura(self, df):
