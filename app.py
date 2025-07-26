@@ -2227,7 +2227,7 @@ class ProveedorDashboard:
             return
 
         # === Mostrar pestañas ===
-        tabs = st.tabs(["📦 Stock y Cobertura", "📈 Demanda y Presupuesto", "💰 Rentabilidad", "📊 Estacionalidad"])
+        tabs = st.tabs(["📦 Stock y Cobertura", "📈 Demanda y Presupuesto", "💰 Rentabilidad", "📊 Estacionalidad", "📋 DataFrame"])
 
         with tabs[0]:
             self.tab_stock_y_cobertura(df_item)
@@ -2242,7 +2242,7 @@ class ProveedorDashboard:
             self.tab_estacionalidad(df_item)
 
         with tabs[4]:
-            self.tab_df(df_presu)            
+            self.tab_df(df_presu.head(5))            
 
 
 
