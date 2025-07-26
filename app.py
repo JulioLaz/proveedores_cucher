@@ -2818,6 +2818,7 @@ class ProveedorDashboard:
         else:
             interpretacion = "📉 Estacionalidad baja o estable"
         st.info(f"**🔍 Interpretación:** {interpretacion}")
+        ### nuevo analisis por articulo:
     def show_presupuesto_estrategico(self, df):
         if df is None or df.empty:
             st.warning("⚠️ No hay datos disponibles para el análisis de presupuesto.")
@@ -2835,28 +2836,29 @@ class ProveedorDashboard:
         ])
 
         with tabs[0]:
-            self.tab_reposicion_inmediata(self, df)
+            self.analisis_reposicion()
 
         with tabs[1]:
-            self.tab_presupuesto_sucursal(self, df)
+            self.analisis_presupuesto_sucursal()
 
         with tabs[2]:
-            self.tab_riesgo_quiebre(self, df)
+            self.analisis_riesgo_quiebre()
 
         with tabs[3]:
-            self.tab_exceso_stock(self, df)
+            self.analisis_exceso_stock()
 
         with tabs[4]:
-            self.tab_estacionalidad_presu(self, df)
+            self.analisis_estacionalidad()
 
         with tabs[5]:
-            self.tab_oportunidad_perdida(self, df)
+            self.analisis_oportunidad_perdida()
 
         with tabs[6]:
-            self.tab_ajuste_precios(self, df)
+            self.analisis_ajuste_precios()
 
         with tabs[7]:
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(self.df, use_container_width=True)
+
     def analisis_reposicion(self):
         df_reponer = self.df[self.df['cantidad_optima'] > 0].copy()
         st.subheader("🔄 Artículos a Reponer")
