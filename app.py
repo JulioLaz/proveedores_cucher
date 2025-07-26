@@ -2891,12 +2891,13 @@ class ProveedorDashboard:
     def analisis_estacionalidad(self,df):
         st.subheader("📆 Estacionalidad y Demanda")
         df_estacional = df.copy()
-        df_estacional['Etiqueta Estacional'] = df_estacional['nivel_mes'].apply(lambda x: "📈 Mes Pico" if x >= 10 else ("📉 Mes Bajo" if x <= 3 else "Mes Intermedio"))
-        st.dataframe(df_estacional[["idarticulo", "descripcion", "mes_pico", "mes_bajo", "nivel_mes", "Etiqueta Estacional", "cnt_pronosticada"]], use_container_width=True)
+        df_estacional['Etiqueta Estacional'] = df_estacional['ranking_mes'].apply(lambda x: "📈 Mes Pico" if x >= 10 else ("📉 Mes Bajo" if x <= 3 else "Mes Intermedio"))
+        st.dataframe(df_estacional[["idarticulo", "descripcion", "mes_pico", "mes_bajo", "ranking_mes", "cnt_corregida"]], use_container_width=True)
+        # st.dataframe(df_estacional[["idarticulo", "descripcion", "mes_pico", "mes_bajo", "ranking_mes", "Etiqueta Estacional", "cnt_pronosticada"]], use_container_width=True)
     def analisis_oportunidad_perdida(self,df):
         st.subheader("📉 Valor Perdido por Falta de Stock")
-        df_perdido = df[df['valor_perdido_TOTAL'] > 0].copy()
-        st.dataframe(df_perdido[["idarticulo", "descripcion", "valor_perdido_TOTAL", "unidades_perdidas_TOTAL", "cnt_reabastecer"]], use_container_width=True)
+        # df_perdido = df[df['valor_perdido_TOTAL'] > 0].copy()
+        # st.dataframe(df_perdido[["idarticulo", "descripcion", "valor_perdido_TOTAL", "unidades_perdidas_TOTAL", "cnt_reabastecer"]], use_container_width=True)
     def analisis_ajuste_precios(self,df):
         st.subheader("💲 Propuesta de Ajuste de Precios")
         df_precio = df[df['decision_precio'] != "mantener"].copy()
