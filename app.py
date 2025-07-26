@@ -2207,10 +2207,19 @@ class ProveedorDashboard:
         # === Selector de artículo ===
         opciones = df_presu[["idarticulo", "descripcion"]].drop_duplicates()
         opciones["etiqueta"] = opciones["idarticulo"].astype(str) + " - " + opciones["descripcion"]
+
+        if opciones.empty:
+            st.warning("⚠️ No hay artículos disponibles para seleccionar.")
+            return
+
         seleccion = st.selectbox("Seleccionar artículo para análisis detallado:", opciones["etiqueta"].tolist())
 
-        # === Filtrar artículo seleccionado ===
-        id_seleccionado = int(seleccion.split(" - ")[0])
+        try:
+            id_seleccionado = int(seleccion.split(" - ")[0])
+        except (IndexError, ValueError):
+            st.error("❌ Ocurrió un error al procesar la selección de artículo.")
+            return
+
         df_item = df_presu[df_presu["idarticulo"] == id_seleccionado].copy()
 
         if df_item.empty:
@@ -2231,8 +2240,7 @@ class ProveedorDashboard:
 
         with tabs[3]:
             self.tab_estacionalidad(df_item)
-        with tabs[0]:
-            self.tab_stock_y_cobertura(df_item)
+
 
 
     def show_idarticulo_analysis(self):
@@ -2268,7 +2276,8 @@ class ProveedorDashboard:
         with tabs[3]:
             self.tab_estacionalidad(df_item)
 
-    def tab_stock_y_cobertura(df): #tab_estacionalidad tab_demanda_presupuesto tab_rentabilidad
+
+    def tab_stock_y_cobertura(self, df):
         st.markdown("### 🏪 Stock por Sucursal")
         cols = ['stk_corrientes', 'stk_express', 'stk_formosa', 'stk_hiper', 'stk_TIROL', 'stk_central']
         for col in cols:
@@ -2281,26 +2290,23 @@ class ProveedorDashboard:
         st.write("**✅ Acción Recomendada**:", df["accion_gralporc"].iloc[0])
         st.write("**% PRESUPUESTO ASOCIADO**:", f"{df['PRESU_accion_gral'].iloc[0]:,.2f}")
 
-    def tab_demanda_presupuesto(df):
-            st.markdown("### 📈 Demanda y Presupuesto")
+    def tab_demanda_presupuesto(self, df):
+        st.markdown("### 📈 Demanda y Presupuesto")
 
-            st.write("**🔢 Pronóstico Final (cnt_corregida):**", int(df["cnt_corregida"].iloc[0]))
-            st.write("**💰 Presupuesto ($):**", f"${df['PRESUPUESTO'].iloc[0]:,.0f}")
-            # st.write("**📦 Cantidad Total Vendida:**", int(df["cant_total"].iloc[0]))
-            st.write("**📆 Meses Activos:**", int(df["meses_act_estac"].iloc[0]))
-            # st.write("**📅 Meses con Demanda Activa:**", int(df["meses_activos"].iloc[0]))
+        st.write("**🔢 Pronóstico Final (cnt_corregida):**", int(df["cnt_corregida"].iloc[0]))
+        st.write("**💰 Presupuesto ($):**", f"${df['PRESUPUESTO'].iloc[0]:,.0f}")
+        st.write("**📆 Meses Activos:**", int(df["meses_act_estac"].iloc[0]))
 
-            # Exceso de stock
-            exceso_stk = df["exceso_STK"].iloc[0]
-            costo_exceso = df["costo_exceso_STK"].iloc[0]
+        exceso_stk = df["exceso_STK"].iloc[0]
+        costo_exceso = df["costo_exceso_STK"].iloc[0]
 
-            if exceso_stk > 0:
-                st.write("**⚠️ Exceso de Stock:**", int(exceso_stk))
-                st.write("**💸 Costo del Exceso:**", f"${costo_exceso:,.0f}")
-            else:
-                st.success("✅ No hay exceso de stock.")
+        if exceso_stk > 0:
+            st.write("**⚠️ Exceso de Stock:**", int(exceso_stk))
+            st.write("**💸 Costo del Exceso:**", f"${costo_exceso:,.0f}")
+        else:
+            st.success("✅ No hay exceso de stock.")
 
-    def tab_rentabilidad(df):
+    def tab_rentabilidad(self, df):
         st.markdown("### 💰 Rentabilidad del Artículo")
 
         margen_all = df.get("margen_porc_all", pd.Series([None])).iloc[0]
@@ -2330,17 +2336,15 @@ class ProveedorDashboard:
         st.write("**🎯 Estrategia Recomendada:**", estrategia)
         st.write("**🏅 Prioridad:**", prioridad)
 
-    def tab_estacionalidad(df):
+    def tab_estacionalidad(self, df):
         st.markdown("### 📊 Estacionalidad del Artículo")
 
-        # Mostrar los valores crudos
         st.write("**📆 Mes Pico:**", df["mes_pico"].iloc[0].capitalize())
         st.write("**📉 Mes Bajo:**", df["mes_bajo"].iloc[0].capitalize())
         st.write("**📈 Contraste Relativo Mensual:**", f"{df['mes_actual'].iloc[0]:.2f}%")
         st.write("**📊 Nivel Mensual:**", df["ranking_mes"].iloc[0])
         st.write("**📅 Meses Activos Estacionalidad:**", df["meses_act_estac"].iloc[0])
 
-        # Interpretación automática
         contraste = df["mes_actual"].iloc[0]
         meses_activos = df["meses_act_estac"].iloc[0]
 
@@ -2351,6 +2355,8 @@ class ProveedorDashboard:
         else:
             interpretacion = "📉 Estacionalidad baja o estable"
         st.info(f"**🔍 Interpretación:** {interpretacion}")
+
+
 
     def run(self):
         """Ejecutar dashboard"""
