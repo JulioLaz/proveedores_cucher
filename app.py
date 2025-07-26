@@ -2836,25 +2836,25 @@ class ProveedorDashboard:
         ])
 
         with tabs[0]:
-            self.analisis_reposicion()
+            self.analisis_reposicion(df)
 
         with tabs[1]:
-            self.analisis_presupuesto_sucursal()
+            self.analisis_presupuesto_sucursal(df)
 
         with tabs[2]:
-            self.analisis_riesgo_quiebre()
+            self.analisis_riesgo_quiebre(df)
 
         with tabs[3]:
-            self.analisis_exceso_stock()
+            self.analisis_exceso_stock(df)
 
         with tabs[4]:
-            self.analisis_estacionalidad()
+            self.analisis_estacionalidad(df)
 
         with tabs[5]:
-            self.analisis_oportunidad_perdida()
+            self.analisis_oportunidad_perdida(df)
 
         with tabs[6]:
-            self.analisis_ajuste_precios()
+            self.analisis_ajuste_precios(df)
 
         with tabs[7]:
             st.dataframe(self.df, use_container_width=True)
