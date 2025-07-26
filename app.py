@@ -2220,19 +2220,19 @@ class ProveedorDashboard:
         # === Mostrar pestañas ===
         tabs = st.tabs(["📦 Stock y Cobertura", "📈 Demanda y Presupuesto", "💰 Rentabilidad", "📊 Estacionalidad"])
 
-        # with tabs[0]:
-        #     self.tab_stock_y_cobertura(df_item)
+        with tabs[0]:
+            self.tab_stock_y_cobertura(df_item)
 
-        # with tabs[1]:
-        #     self.tab_demanda_presupuesto(df_item)
+        with tabs[1]:
+            self.tab_demanda_presupuesto(df_item)
 
-        # with tabs[2]:
-        #     self.tab_rentabilidad(df_item)
+        with tabs[2]:
+            self.tab_rentabilidad(df_item)
 
-        # with tabs[3]:
-        #     self.tab_estacionalidad(df_item)
-        # with tabs[0]:
-        #     self.tab_stock_y_cobertura(df_item)
+        with tabs[3]:
+            self.tab_estacionalidad(df_item)
+        with tabs[0]:
+            self.tab_stock_y_cobertura(df_item)
 
 
     def show_idarticulo_analysis(self):
@@ -2268,7 +2268,7 @@ class ProveedorDashboard:
         with tabs[3]:
             self.tab_estacionalidad(df_item)
 
-    def tab_stock_y_cobertura(self, df):
+    def tab_stock_y_cobertura(df): #tab_estacionalidad tab_demanda_presupuesto tab_rentabilidad
         st.markdown("### 🏪 Stock por Sucursal")
         cols = ['stk_corrientes', 'stk_express', 'stk_formosa', 'stk_hiper', 'stk_TIROL', 'stk_central']
         for col in cols:
@@ -2281,7 +2281,7 @@ class ProveedorDashboard:
         st.write("**✅ Acción Recomendada**:", df["accion_gralporc"].iloc[0])
         st.write("**% PRESUPUESTO ASOCIADO**:", f"{df['PRESU_accion_gral'].iloc[0]:,.2f}")
 
-    def tab_demanda_presupuesto(self, df):
+    def tab_demanda_presupuesto(df):
             st.markdown("### 📈 Demanda y Presupuesto")
 
             st.write("**🔢 Pronóstico Final (cnt_corregida):**", int(df["cnt_corregida"].iloc[0]))
@@ -2300,7 +2300,7 @@ class ProveedorDashboard:
             else:
                 st.success("✅ No hay exceso de stock.")
 
-    def tab_rentabilidad(self, df):
+    def tab_rentabilidad(df):
         st.markdown("### 💰 Rentabilidad del Artículo")
 
         margen_all = df.get("margen_porc_all", pd.Series([None])).iloc[0]
@@ -2330,7 +2330,7 @@ class ProveedorDashboard:
         st.write("**🎯 Estrategia Recomendada:**", estrategia)
         st.write("**🏅 Prioridad:**", prioridad)
 
-    def tab_estacionalidad(self, df):
+    def tab_estacionalidad(df):
         st.markdown("### 📊 Estacionalidad del Artículo")
 
         # Mostrar los valores crudos
