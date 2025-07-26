@@ -2859,42 +2859,45 @@ class ProveedorDashboard:
         with tabs[7]:
             st.dataframe(self.df, use_container_width=True)
 
-    def analisis_reposicion(self):
-        df_reponer = self.df[self.df['cantidad_optima'] > 0].copy()
+    def analisis_reposicion(self,df):
+        df_reponer = df[df['cantidad_optima'] > 0].copy()
+
+        # df_reponer = self.df[self.df['cantidad_optima'] > 0].copy()
         st.subheader("🔄 Artículos a Reponer")
         st.metric("Costo Total de Reposición", f"${df_reponer['PRESUPUESTO'].sum():,.0f}")
         columnas = ["idarticulo", "descripcion", "cantidad_optima", "PRESUPUESTO",
                     "stk_corrientes", "stk_express", "stk_formosa", "stk_hiper", "stk_TIROL", "stk_central", "STK_TOTAL",
                     "cor_abastecer", "exp_abastecer", "for_abastecer", "hip_abastecer"]
         st.dataframe(df_reponer[columnas], use_container_width=True)
-    def analisis_presupuesto_sucursal(self):
+    def analisis_presupuesto_sucursal(self,df):
         st.subheader("🏬 Presupuesto Estimado por Sucursal")
         sucursales = ['cor_abastecer', 'exp_abastecer', 'for_abastecer', 'hip_abastecer']
-        costos = {suc: (self.df[suc] * self.df['costo_unit']).sum() for suc in sucursales}
+        costos = {suc: (df[suc] * df['costo_unit']).sum() for suc in sucursales}
+        # costos = {suc: (self.df[suc] * self.df['costo_unit']).sum() for suc in sucursales}
         df_costos = pd.DataFrame(costos.items(), columns=["Sucursal", "Presupuesto ($)"])
         fig = px.bar(df_costos, x="Sucursal", y="Presupuesto ($)", text="Presupuesto ($)")
         st.plotly_chart(fig, use_container_width=True)
-    def analisis_riesgo_quiebre(self):
+    def analisis_riesgo_quiebre(self,df):
         st.subheader("⚠️ Riesgo de Quiebre")
         riesgo_orden = ["🔴 Alto", "🟠 Medio", "🟡 Bajo", "🟢 Muy Bajo"]
-        df_quiebre = self.df[self.df['nivel_riesgo'].isin(riesgo_orden)]
+        df_quiebre = df[df['nivel_riesgo'].isin(riesgo_orden)]
         st.dataframe(df_quiebre[["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima", "valor_perdido_TOTAL"]], use_container_width=True)
-    def analisis_exceso_stock(self):
+    def analisis_exceso_stock(self,df):
         st.subheader("📦 Exceso de Stock")
-        df_exceso = self.df[self.df['exceso_STK'] > 0].copy()
+        df_exceso = df[df['exceso_STK'] > 0].copy()
         st.dataframe(df_exceso[["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK", "dias_cobertura"]], use_container_width=True)
-    def analisis_estacionalidad(self):
+    def analisis_estacionalidad(self,df):
         st.subheader("📆 Estacionalidad y Demanda")
-        df_estacional = self.df.copy()
+        df_estacional = df.copy()
         df_estacional['Etiqueta Estacional'] = df_estacional['nivel_mes'].apply(lambda x: "📈 Mes Pico" if x >= 10 else ("📉 Mes Bajo" if x <= 3 else "Mes Intermedio"))
         st.dataframe(df_estacional[["idarticulo", "descripcion", "mes_pico", "mes_bajo", "nivel_mes", "Etiqueta Estacional", "cnt_pronosticada"]], use_container_width=True)
-    def analisis_oportunidad_perdida(self):
+    def analisis_oportunidad_perdida(self,df):
         st.subheader("📉 Valor Perdido por Falta de Stock")
-        df_perdido = self.df[self.df['valor_perdido_TOTAL'] > 0].copy()
+        df_perdido = df[df['valor_perdido_TOTAL'] > 0].copy()
         st.dataframe(df_perdido[["idarticulo", "descripcion", "valor_perdido_TOTAL", "unidades_perdidas_TOTAL", "cnt_reabastecer"]], use_container_width=True)
-    def analisis_ajuste_precios(self):
+    def analisis_ajuste_precios(self,df):
         st.subheader("💲 Propuesta de Ajuste de Precios")
-        df_precio = self.df[self.df['decision_precio'] != "mantener"].copy()
+        df_precio = df[df['decision_precio'] != "mantener"].copy()
         st.dataframe(df_precio[["idarticulo", "descripcion", "precio_actual", "precio_optimo_ventas", "decision_precio", "pred_ventas_actual"]], use_container_width=True)
 
     def run(self):
