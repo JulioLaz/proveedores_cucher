@@ -2875,6 +2875,7 @@ class ProveedorDashboard:
         df_costos = pd.DataFrame(costos.items(), columns=["Sucursal", "Presupuesto ($)"])
         df_costos['Presupuesto ($)'] = df_costos['Presupuesto ($)'].astype(int)
         df_costos['texto'] = df_costos['Presupuesto ($)'].apply(lambda x: f"${x:,.0f}")
+        df_costos = df_costos.sort_values(by="Sucursal", ascending=False)
 
         fig = px.bar(
             df_costos,
