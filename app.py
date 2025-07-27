@@ -2860,8 +2860,13 @@ class ProveedorDashboard:
         # df_reponer = self.df[self.df['cantidad_optima'] > 0].copy()
         st.subheader("🔄 Artículos a Reponer")
         st.metric("Costo Total de Reposición", f"${df_reponer['PRESUPUESTO'].sum():,.0f}")
+
         df_reponer['new_presu'] = df_reponer['total_abastecer'] * df_reponer['costo_unit']
-        st.metric("Costo Total de Reposición", f"${df_reponer['new_presu'].sum():,.0f}")
+        st.metric("Costo Total de Reposición cnt abatecer", f"${df_reponer['new_presu'].sum():,.0f}")
+
+        df_reponer['opt_presu'] = df_reponer['cantidad_optima'] * df_reponer['costo_unit']
+        st.metric("Costo Total de Reposición cnt opt", f"${df_reponer['opt_presu'].sum():,.0f}")
+
         columnas = ["idarticulo", "descripcion", "cantidad_optima", "PRESUPUESTO",
                     "stk_corrientes", "stk_express", "stk_formosa", "stk_hiper", "stk_TIROL", "stk_central", "STK_TOTAL",
                     "cor_abastecer", "exp_abastecer", "for_abastecer", "hip_abastecer", "total_abastecer"]
