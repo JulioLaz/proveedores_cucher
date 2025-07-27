@@ -2855,22 +2855,23 @@ class ProveedorDashboard:
             st.dataframe(df)
 
     def analisis_reposicion(self,df):
-        df_reponer = df[df['cnt_corregida'] > 0].copy()
+        df_reponer = df[df['cantidad_optima'] > 0].copy()
 
         # df_reponer = self.df[self.df['cantidad_optima'] > 0].copy()
         st.subheader("🔄 Artículos a Reponer")
         st.metric("Costo Total de Reposición", f"${df_reponer['PRESUPUESTO'].sum():,.0f}")
-        columnas = ["idarticulo", "descripcion", "cantidad_optima","cnt_corregida", "PRESUPUESTO",
+        columnas = ["idarticulo", "descripcion", "cantidad_optima", "PRESUPUESTO",
                     "stk_corrientes", "stk_express", "stk_formosa", "stk_hiper", "stk_TIROL", "stk_central", "STK_TOTAL",
                     "cor_abastecer", "exp_abastecer", "for_abastecer", "hip_abastecer"]
         st.dataframe(df_reponer[columnas], use_container_width=True)
 
     def analisis_presupuesto_sucursal(self,df):
+        df_reponer = df[df['cantidad_optima'] > 0].copy()
         st.subheader("🏬 Presupuesto Estimado por Sucursal")
         sucursales = ['cor_abastecer', 'exp_abastecer', 'for_abastecer', 'hip_abastecer']
         costos = {
-            suc: ((df[suc].clip(lower=0)) * df['costo_unit']).sum()
-            for suc in sucursales if suc in df.columns
+            suc: ((df_reponer[suc].clip(lower=0)) * df_reponer['costo_unit']).sum()
+            for suc in sucursales if suc in df_reponer.columns
         }
 
         df_costos = pd.DataFrame(costos.items(), columns=["Sucursal", "Presupuesto ($)"])
