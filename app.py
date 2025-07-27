@@ -2870,8 +2870,38 @@ class ProveedorDashboard:
         costos = {suc: (df[suc] * df['costo_unit']).sum() for suc in sucursales}
         # costos = {suc: (self.df[suc] * self.df['costo_unit']).sum() for suc in sucursales}
         df_costos = pd.DataFrame(costos.items(), columns=["Sucursal", "Presupuesto ($)"])
-        fig = px.bar(df_costos, x="Sucursal", y="Presupuesto ($)", text="Presupuesto ($)")
+
+        fig = px.bar(
+                    df_costos,
+                    x='Sucursal',
+                    y='Presupuesto ($)',
+                    text='Presupuesto ($)',  # Mostrar valores arriba
+                    title="🏬 Presupuesto Estimado por Sucursal",
+                    color='Sucursal',
+                    color_continuous_scale='Blues'
+                )
+
+        fig.update_traces(
+            textposition='outside',
+            hovertemplate="<b>%{x}</b><br>Ventas: %{text}<extra></extra>"
+        )
+
+        fig.update_layout(
+            title_font=dict(size=18, color='#454448', family='Arial Black'),
+            title_x=0.08,
+            xaxis_title=None,
+            yaxis_title=None,
+            margin=dict(t=70, b=40, l=30, r=20),
+            coloraxis_showscale=False  # 👈 Oculta la leyenda de color
+        )
+
+        fig.update_yaxes(showticklabels=False)
         st.plotly_chart(fig, use_container_width=True)
+
+
+
+        # fig = px.bar(df_costos, x="Sucursal", y="Presupuesto ($)", text="Presupuesto ($)")
+        # st.plotly_chart(fig, use_container_width=True)
 
     def analisis_riesgo_quiebre(self,df):
         st.subheader("⚠️ Riesgo de Quiebre")
