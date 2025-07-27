@@ -2867,23 +2867,28 @@ class ProveedorDashboard:
     def analisis_presupuesto_sucursal(self,df):
         st.subheader("🏬 Presupuesto Estimado por Sucursal")
         sucursales = ['cor_abastecer', 'exp_abastecer', 'for_abastecer', 'hip_abastecer']
-        costos = {suc: (df[suc] * df['costo_unit']).sum() for suc in sucursales}
-        # costos = {suc: (self.df[suc] * self.df['costo_unit']).sum() for suc in sucursales}
+        costos = {
+            suc: ((df[suc].clip(lower=0)) * df['costo_unit']).sum()
+            for suc in sucursales if suc in df.columns
+        }
+
         df_costos = pd.DataFrame(costos.items(), columns=["Sucursal", "Presupuesto ($)"])
+        df_costos['Presupuesto ($)'] = df_costos['Presupuesto ($)'].astype(int)
+        df_costos['texto'] = df_costos['Presupuesto ($)'].apply(lambda x: f"${x:,.0f}")
 
         fig = px.bar(
-                    df_costos,
-                    x='Sucursal',
-                    y='Presupuesto ($)',
-                    text='Presupuesto ($)',  # Mostrar valores arriba
-                    title="🏬 Presupuesto Estimado por Sucursal",
-                    color='Sucursal',
-                    color_continuous_scale='Blues'
-                )
+            df_costos,
+            x='Sucursal',
+            y='Presupuesto ($)',
+            text='texto',
+            title="🏬 Presupuesto Estimado por Sucursal",
+            color='Sucursal',
+            color_discrete_sequence=px.colors.qualitative.Pastel
+        )
 
         fig.update_traces(
             textposition='outside',
-            hovertemplate="<b>%{x}</b><br>Ventas: %{text}<extra></extra>"
+            hovertemplate="<b>%{x}</b><br>Presupuesto: %{text}<extra></extra>"
         )
 
         fig.update_layout(
@@ -2892,16 +2897,11 @@ class ProveedorDashboard:
             xaxis_title=None,
             yaxis_title=None,
             margin=dict(t=70, b=40, l=30, r=20),
-            coloraxis_showscale=False  # 👈 Oculta la leyenda de color
+            coloraxis_showscale=False
         )
 
         fig.update_yaxes(showticklabels=False)
         st.plotly_chart(fig, use_container_width=True)
-
-
-
-        # fig = px.bar(df_costos, x="Sucursal", y="Presupuesto ($)", text="Presupuesto ($)")
-        # st.plotly_chart(fig, use_container_width=True)
 
     def analisis_riesgo_quiebre(self,df):
         st.subheader("⚠️ Riesgo de Quiebre")
