@@ -837,13 +837,13 @@ class ProveedorDashboard:
         metrics = self.calculate_metrics(df)
         
         # Tabs principales
-        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5, tab7 = st.tabs([
             "📈 Resumen Ejecutivo", 
             "🏆 Análisis de Productos", 
             "📅 Evolución Temporal",
             "🎯 Análisis Avanzado",
             "📋 Sintesis Final",
-            "📁 Articulos",
+            # "📁 Articulos",
             "🧮 Presupuesto"
 
         ])
@@ -863,15 +863,10 @@ class ProveedorDashboard:
         with tab5:
             self.show_executive_summary_best(df, proveedor, metrics)
 
-        with tab6:
-            self.show_idarticulo_analysis_01(df_presu)
+        # with tab6:
+        #     self.show_idarticulo_analysis_01(df_presu)
 
         with tab7:
-            # if hasattr(self, 'df_resultados') and self.df_resultados is not None:
-            #     self.show_presupuesto_estrategico(self.df_resultados)
-            # else:
-            #     st.warning("⚠️ No se encontraron resultados para análisis de presupuesto.")
-
             self.show_presupuesto_estrategico(df_presu)
 
     def show_executive_summary(self, df, proveedor, metrics):
