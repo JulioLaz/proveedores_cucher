@@ -2861,11 +2861,11 @@ class ProveedorDashboard:
         st.subheader("🔄 Artículos a Reponer")
         st.metric("Costo Total de Reposición", f"${df_reponer['PRESUPUESTO'].sum():,.0f}")
 
-        df_reponer['new_presu'] = df_reponer['total_abastecer'] * df_reponer['costo_unit']
-        st.metric("Costo Total de Reposición cnt abatecer", f"${df_reponer['new_presu'].sum():,.0f}")
+        # df_reponer['new_presu'] = df_reponer['total_abastecer'] * df_reponer['costo_unit']
+        # st.metric("Costo Total de Reposición cnt abatecer", f"${df_reponer['new_presu'].sum():,.0f}")
 
-        df_reponer['opt_presu'] = df_reponer['cantidad_optima'] * df_reponer['costo_unit']
-        st.metric("Costo Total de Reposición cnt opt", f"${df_reponer['opt_presu'].sum():,.0f}")
+        # df_reponer['opt_presu'] = df_reponer['cantidad_optima'] * df_reponer['costo_unit']
+        # st.metric("Costo Total de Reposición cnt opt", f"${df_reponer['opt_presu'].sum():,.0f}")
 
         columnas = ["idarticulo", "descripcion", "cantidad_optima", "PRESUPUESTO",
                     "stk_corrientes", "stk_express", "stk_formosa", "stk_hiper", "stk_TIROL", "stk_central", "STK_TOTAL",
@@ -2883,7 +2883,7 @@ class ProveedorDashboard:
         for suc in sucursales:
             if suc in df_reponer.columns:
                 df_tmp = df_reponer[[suc, 'costo_unit']].copy()
-                df_tmp[suc] = df_tmp[suc].clip(lower=0)
+                # df_tmp[suc] = df_tmp[suc].clip(lower=0)
                 df_tmp['presupuesto'] = df_tmp[suc] * df_tmp['costo_unit']
                 costos[suc] = df_tmp['presupuesto'].sum()
 
