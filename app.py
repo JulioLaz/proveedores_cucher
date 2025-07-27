@@ -2855,15 +2855,16 @@ class ProveedorDashboard:
             st.dataframe(df)
 
     def analisis_reposicion(self,df):
-        df_reponer = df[df['cantidad_optima'] > 0].copy()
+        df_reponer = df[df['cnt_corregida'] > 0].copy()
 
         # df_reponer = self.df[self.df['cantidad_optima'] > 0].copy()
         st.subheader("🔄 Artículos a Reponer")
         st.metric("Costo Total de Reposición", f"${df_reponer['PRESUPUESTO'].sum():,.0f}")
-        columnas = ["idarticulo", "descripcion", "cantidad_optima", "PRESUPUESTO",
+        columnas = ["idarticulo", "descripcion", "cantidad_optima","cnt_corregida", "PRESUPUESTO",
                     "stk_corrientes", "stk_express", "stk_formosa", "stk_hiper", "stk_TIROL", "stk_central", "STK_TOTAL",
                     "cor_abastecer", "exp_abastecer", "for_abastecer", "hip_abastecer"]
         st.dataframe(df_reponer[columnas], use_container_width=True)
+
     def analisis_presupuesto_sucursal(self,df):
         st.subheader("🏬 Presupuesto Estimado por Sucursal")
         sucursales = ['cor_abastecer', 'exp_abastecer', 'for_abastecer', 'hip_abastecer']
