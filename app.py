@@ -2882,13 +2882,14 @@ class ProveedorDashboard:
             y='Presupuesto ($)',
             text='texto',
             title="🏬 Presupuesto Estimado por Sucursal",
-            color='Sucursal',
-            color_discrete_sequence=px.colors.qualitative.Pastel
+            color='Presupuesto ($)',
+            color_continuous_scale='Reds'
         )
 
         fig.update_traces(
             textposition='outside',
-            hovertemplate="<b>%{x}</b><br>Presupuesto: %{text}<extra></extra>"
+            hovertemplate="<b>%{x}</b><br>Presupuesto: %{text}<extra></extra>",
+            showlegend=False  # ❌ Elimina leyenda
         )
 
         fig.update_layout(
@@ -2897,11 +2898,14 @@ class ProveedorDashboard:
             xaxis_title=None,
             yaxis_title=None,
             margin=dict(t=70, b=40, l=30, r=20),
-            coloraxis_showscale=False
+            showlegend=False,  # ❌ Elimina leyenda
+            coloraxis_showscale=False  # ❌ Oculta escala continua de color
         )
 
         fig.update_yaxes(showticklabels=False)
+
         st.plotly_chart(fig, use_container_width=True)
+
 
     def analisis_riesgo_quiebre(self,df):
         st.subheader("⚠️ Riesgo de Quiebre")
