@@ -2866,19 +2866,27 @@ class ProveedorDashboard:
         st.dataframe(df_reponer[columnas], use_container_width=True)
 
     def analisis_presupuesto_sucursal(self,df):
+        # Filtrar artículos con cantidad óptima > 0
         df_reponer = df[df['cantidad_optima'] > 0].copy()
-        st.subheader("🏬 Presupuesto Estimado por Sucursal")
-        sucursales = ['cor_abastecer', 'exp_abastecer', 'for_abastecer', 'hip_abastecer']
-        costos = {
-            suc: ((df_reponer[suc].clip(lower=0)) * df_reponer['costo_unit']).sum()
-            for suc in sucursales if suc in df_reponer.columns
-        }
 
+        # Calcular presupuesto por sucursal (con precisión por artículo)
+        sucursales = ['cor_abastecer', 'exp_abastecer', 'for_abastecer', 'hip_abastecer']
+        costos = {}
+
+        for suc in sucursales:
+            if suc in df_reponer.columns:
+                df_tmp = df_reponer[[suc, 'costo_unit']].copy()
+                df_tmp[suc] = df_tmp[suc].clip(lower=0)
+                df_tmp['presupuesto'] = df_tmp[suc] * df_tmp['costo_unit']
+                costos[suc] = df_tmp['presupuesto'].sum()
+
+        # Crear DataFrame y ordenarlo de mayor a menor
         df_costos = pd.DataFrame(costos.items(), columns=["Sucursal", "Presupuesto ($)"])
         df_costos['Presupuesto ($)'] = df_costos['Presupuesto ($)'].astype(int)
         df_costos['texto'] = df_costos['Presupuesto ($)'].apply(lambda x: f"${x:,.0f}")
-        df_costos = df_costos.sort_values(by="Sucursal", ascending=False)
+        df_costos = df_costos.sort_values(by='Presupuesto ($)', ascending=False)
 
+        # Graficar
         fig = px.bar(
             df_costos,
             x='Sucursal',
@@ -2892,7 +2900,7 @@ class ProveedorDashboard:
         fig.update_traces(
             textposition='outside',
             hovertemplate="<b>%{x}</b><br>Presupuesto: %{text}<extra></extra>",
-            showlegend=False  # ❌ Elimina leyenda
+            showlegend=False
         )
 
         fig.update_layout(
@@ -2901,13 +2909,56 @@ class ProveedorDashboard:
             xaxis_title=None,
             yaxis_title=None,
             margin=dict(t=70, b=40, l=30, r=20),
-            showlegend=False,  # ❌ Elimina leyenda
-            coloraxis_showscale=False  # ❌ Oculta escala continua de color
+            showlegend=False,
+            coloraxis_showscale=False
         )
 
         fig.update_yaxes(showticklabels=False)
-
         st.plotly_chart(fig, use_container_width=True)
+
+
+        # df_reponer = df[df['cantidad_optima'] > 0].copy()
+        # st.subheader("🏬 Presupuesto Estimado por Sucursal")
+        # sucursales = ['cor_abastecer', 'exp_abastecer', 'for_abastecer', 'hip_abastecer']
+        # costos = {
+        #     suc: ((df_reponer[suc].clip(lower=0)) * df_reponer['costo_unit']).sum()
+        #     for suc in sucursales if suc in df_reponer.columns
+        # }
+
+        # df_costos = pd.DataFrame(costos.items(), columns=["Sucursal", "Presupuesto ($)"])
+        # df_costos['Presupuesto ($)'] = df_costos['Presupuesto ($)'].astype(int)
+        # df_costos['texto'] = df_costos['Presupuesto ($)'].apply(lambda x: f"${x:,.0f}")
+        # df_costos = df_costos.sort_values(by="Sucursal", ascending=False)
+
+        # fig = px.bar(
+        #     df_costos,
+        #     x='Sucursal',
+        #     y='Presupuesto ($)',
+        #     text='texto',
+        #     title="🏬 Presupuesto Estimado por Sucursal",
+        #     color='Presupuesto ($)',
+        #     color_continuous_scale='Reds'
+        # )
+
+        # fig.update_traces(
+        #     textposition='outside',
+        #     hovertemplate="<b>%{x}</b><br>Presupuesto: %{text}<extra></extra>",
+        #     showlegend=False  # ❌ Elimina leyenda
+        # )
+
+        # fig.update_layout(
+        #     title_font=dict(size=18, color='#454448', family='Arial Black'),
+        #     title_x=0.08,
+        #     xaxis_title=None,
+        #     yaxis_title=None,
+        #     margin=dict(t=70, b=40, l=30, r=20),
+        #     showlegend=False,  # ❌ Elimina leyenda
+        #     coloraxis_showscale=False  # ❌ Oculta escala continua de color
+        # )
+
+        # fig.update_yaxes(showticklabels=False)
+
+        # st.plotly_chart(fig, use_container_width=True)
 
 
     def analisis_riesgo_quiebre(self,df):
