@@ -3192,7 +3192,8 @@ class ProveedorDashboard:
 
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("📋 Artículos con análisis estacional", {len(df_estacional)} )
+            st.metric("📋 Artículos con análisis estacional", f"{len(df_estacional):,}")
+
         with col1:
             st.metric("📌 Productos en su mes pico actual", f"{total_temporada:,}")
 
