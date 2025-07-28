@@ -3140,10 +3140,10 @@ class ProveedorDashboard:
                             "rango_cobertura": "Rango de Cobertura"
                         },
                         color_discrete_sequence=["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71"],
-                        size_max=60
+                        size_max=70
                     )
 
-                    fig.update_traces(marker=dict(opacity=0.85, line=dict(width=1)))
+                    fig.update_traces(marker=dict(opacity=0.9, line=dict(width=1,color="gray")))
                     fig.update_layout(
                         height=600,
                         title_font=dict(size=18, color='#454448', family='Arial Black'),
