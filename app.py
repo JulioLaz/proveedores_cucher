@@ -3220,9 +3220,9 @@ class ProveedorDashboard:
         st.dataframe(df_estacional[columnas].head(300), use_container_width=True, hide_index=True)
 
         # === Paso 5: Exportar CSV sin formatear
-        csv = df[columnas].to_csv(index=False).encode('utf-8')
+        # === Paso 5: Exportar CSV sin formatear
+        csv = df_estacional[columnas].to_csv(index=False).encode('utf-8')
         st.download_button("📥 Descargar CSV", csv, "analisis_estacionalidad.csv", "text/csv")
-
 
     def analisis_estacionalidad00(self,df):
         st.subheader("📆 Estacionalidad y Demanda")
