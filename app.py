@@ -2950,9 +2950,9 @@ class ProveedorDashboard:
     def analisis_riesgo_quiebre(self,df):
         st.subheader("⚠️ Riesgo de Quiebre")
         riesgo_orden = ["🔴 Alto", "🟠 Medio", "🟡 Bajo", "🟢 Muy Bajo"]
-        df_quiebre = df[df['nivel_riesgo'].isin(riesgo_orden)]
+        df_quiebre = df[df['nivel_riesgo'].isin(['Alto', 'Medio', 'Muy Bajo', 'Bajo', 'Analizar stk'])]
         st.dataframe(df_quiebre[["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima"]], use_container_width=True)
-        # st.dataframe(df_quiebre[["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima", "valor_perdido_TOTAL"]], use_container_width=True)
+
     def analisis_exceso_stock(self,df):
         st.subheader("📦 Exceso de Stock")
         df_exceso = df[df['exceso_STK'] > 0].copy()
@@ -3016,7 +3016,7 @@ class ProveedorDashboard:
         col1, col2 = st.columns([1, 2])
 
         with col1:
-            st.markdown("📊 Distribución del análisis de variación de precios")
+            st.caption("📊 Distribución del análisis de variación de precios")
             st.plotly_chart(fig, use_container_width=True)
 
         with col2:
@@ -3029,22 +3029,13 @@ class ProveedorDashboard:
             df_final["venta para hoy"] = df_final["venta para hoy"].astype(int)
 
             st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
-            st.dataframe(df_final.head(300), use_container_width=True)
+            st.dataframe(df_final.head(300), use_container_width=True, hide_index=True)
+
 
         # Descargar versión sin formato
         df_export = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])]
         csv = df_export.to_csv(index=False).encode('utf-8')
         st.download_button("📥 Descargar CSV", csv, "ajuste_precios.csv", "text/csv")
-
-
-
-
-
-
-    def analisis_ajuste_precios00(self,df):
-        st.subheader("💲 Propuesta de Ajuste de Precios")
-        df_precio = df[df['decision_precio'] != "mantener"].copy()
-        st.dataframe(df_precio[["idarticulo", "descripcion", "precio_actual", "precio_optimo_ventas", "decision_precio", "pred_ventas_actual"]], use_container_width=True)
 
     def run(self):
         """Ejecutar dashboard"""
