@@ -3094,7 +3094,7 @@ class ProveedorDashboard:
             df_exceso = df_exceso.sort_values(by='costo_exceso_STK', ascending=False)
 
             columnas = ["idarticulo", "descripcion", "exceso_STK_format", "costo_exceso_STK_format", "dias_cobertura_format"]
-            st.caption(f"📦 {len(df_exceso)} artículos con exceso de stock detectado")
+            st.markdown(f"📦 {len(df_exceso)} artículos con exceso de stock detectado")
             st.dataframe(df_exceso[columnas].head(300), use_container_width=True, hide_index=True)
 
         with st.expander("🔎 Visualizar Exceso por Impacto", expanded=True):
@@ -3173,8 +3173,8 @@ class ProveedorDashboard:
         st.subheader("📆 Estacionalidad y Demanda")
         df_estacional = df.copy()
         df_estacional['Etiqueta Estacional'] = df_estacional['ranking_mes'].apply(lambda x: "📈 Mes Pico" if x >= 10 else ("📉 Mes Bajo" if x <= 3 else "Mes Intermedio"))
-        st.dataframe(df_estacional[["idarticulo", "descripcion", "mes_pico", "mes_bajo", "ranking_mes", "cnt_corregida"]], use_container_width=True)
-        # st.dataframe(df_estacional[["idarticulo", "descripcion", "mes_pico", "mes_bajo", "ranking_mes", "Etiqueta Estacional", "cnt_pronosticada"]], use_container_width=True)
+        st.dataframe(df_estacional[["idarticulo", "descripcion", "mes_pico", "mes_bajo", "ranking_mes", "Etiqueta Estacional", "cantidad_optima"]], use_container_width=True, hide_index=True)
+
     def analisis_oportunidad_perdida(self,df):
         st.subheader("📉 Valor Perdido por Falta de Stock")
         # df_perdido = df[df['valor_perdido_TOTAL'] > 0].copy()
