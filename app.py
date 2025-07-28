@@ -3095,61 +3095,56 @@ class ProveedorDashboard:
             st.caption(f"📦 {len(df_exceso)} artículos con exceso de stock detectado")
             st.dataframe(df_exceso[columnas].head(300), use_container_width=True, hide_index=True)
 
-        with st.expander("🔎 Visualizar Exceso por Impacto", expanded=True):
-            st.markdown("#### 💥 Impacto visual del exceso de stock (Cantidad vs Días de cobertura)")
+            with st.expander("🔎 Visualizar Exceso por Impacto", expanded=True):
+                st.markdown("#### 💥 Exceso de Stock: Cantidad vs Días de cobertura")
 
-            # Preparar top 50 artículos más costosos
-            # ⚠️ Limpiar datos que puedan causar errores
-            df_top = df_exceso.sort_values("costo_exceso_STK", ascending=False).head(50).copy()
+                df_top = df_exceso.sort_values("costo_exceso_STK", ascending=False).head(50).copy()
 
-            # Asegurar que no haya NaN y que sea numérico
-            df_top = df_top[df_top['costo_exceso_STK'].notna()]
-            df_top = df_top[df_top['exceso_STK'].notna()]
-            df_top = df_top[df_top['dias_cobertura'].notna()]
+                # Validar y limpiar columnas necesarias
+                for col in ["costo_exceso_STK", "exceso_STK", "dias_cobertura"]:
+                    df_top[col] = pd.to_numeric(df_top[col], errors='coerce')
 
-            df_top['costo_exceso_STK'] = pd.to_numeric(df_top['costo_exceso_STK'], errors='coerce')
-            df_top['exceso_STK'] = pd.to_numeric(df_top['exceso_STK'], errors='coerce')
-            df_top['dias_cobertura'] = pd.to_numeric(df_top['dias_cobertura'], errors='coerce')
+                df_top = df_top.dropna(subset=["costo_exceso_STK", "exceso_STK", "dias_cobertura"])
 
-            # Eliminar filas con valores faltantes luego del coercion
-            df_top = df_top.dropna(subset=['costo_exceso_STK', 'exceso_STK', 'dias_cobertura'])
+                if df_top.empty:
+                    st.warning("⚠️ No hay datos válidos para graficar el impacto del exceso.")
+                else:
+                    df_top["producto_corto"] = df_top["descripcion"].str[:40] + "..."
 
-            df_top["producto_corto"] = df_top["descripcion"].str[:40] + "..."
+                    fig = px.scatter(
+                        df_top,
+                        x="exceso_STK",
+                        y="dias_cobertura",
+                        size="costo_exceso_STK",
+                        color="rango_cobertura",
+                        hover_name="producto_corto",
+                        hover_data={
+                            "exceso_STK": ":,.0f",
+                            "dias_cobertura": ":.1f",
+                            "costo_exceso_STK": ":,.2f",
+                            "producto_corto": False
+                        },
+                        title="🧮 Exceso de Stock: Volumen vs Cobertura",
+                        labels={
+                            "exceso_STK": "Cantidad Excedente",
+                            "dias_cobertura": "Días de Cobertura",
+                            "costo_exceso_STK": "Costo Exceso ($)",
+                            "rango_cobertura": "Rango de Cobertura"
+                        },
+                        color_discrete_sequence=["#2ecc71", "#f1c40f", "#e67e22", "#e74c3c"]
+                    )
 
-            
-            fig = px.scatter(
-                df_top,
-                x="exceso_STK",
-                y="dias_cobertura",
-                size="costo_exceso_STK",
-                color="rango_cobertura",
-                hover_name="producto_corto",
-                hover_data={
-                    "exceso_STK": ":,.0f",
-                    "dias_cobertura": ":.1f",
-                    "costo_exceso_STK": ":,.2f",
-                    "producto_corto": False
-                },
-                title="🧮 Exceso de Stock: Volumen vs Cobertura",
-                labels={
-                    "exceso_STK": "Cantidad Excedente",
-                    "dias_cobertura": "Días de Cobertura",
-                    "costo_exceso_STK": "Costo Exceso ($)",
-                    "rango_cobertura": "Rango de Cobertura"
-                },
-                color_discrete_sequence=["#2ecc71", "#f1c40f", "#e67e22", "#e74c3c"]  # verde, amarillo, naranja, rojo
-            )
+                    fig.update_traces(marker=dict(opacity=0.75, line=dict(width=0)))
+                    fig.update_layout(
+                        height=600,
+                        title_font=dict(size=18, color='#454448', family='Arial Black'),
+                        title_x=0.05,
+                        margin=dict(t=60, b=20, l=10, r=10),
+                        legend_title_text="Cobertura"
+                    )
 
-            fig.update_traces(marker=dict(opacity=0.75, line=dict(width=0)))
-            fig.update_layout(
-                height=600,
-                title_font=dict(size=18, color='#454448', family='Arial Black'),
-                title_x=0.05,
-                margin=dict(t=60, b=20, l=10, r=10),
-                legend_title_text="Cobertura"
-            )
+                    st.plotly_chart(fig, use_container_width=True)
 
-            st.plotly_chart(fig, use_container_width=True)
 
 
         # Exportar versión sin formato
