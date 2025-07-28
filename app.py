@@ -3009,16 +3009,26 @@ class ProveedorDashboard:
             plot_bgcolor='white',
             paper_bgcolor='white',
             xaxis=dict(visible=False),
-            yaxis=dict(visible=False),
+            yaxis=dict(visible=True),
             showlegend=False
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("📊 Columna 1: Info de precios")
+            st.plotly_chart(fig, use_container_width=True)
+
+
+        with col2:
+            df_final = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])]
+            st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
+            st.dataframe(df_final.head(300), use_container_width=True)
+
+
+        # st.plotly_chart(fig, use_container_width=True)
 
         # === Paso 3: Tabla final solo con rebaja y alza ===
-        df_final = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])]
-        st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
-        st.dataframe(df_final.head(300), use_container_width=True)
 
         # === Opcional: Exportar CSV ===
         csv = df_final.to_csv(index=False).encode('utf-8')
