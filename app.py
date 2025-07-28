@@ -3095,7 +3095,7 @@ class ProveedorDashboard:
             st.caption(f"📦 {len(df_exceso)} artículos con exceso de stock detectado")
             st.dataframe(df_exceso[columnas].head(300), use_container_width=True, hide_index=True)
 
-            with st.expander("🔎 Visualizar Exceso por Impacto", expanded=True):
+        with st.expander("🔎 Visualizar Exceso por Impacto", expanded=True):
                 st.markdown("#### 💥 Exceso de Stock: Cantidad vs Días de cobertura")
 
                 df_top = df_exceso.sort_values("costo_exceso_STK", ascending=False).head(50).copy()
