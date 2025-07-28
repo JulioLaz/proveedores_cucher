@@ -2969,8 +2969,8 @@ class ProveedorDashboard:
         # st.dataframe(df_perdido[["idarticulo", "descripcion", "valor_perdido_TOTAL", "unidades_perdidas_TOTAL", "cnt_reabastecer"]], use_container_width=True)
 
     def analisis_ajuste_precios(self, df=None):
-        st.subheader("💲 Propuesta de Ajuste de Precios")
 
+        st.subheader(f"💲 Propuesta de Ajuste de Precios")
         # Si no se pasa df, buscarlo en session_state
         if df is None:
             df = st.session_state.get("resultados_data")
@@ -2978,6 +2978,8 @@ class ProveedorDashboard:
         if df is None or df.empty:
             st.warning("⚠️ No hay datos disponibles para el análisis de precios.")
             return
+
+        df = df[df['decision_precio'] != "Modelo no confiable"].copy()
 
         # ⚡️ Procesamiento inicial (una sola vez)
         if 'df_ajuste_precio' not in st.session_state:
@@ -2996,6 +2998,7 @@ class ProveedorDashboard:
             opciones_disponibles,
             default=opciones_disponibles
         )
+        st.write(f"💲 Articulos presentes en la tabla: {len(df)}")
 
         # 🔍 Filtrar por decisión y eliminar 'mantener'
         with st.spinner("Filtrando artículos con propuesta de cambio..."):
