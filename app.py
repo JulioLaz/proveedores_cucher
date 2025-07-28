@@ -2968,40 +2968,50 @@ class ProveedorDashboard:
         # df_perdido = df[df['valor_perdido_TOTAL'] > 0].copy()
         # st.dataframe(df_perdido[["idarticulo", "descripcion", "valor_perdido_TOTAL", "unidades_perdidas_TOTAL", "cnt_reabastecer"]], use_container_width=True)
 
-    def analisis_ajuste_precios(self, df):
+    def analisis_ajuste_precios(self, df=None):
         st.subheader("💲 Propuesta de Ajuste de Precios")
 
-        # Reemplazar None por 'datos insuficientes' en la columna 'decision_precio'
-        df['decision_precio'] = df['decision_precio'].fillna('datos insuficientes')
+        # Si no se pasa df, buscarlo en session_state
+        if df is None:
+            df = st.session_state.get("resultados_data")
 
-        # Obtener las decisiones únicas disponibles
-        opciones_disponibles = df['decision_precio'].unique().tolist()
+        if df is None or df.empty:
+            st.warning("⚠️ No hay datos disponibles para el análisis de precios.")
+            return
 
-        # Selector múltiple
+        # ⚡️ Procesamiento inicial (una sola vez)
+        if 'df_ajuste_precio' not in st.session_state:
+            df = df.copy()
+            df['decision_precio'] = df['decision_precio'].fillna('datos insuficientes')
+            st.session_state.df_ajuste_precio = df
+        else:
+            df = st.session_state.df_ajuste_precio
+
+        # 👉 Opciones únicas
+        opciones_disponibles = sorted(df['decision_precio'].unique().tolist())
+
+        # 🎯 Multiselect para filtrar decisiones
         decisiones_seleccionadas = st.multiselect(
             "Filtrar por decisión de precio:",
             opciones_disponibles,
             default=opciones_disponibles
         )
 
-        # Filtrar el DataFrame según las decisiones seleccionadas
-        df_filtrado = df[df['decision_precio'].isin(decisiones_seleccionadas)]
+        # 🔍 Filtrar por decisión y eliminar 'mantener'
+        with st.spinner("Filtrando artículos con propuesta de cambio..."):
+            df_filtrado = df[
+                (df['decision_precio'].isin(decisiones_seleccionadas)) &
+                (df['decision_precio'] != "mantener")
+            ]
 
-        # Filtrar solo los artículos que requieren acción (no mantener)
-        df_precio = df_filtrado[df_filtrado['decision_precio'] != "mantener"].copy()
+            columnas_mostrar = [
+                "idarticulo", "descripcion", "precio_actual",
+                "precio_optimo_ventas", "decision_precio", "pred_ventas_actual"
+            ]
 
-        # Mostrar tabla con columnas clave
-        st.dataframe(
-            df_precio[[
-                "idarticulo",
-                "descripcion",
-                "precio_actual",
-                "precio_optimo_ventas",
-                "decision_precio",
-                "pred_ventas_actual"
-            ]],
-            use_container_width=True
-        )
+            st.caption(f"🔎 Mostrando {len(df_filtrado)} artículos con ajuste de precio.")
+            st.dataframe(df_filtrado[columnas_mostrar].head(300), use_container_width=True)
+
 
 
     def analisis_ajuste_precios00(self,df):
