@@ -2967,7 +2967,29 @@ class ProveedorDashboard:
         st.subheader("📉 Valor Perdido por Falta de Stock")
         # df_perdido = df[df['valor_perdido_TOTAL'] > 0].copy()
         # st.dataframe(df_perdido[["idarticulo", "descripcion", "valor_perdido_TOTAL", "unidades_perdidas_TOTAL", "cnt_reabastecer"]], use_container_width=True)
-    def analisis_ajuste_precios(self,df):
+
+    def analisis_ajuste_precios(self, df):
+        st.subheader("💲 Propuesta de Ajuste de Precios")
+
+        # Paso 1: reemplazar valores nulos
+        df['decision_precio'] = df['decision_precio'].fillna("datos insuficientes")
+
+        # Paso 2: selector para mostrar todo o solo decisiones activas
+        mostrar_todo = st.checkbox("Mostrar todos los artículos", value=True)
+        
+        if not mostrar_todo:
+            df = df[df['decision_precio'] != "mantener"]
+
+        # Paso 3: vista de resultados
+        st.dataframe(
+            df[[
+                "idarticulo", "descripcion", "precio_actual", 
+                "precio_optimo_ventas", "decision_precio", "pred_ventas_actual"
+            ]], 
+            use_container_width=True
+        )
+
+    def analisis_ajuste_precios00(self,df):
         st.subheader("💲 Propuesta de Ajuste de Precios")
         df_precio = df[df['decision_precio'] != "mantener"].copy()
         st.dataframe(df_precio[["idarticulo", "descripcion", "precio_actual", "precio_optimo_ventas", "decision_precio", "pred_ventas_actual"]], use_container_width=True)
