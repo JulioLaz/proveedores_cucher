@@ -3162,14 +3162,69 @@ class ProveedorDashboard:
         csv = df_export.to_csv(index=False).encode('utf-8')
         st.download_button("📥 Descargar CSV", csv, "exceso_stock.csv", "text/csv")
 
+    def analisis_estacionalidad(self, df):
+        st.subheader("📆 Estacionalidad y Demanda")
+
+        if df is None or df.empty:
+            st.warning("⚠️ No hay datos para el análisis estacional.")
+            return
+
+        # === Paso 1: Etiquetado estacional
+        df_estacional = df.copy()
+        df_estacional['Etiqueta Estacional'] = df_estacional['ranking_mes'].apply(
+            lambda x: "📈 Mes Pico" if x >= 10 else ("📉 Mes Bajo" if x <= 3 else "Mes Intermedio")
+        )
+
+        # === Paso 2: KPI - Productos en temporada actual
+        mes_actual = datetime.now().month
+        en_temporada = df_estacional[df_estacional['mes_pico'] == mes_actual]
+        total_temporada = len(en_temporada)
+
+        st.metric("📌 Productos en su mes pico actual", f"{total_temporada:,}")
+
+        # === Paso 3: Gráfico de distribución por etiqueta
+        conteo = df_estacional['Etiqueta Estacional'].value_counts().reindex(
+            ["📈 Mes Pico", "Mes Intermedio", "📉 Mes Bajo"]
+        ).fillna(0).astype(int)
+
+        fig = px.bar(
+            x=conteo.index,
+            y=conteo.values,
+            text=conteo.values,
+            color=conteo.index,
+            title="Distribución de Productos por Estacionalidad",
+            color_discrete_map={
+                "📈 Mes Pico": "#27ae60",
+                "📉 Mes Bajo": "#c0392b",
+                "Mes Intermedio": "#f1c40f"
+            },
+            labels={"x": "", "y": ""}
+        )
+
+        fig.update_traces(textposition='outside')
+        fig.update_layout(
+            showlegend=False,
+            height=400,
+            margin=dict(t=60, b=20, l=10, r=10),
+            title_font=dict(size=18, color='#333', family='Arial Black'),
+            title_x=0.1
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        # === Paso 4: Tabla formateada
+        df_estacional = df_estacional.sort_values(by="ranking_mes", ascending=False)
+        df_estacional['cantidad_optima'] = df_estacional['cantidad_optima'].astype(int).map(lambda x: f"{x:,}")
+        columnas = ["idarticulo", "descripcion", "mes_pico", "mes_bajo", "ranking_mes", "Etiqueta Estacional", "cantidad_optima"]
+        
+        st.caption(f"📋 {len(df_estacional)} artículos con análisis estacional")
+        st.dataframe(df_estacional[columnas].head(300), use_container_width=True, hide_index=True)
+
+        # === Paso 5: Exportar CSV sin formatear
+        csv = df[columnas].to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Descargar CSV", csv, "analisis_estacionalidad.csv", "text/csv")
 
 
-
-    # def analisis_exceso_stock(self,df):
-    #     st.subheader("📦 Exceso de Stock")
-    #     df_exceso = df[df['exceso_STK'] > 0].copy()
-    #     st.dataframe(df_exceso[["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK", "dias_cobertura"]], use_container_width=True)
-    def analisis_estacionalidad(self,df):
+    def analisis_estacionalidad00(self,df):
         st.subheader("📆 Estacionalidad y Demanda")
         df_estacional = df.copy()
         df_estacional['Etiqueta Estacional'] = df_estacional['ranking_mes'].apply(lambda x: "📈 Mes Pico" if x >= 10 else ("📉 Mes Bajo" if x <= 3 else "Mes Intermedio"))
