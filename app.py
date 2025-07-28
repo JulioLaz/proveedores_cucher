@@ -3173,7 +3173,7 @@ class ProveedorDashboard:
         # === Paso 1: Etiquetado estacional
         df_estacional = df.copy()
         df_estacional['Etiqueta Estacional'] = df_estacional['ranking_mes'].apply(
-            lambda x: "📈 Mes Pico" if x >= 9 else ("📉 Mes Bajo" if x <= 4 else "Mes Intermedio")
+            lambda x: "📈 Mes Alto" if x >= 9 else ("📉 Mes Bajo" if x <= 4 else "Mes Intermedio")
         )
 
         # === Paso 2: Mapeo de meses abreviados a números
@@ -3190,11 +3190,15 @@ class ProveedorDashboard:
         en_temporada = df_estacional[df_estacional["mes_pico_num"] == mes_actual]
         total_temporada = len(en_temporada)
 
-        st.metric("📌 Productos en su mes pico actual", f"{total_temporada:,}")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("📋 Artículos con análisis estacional", {len(df_estacional)} )
+        with col1:
+            st.metric("📌 Productos en su mes pico actual", f"{total_temporada:,}")
 
         # === Paso 4: Gráfico de barras por etiqueta
         conteo = df_estacional['Etiqueta Estacional'].value_counts().reindex(
-            ["📈 Mes Pico", "Mes Intermedio", "📉 Mes Bajo"]
+            ["📈 Mes Alto", "Mes Intermedio", "📉 Mes Bajo"]
         ).fillna(0).astype(int)
 
         fig = px.bar(
@@ -3204,7 +3208,7 @@ class ProveedorDashboard:
             color=conteo.index,
             title="Distribución de Productos por Estacionalidad",
             color_discrete_map={
-                "📈 Mes Pico": "#27ae60",
+                "📈 Mes Alto": "#27ae60",
                 "📉 Mes Bajo": "#c0392b",
                 "Mes Intermedio": "#f1c40f"
             },
@@ -3216,7 +3220,7 @@ class ProveedorDashboard:
             showlegend=False,
             height=400,
             margin=dict(t=60, b=20, l=10, r=10),
-            title_font=dict(size=18, color='#333', family='Arial Black'),
+            title_font=dict(size=14, color='#333', family='Arial Black'),
             title_x=0.1
         )
 
@@ -3231,8 +3235,8 @@ class ProveedorDashboard:
             df_estacional = df_estacional.sort_values(by="ranking_mes", ascending=False)
             columnas = ["idarticulo", "descripcion", "mes_pico", "mes_bajo", "ranking_mes", "Etiqueta Estacional", "cantidad_optima"]
 
-            st.caption(f"📋 {len(df_estacional)} artículos con análisis estacional")
-            st.dataframe(df_estacional[columnas].head(300), use_container_width=True, hide_index=True)
+            # st.caption(f"📋 {len(df_estacional)} artículos con análisis estacional")
+            st.dataframe(df_estacional[columnas], use_container_width=True, hide_index=True)
 
         # === Paso 6: Descargar CSV con columnas visibles
         csv = df_estacional[columnas].to_csv(index=False).encode('utf-8')
