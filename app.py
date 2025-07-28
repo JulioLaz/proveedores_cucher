@@ -2910,7 +2910,6 @@ class ProveedorDashboard:
         col1, col2 = st.columns(2)
 
         with col1:
-            import plotly.express as px
             fig1 = px.bar(
                 df_costos,
                 x="Sucursal",
@@ -2921,7 +2920,8 @@ class ProveedorDashboard:
                 color_continuous_scale="Reds"
             )
             fig1.update_traces(textposition="outside", hovertemplate="<b>%{x}</b><br>Presupuesto: %{text}<extra></extra>")
-            fig1.update_layout(title_font=dict(size=16, color="#333"), title_x=0.08, showlegend=False, coloraxis_showscale=False, margin=dict(t=60, b=40, l=30, r=20))
+            fig1.update_layout(title_font=dict(size=16, color="#333"), title_x=0.08, showlegend=False, coloraxis_showscale=False, xaxis_title=None,
+            yaxis_title=None, margin=dict(t=60, b=40, l=30, r=20))
             fig1.update_yaxes(showticklabels=False)
             st.plotly_chart(fig1, use_container_width=True)
 
@@ -2933,10 +2933,11 @@ class ProveedorDashboard:
                 text="texto",
                 title="📦 Artículos con Venta Activa",
                 color="Artículos con Venta",
-                color_continuous_scale="Reds"
+                color_continuous_scale="Greens"
             )
             fig2.update_traces(textposition="outside", hovertemplate="<b>%{x}</b><br>Artículos: %{text}<extra></extra>")
-            fig2.update_layout(title_font=dict(size=16, color="#333"), title_x=0.08, showlegend=False, coloraxis_showscale=False, margin=dict(t=60, b=40, l=30, r=20))
+            fig2.update_layout(title_font=dict(size=16, color="#333"), title_x=0.08, showlegend=False,xaxis_title=None,
+            yaxis_title=None, coloraxis_showscale=False, margin=dict(t=60, b=40, l=30, r=20))
             fig2.update_yaxes(showticklabels=False)
             st.plotly_chart(fig2, use_container_width=True)
 
