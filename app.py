@@ -3194,7 +3194,7 @@ class ProveedorDashboard:
         with col1:
             st.metric("📋 Artículos con análisis estacional", f"{len(df_estacional):,}")
 
-        with col1:
+        with col2:
             st.metric("📌 Productos en su mes pico actual", f"{total_temporada:,}")
 
         # === Paso 4: Gráfico de barras por etiqueta
