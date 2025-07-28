@@ -2971,23 +2971,38 @@ class ProveedorDashboard:
     def analisis_ajuste_precios(self, df):
         st.subheader("💲 Propuesta de Ajuste de Precios")
 
-        # Paso 1: reemplazar valores nulos
-        df['decision_precio'] = df['decision_precio'].fillna("datos insuficientes")
+        # Reemplazar None por 'datos insuficientes' en la columna 'decision_precio'
+        df['decision_precio'] = df['decision_precio'].fillna('datos insuficientes')
 
-        # Paso 2: selector para mostrar todo o solo decisiones activas
-        mostrar_todo = st.checkbox("Mostrar todos los artículos", value=True)
-        
-        if not mostrar_todo:
-            df = df[df['decision_precio'] != "mantener"]
+        # Obtener las decisiones únicas disponibles
+        opciones_disponibles = df['decision_precio'].unique().tolist()
 
-        # Paso 3: vista de resultados
+        # Selector múltiple
+        decisiones_seleccionadas = st.multiselect(
+            "Filtrar por decisión de precio:",
+            opciones_disponibles,
+            default=opciones_disponibles
+        )
+
+        # Filtrar el DataFrame según las decisiones seleccionadas
+        df_filtrado = df[df['decision_precio'].isin(decisiones_seleccionadas)]
+
+        # Filtrar solo los artículos que requieren acción (no mantener)
+        df_precio = df_filtrado[df_filtrado['decision_precio'] != "mantener"].copy()
+
+        # Mostrar tabla con columnas clave
         st.dataframe(
-            df[[
-                "idarticulo", "descripcion", "precio_actual", 
-                "precio_optimo_ventas", "decision_precio", "pred_ventas_actual"
-            ]], 
+            df_precio[[
+                "idarticulo",
+                "descripcion",
+                "precio_actual",
+                "precio_optimo_ventas",
+                "decision_precio",
+                "pred_ventas_actual"
+            ]],
             use_container_width=True
         )
+
 
     def analisis_ajuste_precios00(self,df):
         st.subheader("💲 Propuesta de Ajuste de Precios")
