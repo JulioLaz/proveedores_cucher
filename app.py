@@ -2963,14 +2963,20 @@ class ProveedorDashboard:
             'Analizar stk': '🔍 Analizar stk'
         }
 
-        riesgo_orden = ['🔴 Alto', '🟠 Medio', '🟡 Bajo', '🟢 Muy Bajo', '🔍 Analizar stk']
-        colores = ['#e74c3c', '#f39c12', '#f1c40f', '#2ecc71', '#95a5a6']  # rojo, naranja, amarillo, verde, gris
+        riesgo_color = {
+            '🔴 Alto': '#e74c3c',
+            '🟠 Medio': '#f39c12',
+            '🟡 Bajo': '#f1c40f',
+            '🟢 Muy Bajo': '#2ecc71',
+            '🔍 Analizar stk': '#95a5a6'
+        }
 
         df_riesgo = df[df['nivel_riesgo'].isin(riesgo_mapeo.keys())].copy()
         df_riesgo['nivel_riesgo'] = df_riesgo['nivel_riesgo'].replace(riesgo_mapeo)
 
-        # === Paso 2: Conteo para gráfica ===
-        conteo = df_riesgo['nivel_riesgo'].value_counts().reindex(riesgo_orden).fillna(0).astype(int)
+        # === Paso 2: Conteo para gráfica (orden dinámico) ===
+        conteo = df_riesgo['nivel_riesgo'].value_counts().sort_values(ascending=True)
+        colores = [riesgo_color[nivel] for nivel in conteo.index]
 
         fig = go.Figure(go.Bar(
             x=conteo.values,
@@ -2979,7 +2985,7 @@ class ProveedorDashboard:
             text=[f"{v:,}" for v in conteo.values],
             textposition='outside',
             marker_color=colores,
-            hoverinfo='skip'
+            hovertemplate='%{y}: %{x:,}<extra></extra>'  # Tooltips personalizados
         ))
 
         fig.update_layout(
@@ -3003,6 +3009,11 @@ class ProveedorDashboard:
             df_riesgo['cantidad_optima'] = df_riesgo['cantidad_optima'].astype(int).map(lambda x: f"{x:,}")
             df_riesgo['dias_cobertura'] = df_riesgo['dias_cobertura'].map(lambda x: f"{x:.1f}")
 
+            # ✅ Ordenar por nivel de riesgo visualmente
+            orden_riesgo = ['🔴 Alto', '🟠 Medio', '🟡 Bajo', '🟢 Muy Bajo', '🔍 Analizar stk']
+            df_riesgo['orden'] = df_riesgo['nivel_riesgo'].apply(lambda x: orden_riesgo.index(x))
+            df_riesgo = df_riesgo.sort_values(by='orden').drop(columns='orden')
+
             columnas = ["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima"]
             st.caption(f"🔍 {len(df_riesgo)} artículos en riesgo de quiebre")
             st.dataframe(df_riesgo[columnas].head(300), use_container_width=True, hide_index=True)
@@ -3011,18 +3022,91 @@ class ProveedorDashboard:
         csv = df_riesgo[columnas].to_csv(index=False).encode('utf-8')
         st.download_button("📥 Descargar CSV", csv, "riesgo_quiebre.csv", "text/csv")
 
-
-
-    # def analisis_riesgo_quiebre(self,df):
-    #     st.subheader("⚠️ Riesgo de Quiebre")
-    #     riesgo_orden = ["🔴 Alto", "🟠 Medio", "🟡 Bajo", "🟢 Muy Bajo"]
-    #     df_quiebre = df[df['nivel_riesgo'].isin(['Alto', 'Medio', 'Muy Bajo', 'Bajo', 'Analizar stk'])]
-    #     st.dataframe(df_quiebre[["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima"]], use_container_width=True, hide_index=True)
-
-    def analisis_exceso_stock(self,df):
+    def analisis_exceso_stock(self, df):
         st.subheader("📦 Exceso de Stock")
+
+        if df is None or df.empty:
+            st.warning("⚠️ No hay datos disponibles para el análisis de exceso.")
+            return
+
+        # Filtrar artículos con exceso
         df_exceso = df[df['exceso_STK'] > 0].copy()
-        st.dataframe(df_exceso[["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK", "dias_cobertura"]], use_container_width=True)
+
+        if df_exceso.empty:
+            st.info("✅ No se detectaron artículos con exceso de stock.")
+            return
+
+        # Categorizar días de cobertura en rangos
+        def categorizar_dias(d):
+            if d <= 30:
+                return "🟢 0-30 días"
+            elif d <= 60:
+                return "🟡 31-60 días"
+            elif d <= 90:
+                return "🟠 61-90 días"
+            else:
+                return "🔴 90+ días"
+
+        df_exceso["rango_cobertura"] = df_exceso["dias_cobertura"].apply(categorizar_dias)
+
+        # Conteo por rango
+        orden = ["🟢 0-30 días", "🟡 31-60 días", "🟠 61-90 días", "🔴 90+ días"]
+        colores = ["#2ecc71", "#f1c40f", "#e67e22", "#e74c3c"]
+        conteo = df_exceso["rango_cobertura"].value_counts().reindex(orden).fillna(0).astype(int)
+
+        # Crear gráfico
+        fig = go.Figure(go.Bar(
+            x=conteo.values,
+            y=conteo.index,
+            orientation='h',
+            text=[f"{v:,}" for v in conteo.values],
+            textposition='outside',
+            marker_color=colores,
+            hovertemplate='%{y}: %{x:,}<extra></extra>'
+        ))
+
+        fig.update_layout(
+            height=400,
+            margin=dict(l=10, r=10, t=10, b=10),
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            xaxis=dict(visible=False),
+            yaxis=dict(visible=True),
+            showlegend=False
+        )
+
+        # Dividir en columnas
+        col1, col2 = st.columns([1, 2])
+
+        with col1:
+            st.markdown("📊 Distribución del exceso de stock por días de cobertura")
+            st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+            # Formatear columnas
+            df_exceso['exceso_STK'] = df_exceso['exceso_STK'].astype(int).map(lambda x: f"{x:,}")
+            df_exceso['costo_exceso_STK'] = df_exceso['costo_exceso_STK'].map(lambda x: f"${x:,.2f}")
+            df_exceso['dias_cobertura'] = df_exceso['dias_cobertura'].map(lambda x: f"{x:.1f}")
+
+            # Ordenar por mayor costo
+            df_exceso = df_exceso.sort_values(by='costo_exceso_STK', ascending=False)
+
+            columnas = ["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK", "dias_cobertura"]
+            st.caption(f"📦 {len(df_exceso)} artículos con exceso de stock detectado")
+            st.dataframe(df_exceso[columnas].head(300), use_container_width=True, hide_index=True)
+
+        # Exportar versión sin formato
+        df_export = df[df['exceso_STK'] > 0][columnas]
+        csv = df_export.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Descargar CSV", csv, "exceso_stock.csv", "text/csv")
+
+
+
+
+    # def analisis_exceso_stock(self,df):
+    #     st.subheader("📦 Exceso de Stock")
+    #     df_exceso = df[df['exceso_STK'] > 0].copy()
+    #     st.dataframe(df_exceso[["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK", "dias_cobertura"]], use_container_width=True)
     def analisis_estacionalidad(self,df):
         st.subheader("📆 Estacionalidad y Demanda")
         df_estacional = df.copy()
@@ -3095,7 +3179,7 @@ class ProveedorDashboard:
             df_final["venta para hoy"] = df_final["venta para hoy"].astype(int)
 
             st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
-            st.dataframe(df_final.head(300), use_container_width=True, hide_index=True)
+            st.dataframe(df_final, use_container_width=True, hide_index=True)
 
 
         # Descargar versión sin formato
