@@ -3030,7 +3030,7 @@ class ProveedorDashboard:
             return
 
         # Filtrar artículos con exceso
-        df_exceso = df[df['exceso_STK'] > 0].copy()
+        df_exceso = df[(df['exceso_STK'] > 0) & (df['dias_cobertura'] > 0)].copy()
 
         if df_exceso.empty:
             st.info("✅ No se detectaron artículos con exceso de stock.")
@@ -3085,8 +3085,8 @@ class ProveedorDashboard:
         with col2:
             # Formatear columnas
             df_exceso['exceso_STK'] = df_exceso['exceso_STK'].astype(int).map(lambda x: f"{x:,}")
-            df_exceso['costo_exceso_STK'] = df_exceso['costo_exceso_STK'].map(lambda x: f"${x:,.2f}")
-            df_exceso['dias_cobertura'] = df_exceso['dias_cobertura'].map(lambda x: f"{x:.1f}")
+            df_exceso['costo_exceso_STK'] = df_exceso['costo_exceso_STK'].map(lambda x: f"${x:,.0f}")
+            df_exceso['dias_cobertura'] = df_exceso['dias_cobertura'].map(lambda x: f"{x:.0f}")
 
             # Ordenar por mayor costo
             df_exceso = df_exceso.sort_values(by='costo_exceso_STK', ascending=False)
@@ -3094,6 +3094,48 @@ class ProveedorDashboard:
             columnas = ["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK", "dias_cobertura"]
             st.caption(f"📦 {len(df_exceso)} artículos con exceso de stock detectado")
             st.dataframe(df_exceso[columnas].head(300), use_container_width=True, hide_index=True)
+
+        with st.expander("🔎 Visualizar Exceso por Impacto", expanded=True):
+            st.markdown("#### 💥 Impacto visual del exceso de stock (Cantidad vs Días de cobertura)")
+
+            # Preparar top 50 artículos más costosos
+            df_top = df_exceso.sort_values("costo_exceso_STK", ascending=False).head(50).copy()
+            df_top["producto_corto"] = df_top["descripcion"].str[:40] + "..."
+            
+            fig = px.scatter(
+                df_top,
+                x="exceso_STK",
+                y="dias_cobertura",
+                size="costo_exceso_STK",
+                color="rango_cobertura",
+                hover_name="producto_corto",
+                hover_data={
+                    "exceso_STK": ":,.0f",
+                    "dias_cobertura": ":.1f",
+                    "costo_exceso_STK": ":,.2f",
+                    "producto_corto": False
+                },
+                title="🧮 Exceso de Stock: Volumen vs Cobertura",
+                labels={
+                    "exceso_STK": "Cantidad Excedente",
+                    "dias_cobertura": "Días de Cobertura",
+                    "costo_exceso_STK": "Costo Exceso ($)",
+                    "rango_cobertura": "Rango de Cobertura"
+                },
+                color_discrete_sequence=["#2ecc71", "#f1c40f", "#e67e22", "#e74c3c"]  # verde, amarillo, naranja, rojo
+            )
+
+            fig.update_traces(marker=dict(opacity=0.75, line=dict(width=0)))
+            fig.update_layout(
+                height=600,
+                title_font=dict(size=18, color='#454448', family='Arial Black'),
+                title_x=0.05,
+                margin=dict(t=60, b=20, l=10, r=10),
+                legend_title_text="Cobertura"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
 
         # Exportar versión sin formato
         df_export = df[df['exceso_STK'] > 0][columnas]
