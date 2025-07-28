@@ -3019,18 +3019,18 @@ class ProveedorDashboard:
             st.markdown("📊 Distribucion del análisis de variación de precios")
             st.plotly_chart(fig, use_container_width=True)
 
-        with col2:
-            with st.container():
-                df_final = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])]
-                st.markdown("<div style='height:400px'>", unsafe_allow_html=True)
-                st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
-                st.dataframe(df_final.head(300), use_container_width=True)
-                st.markdown("</div>", unsafe_allow_html=True)
-
         # with col2:
-        #     df_final = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])]
-        #     st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
-        #     st.dataframe(df_final.head(300), use_container_width=True)
+        #     with st.container():
+        #         df_final = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])]
+        #         st.markdown("<div style='height:400px'>", unsafe_allow_html=True)
+        #         st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
+        #         st.dataframe(df_final.head(300), use_container_width=True)
+        #         st.markdown("</div>", unsafe_allow_html=True)
+
+        with col2:
+            df_final = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])]
+            st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
+            st.dataframe(df_final.head(300), use_container_width=True)
 
 
         # st.plotly_chart(fig, use_container_width=True)
