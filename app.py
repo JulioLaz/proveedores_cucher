@@ -2818,7 +2818,13 @@ class ProveedorDashboard:
         if df is None or df.empty:
             st.warning("⚠️ No hay datos disponibles para el análisis de presupuesto.")
             return
-        st.subheader(f"🔄 Fecha de generacion de informe: {df['fecha'].iloc[0]}")
+        
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.subheader(f"📆 Fecha del Presupuesto cargado: {df['fecha'].iloc[0]}")
+        with col2:
+            st.subheader(f"🛒 Cantidad de articulos presentes: {len(df)}")
 
         tabs = st.tabs([
             "🔄 Reposición Inmediata",
