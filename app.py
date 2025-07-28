@@ -2818,6 +2818,7 @@ class ProveedorDashboard:
         if df is None or df.empty:
             st.warning("⚠️ No hay datos disponibles para el análisis de presupuesto.")
             return
+        st.subheader(f"🔄 Fecha de generacion de informe: {df['fecha'].iloc[0]}")
 
         tabs = st.tabs([
             "🔄 Reposición Inmediata",
@@ -2856,84 +2857,12 @@ class ProveedorDashboard:
 
     def analisis_reposicion(self,df):
         df_reponer = df[df['cantidad_optima'] > 0].copy()
-
-        # df_reponer = self.df[self.df['cantidad_optima'] > 0].copy()
         st.subheader("🔄 Artículos a Reponer")
         st.metric("Costo Total de Reposición", f"${df_reponer['PRESUPUESTO'].sum():,.0f}")
-
-        # df_reponer['new_presu'] = df_reponer['total_abastecer'] * df_reponer['costo_unit']
-        # st.metric("Costo Total de Reposición cnt abatecer", f"${df_reponer['new_presu'].sum():,.0f}")
-
-        # df_reponer['opt_presu'] = df_reponer['cantidad_optima'] * df_reponer['costo_unit']
-        # st.metric("Costo Total de Reposición cnt opt", f"${df_reponer['opt_presu'].sum():,.0f}")
-
         columnas = ["idarticulo", "descripcion", "cantidad_optima", "PRESUPUESTO",
                     "stk_corrientes", "stk_express", "stk_formosa", "stk_hiper", "stk_TIROL", "stk_central", "STK_TOTAL",
                     "cor_abastecer", "exp_abastecer", "for_abastecer", "hip_abastecer", "total_abastecer"]
         st.dataframe(df_reponer[columnas], use_container_width=True)
-
-
-    def analisis_presupuesto_sucursal00(self, df):
-        st.subheader("🏬 Presupuesto Estimado por Sucursal (Distribución Proporcional)")
-
-        df_reponer = df[df["cantidad_optima"] > 0].copy()
-
-        sucursales = ['cor_abastecer', 'exp_abastecer', 'for_abastecer', 'hip_abastecer']
-
-        # Eliminar valores negativos en abastecer
-        for suc in sucursales:
-            if suc in df_reponer.columns:
-                df_reponer[suc] = df_reponer[suc].clip(lower=0)
-
-        # Calcular distribución proporcional por fila
-        df_reponer["total_abastecer"] = df_reponer[sucursales].sum(axis=1)
-        for suc in sucursales:
-            df_reponer[f"{suc}_pct"] = df_reponer[suc] / df_reponer["total_abastecer"]
-            df_reponer[f"{suc}_optima"] = df_reponer[f"{suc}_pct"] * df_reponer["cantidad_optima"]
-            df_reponer[f"{suc}_presupuesto"] = df_reponer[f"{suc}_optima"] * df_reponer["costo_unit"]
-
-        # Sumar presupuesto por sucursal
-        costos = {
-            suc.replace("_abastecer", ""): df_reponer[f"{suc}_presupuesto"].sum()
-            for suc in sucursales
-        }
-
-        # Crear DataFrame para graficar
-        df_costos = pd.DataFrame(costos.items(), columns=["Sucursal", "Presupuesto ($)"])
-        df_costos["Presupuesto ($)"] = df_costos["Presupuesto ($)"].astype(int)
-        df_costos["texto"] = df_costos["Presupuesto ($)"].apply(lambda x: f"${x:,.0f}")
-        df_costos = df_costos.sort_values(by="Presupuesto ($)", ascending=False)
-
-        # Gráfico
-        fig = px.bar(
-            df_costos,
-            x="Sucursal",
-            y="Presupuesto ($)",
-            text="texto",
-            title="🏬 Presupuesto Estimado por Sucursal",
-            color="Presupuesto ($)",
-            color_continuous_scale="Reds"
-        )
-
-        fig.update_traces(
-            textposition="outside",
-            hovertemplate="<b>%{x}</b><br>Presupuesto: %{text}<extra></extra>",
-            showlegend=False
-        )
-
-        fig.update_layout(
-            title_font=dict(size=18, color="#454448", family="Arial Black"),
-            title_x=0.08,
-            xaxis_title=None,
-            yaxis_title=None,
-            margin=dict(t=70, b=40, l=30, r=20),
-            showlegend=False,
-            coloraxis_showscale=False
-        )
-
-        fig.update_yaxes(showticklabels=False)
-        st.plotly_chart(fig, use_container_width=True)
-
 
     def analisis_presupuesto_sucursal(self, df):
         st.subheader("🏬 Presupuesto Estimado y Cobertura por Sucursal")
@@ -3010,7 +2939,6 @@ class ProveedorDashboard:
             fig2.update_layout(title_font=dict(size=16, color="#333"), title_x=0.08, showlegend=False, coloraxis_showscale=False, margin=dict(t=60, b=40, l=30, r=20))
             fig2.update_yaxes(showticklabels=False)
             st.plotly_chart(fig2, use_container_width=True)
-
 
     def analisis_riesgo_quiebre(self,df):
         st.subheader("⚠️ Riesgo de Quiebre")
