@@ -3148,7 +3148,8 @@ class ProveedorDashboard:
 
 
         # Exportar versión sin formato
-        df_export = df[df['exceso_STK'] > 0][columnas]
+        columnas_old = ["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK", "dias_cobertura"]
+        df_export = df[df['exceso_STK'] > 0][columnas_old]
         csv = df_export.to_csv(index=False).encode('utf-8')
         st.download_button("📥 Descargar CSV", csv, "exceso_stock.csv", "text/csv")
 
