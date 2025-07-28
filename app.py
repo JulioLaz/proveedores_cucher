@@ -3096,12 +3096,12 @@ class ProveedorDashboard:
             st.dataframe(df_exceso[columnas].head(300), use_container_width=True, hide_index=True)
 
         with st.expander("🔎 Visualizar Exceso por Impacto", expanded=True):
-                col1, col2 = st.columns([1, 2])
+                col1, col2 = st.columns(2)
                 with col1:
-                    st.markdown("#### 💥 Exceso de Stock: Cantidad vs Días de cobertura")
+                    st.markdown("##### 💥 Exceso de Stock: Cantidad vs Días de cobertura")
                 with col2:
                     total_costo = df_exceso["costo_exceso_STK"].sum()
-                    st.markdown(f"💰 **Total inmovilizado en exceso:** `${total_costo:,.2f}`")
+                    st.markdown(f"##### 💰 **Total inmovilizado en exceso:** `${total_costo:,.0f}`")
 
 
                 df_top = df_exceso.sort_values("costo_exceso_STK", ascending=False).head(50).copy()
@@ -3126,8 +3126,8 @@ class ProveedorDashboard:
                         hover_name="producto_corto",
                         hover_data={
                             "exceso_STK": ":,.0f",
-                            "dias_cobertura": ":.1f",
-                            "costo_exceso_STK": ":,.2f",
+                            "dias_cobertura": ":.0f",
+                            "costo_exceso_STK": ":,.0f",
                             "producto_corto": False
                         },
                         title="🧮 Exceso de Stock: Volumen vs Cobertura",
@@ -3137,7 +3137,8 @@ class ProveedorDashboard:
                             "costo_exceso_STK": "Costo Exceso ($)",
                             "rango_cobertura": "Rango de Cobertura"
                         },
-                        color_discrete_sequence=["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71"]
+                        color_discrete_sequence=["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71"],
+                        size_max=60
                     )
 
                     fig.update_traces(marker=dict(opacity=0.85, line=dict(width=1)))
