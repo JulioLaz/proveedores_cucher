@@ -2873,7 +2873,7 @@ class ProveedorDashboard:
         st.dataframe(df_reponer[columnas], use_container_width=True)
 
 
-    def tab_presupuesto_sucursal(self, df):
+    def analisis_presupuesto_sucursal(self, df):
         st.subheader("🏬 Presupuesto Estimado por Sucursal (Distribución Proporcional)")
 
         df_reponer = df[df["cantidad_optima"] > 0].copy()
