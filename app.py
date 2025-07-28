@@ -3096,7 +3096,13 @@ class ProveedorDashboard:
             st.dataframe(df_exceso[columnas].head(300), use_container_width=True, hide_index=True)
 
         with st.expander("🔎 Visualizar Exceso por Impacto", expanded=True):
-                st.markdown("#### 💥 Exceso de Stock: Cantidad vs Días de cobertura")
+                col1, col2 = st.columns([1, 2])
+                with col1:
+                    st.markdown("#### 💥 Exceso de Stock: Cantidad vs Días de cobertura")
+                with col2:
+                    total_costo = df_exceso["costo_exceso_STK"].sum()
+                    st.markdown(f"💰 **Total inmovilizado en exceso:** `${total_costo:,.2f}`")
+
 
                 df_top = df_exceso.sort_values("costo_exceso_STK", ascending=False).head(50).copy()
 
@@ -3140,7 +3146,7 @@ class ProveedorDashboard:
                         title_font=dict(size=18, color='#454448', family='Arial Black'),
                         title_x=0.05,
                         margin=dict(t=60, b=20, l=10, r=10),
-                        legend_title_text="Cobertura"
+                        legend_title_text="Cobertura", xaxis_type='log'
                     )
 
                     st.plotly_chart(fig, use_container_width=True)
