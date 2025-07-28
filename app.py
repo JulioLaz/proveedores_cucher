@@ -2947,11 +2947,77 @@ class ProveedorDashboard:
             fig2.update_yaxes(showticklabels=False)
             st.plotly_chart(fig2, use_container_width=True)
 
-    def analisis_riesgo_quiebre(self,df):
+    def analisis_riesgo_quiebre(self, df):
         st.subheader("⚠️ Riesgo de Quiebre")
-        riesgo_orden = ["🔴 Alto", "🟠 Medio", "🟡 Bajo", "🟢 Muy Bajo"]
-        df_quiebre = df[df['nivel_riesgo'].isin(['Alto', 'Medio', 'Muy Bajo', 'Bajo', 'Analizar stk'])]
-        st.dataframe(df_quiebre[["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima"]], use_container_width=True)
+
+        if df is None or df.empty:
+            st.warning("⚠️ No hay datos disponibles para el análisis de riesgo.")
+            return
+
+        # === Paso 1: Filtrar y reemplazar niveles ===
+        riesgo_mapeo = {
+            'Alto': '🔴 Alto',
+            'Medio': '🟠 Medio',
+            'Bajo': '🟡 Bajo',
+            'Muy Bajo': '🟢 Muy Bajo',
+            'Analizar stk': '🔍 Analizar stk'
+        }
+
+        riesgo_orden = ['🔴 Alto', '🟠 Medio', '🟡 Bajo', '🟢 Muy Bajo', '🔍 Analizar stk']
+        colores = ['#e74c3c', '#f39c12', '#f1c40f', '#2ecc71', '#95a5a6']  # rojo, naranja, amarillo, verde, gris
+
+        df_riesgo = df[df['nivel_riesgo'].isin(riesgo_mapeo.keys())].copy()
+        df_riesgo['nivel_riesgo'] = df_riesgo['nivel_riesgo'].replace(riesgo_mapeo)
+
+        # === Paso 2: Conteo para gráfica ===
+        conteo = df_riesgo['nivel_riesgo'].value_counts().reindex(riesgo_orden).fillna(0).astype(int)
+
+        fig = go.Figure(go.Bar(
+            x=conteo.values,
+            y=conteo.index,
+            orientation='h',
+            text=[f"{v:,}" for v in conteo.values],
+            textposition='outside',
+            marker_color=colores,
+            hoverinfo='skip'
+        ))
+
+        fig.update_layout(
+            height=400,
+            margin=dict(l=10, r=10, t=10, b=10),
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            xaxis=dict(visible=False),
+            yaxis=dict(visible=True),
+            showlegend=False
+        )
+
+        col1, col2 = st.columns([1, 2])
+
+        with col1:
+            st.markdown("📊 Distribución del riesgo de quiebre")
+            st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+            # ✅ Formatear columnas
+            df_riesgo['cantidad_optima'] = df_riesgo['cantidad_optima'].astype(int).map(lambda x: f"{x:,}")
+            df_riesgo['dias_cobertura'] = df_riesgo['dias_cobertura'].map(lambda x: f"{x:.1f}")
+
+            columnas = ["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima"]
+            st.caption(f"🔍 {len(df_riesgo)} artículos en riesgo de quiebre")
+            st.dataframe(df_riesgo[columnas].head(300), use_container_width=True, hide_index=True)
+
+        # 📥 Exportación opcional
+        csv = df_riesgo[columnas].to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Descargar CSV", csv, "riesgo_quiebre.csv", "text/csv")
+
+
+
+    # def analisis_riesgo_quiebre(self,df):
+    #     st.subheader("⚠️ Riesgo de Quiebre")
+    #     riesgo_orden = ["🔴 Alto", "🟠 Medio", "🟡 Bajo", "🟢 Muy Bajo"]
+    #     df_quiebre = df[df['nivel_riesgo'].isin(['Alto', 'Medio', 'Muy Bajo', 'Bajo', 'Analizar stk'])]
+    #     st.dataframe(df_quiebre[["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima"]], use_container_width=True, hide_index=True)
 
     def analisis_exceso_stock(self,df):
         st.subheader("📦 Exceso de Stock")
