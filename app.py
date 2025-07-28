@@ -3099,8 +3099,23 @@ class ProveedorDashboard:
             st.markdown("#### 💥 Impacto visual del exceso de stock (Cantidad vs Días de cobertura)")
 
             # Preparar top 50 artículos más costosos
+            # ⚠️ Limpiar datos que puedan causar errores
             df_top = df_exceso.sort_values("costo_exceso_STK", ascending=False).head(50).copy()
+
+            # Asegurar que no haya NaN y que sea numérico
+            df_top = df_top[df_top['costo_exceso_STK'].notna()]
+            df_top = df_top[df_top['exceso_STK'].notna()]
+            df_top = df_top[df_top['dias_cobertura'].notna()]
+
+            df_top['costo_exceso_STK'] = pd.to_numeric(df_top['costo_exceso_STK'], errors='coerce')
+            df_top['exceso_STK'] = pd.to_numeric(df_top['exceso_STK'], errors='coerce')
+            df_top['dias_cobertura'] = pd.to_numeric(df_top['dias_cobertura'], errors='coerce')
+
+            # Eliminar filas con valores faltantes luego del coercion
+            df_top = df_top.dropna(subset=['costo_exceso_STK', 'exceso_STK', 'dias_cobertura'])
+
             df_top["producto_corto"] = df_top["descripcion"].str[:40] + "..."
+
             
             fig = px.scatter(
                 df_top,
