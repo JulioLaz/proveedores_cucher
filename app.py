@@ -2968,6 +2968,7 @@ class ProveedorDashboard:
         # df_perdido = df[df['valor_perdido_TOTAL'] > 0].copy()
         # st.dataframe(df_perdido[["idarticulo", "descripcion", "valor_perdido_TOTAL", "unidades_perdidas_TOTAL", "cnt_reabastecer"]], use_container_width=True)
 
+
     def analisis_ajuste_precios(self, df=None):
         st.subheader("💲 Propuesta de Ajuste de Precios")
 
@@ -2978,37 +2979,51 @@ class ProveedorDashboard:
             st.warning("⚠️ No hay datos disponibles para el análisis de precios.")
             return
 
-        # ✅ Crear una versión reducida con solo las columnas necesarias
+        # === Paso 1: Reducir columnas necesarias ===
         columnas_necesarias = [
             "idarticulo", "descripcion", "precio_actual",
             "precio_optimo_ventas", "decision_precio", "pred_ventas_actual"
         ]
 
-        if 'df_ajuste_precio_liviano' not in st.session_state:
-            df_reducido = df[columnas_necesarias].copy()
-            df_reducido['decision_precio'] = df_reducido['decision_precio'].fillna('datos insuficientes')
-            st.session_state.df_ajuste_precio_liviano = df_reducido
-        else:
-            df_reducido = st.session_state.df_ajuste_precio_liviano
+        df_reducido = df[columnas_necesarias].copy()
+        df_reducido['decision_precio'] = df_reducido['decision_precio'].fillna('datos insuficientes')
+        df_reducido['decision_precio'] = df_reducido['decision_precio'].replace('Modelo no confiable', 'datos insuficientes')
 
-        # 🎯 Multiselect para decisiones
-        opciones = sorted(df_reducido['decision_precio'].unique().tolist())
+        # === Paso 2: Conteo para gráfica ===
+        orden = ['🔻 rebaja', '🔺 alza', '✅ Mantener', 'datos insuficientes']
+        conteo = df_reducido['decision_precio'].value_counts().reindex(orden).fillna(0).astype(int)
 
-        decisiones_seleccionadas = st.multiselect(
-            "Filtrar por decisión de precio:",
-            opciones,
-            default=opciones
+        fig = go.Figure(go.Bar(
+            x=conteo.values,
+            y=conteo.index,
+            orientation='h',
+            text=[f"{v:,}" for v in conteo.values],
+            textposition='outside',
+            marker_color=['#FF6B6B', '#4ECDC4', '#CFCFCF', '#B0BEC5'],  # colores personalizados
+            hoverinfo='skip'
+        ))
+
+        fig.update_layout(
+            height=300,
+            margin=dict(l=10, r=10, t=10, b=10),
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            xaxis=dict(visible=False),
+            yaxis=dict(visible=False),
+            showlegend=False
         )
 
-        # 🔍 Filtrar solo decisiones seleccionadas y excluir 'mantener'
-        with st.spinner("Filtrando artículos..."):
-            df_filtrado = df_reducido[
-                (df_reducido['decision_precio'].isin(decisiones_seleccionadas)) &
-                (df_reducido['decision_precio'] != "mantener")
-            ]
+        st.plotly_chart(fig, use_container_width=True)
 
-            st.caption(f"🔍 {len(df_filtrado)} artículos listos para ajuste de precio.")
-            st.dataframe(df_filtrado.head(300), use_container_width=True)
+        # === Paso 3: Tabla final solo con rebaja y alza ===
+        df_final = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])]
+        st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
+        st.dataframe(df_final.head(300), use_container_width=True)
+
+        # === Opcional: Exportar CSV ===
+        csv = df_final.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Descargar CSV", csv, "ajuste_precios.csv", "text/csv")
+
 
 
 
