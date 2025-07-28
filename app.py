@@ -2872,7 +2872,72 @@ class ProveedorDashboard:
                     "cor_abastecer", "exp_abastecer", "for_abastecer", "hip_abastecer", "total_abastecer"]
         st.dataframe(df_reponer[columnas], use_container_width=True)
 
-    def analisis_presupuesto_sucursal(self,df):
+
+    def tab_presupuesto_sucursal(self, df):
+        st.subheader("🏬 Presupuesto Estimado por Sucursal (Distribución Proporcional)")
+
+        df_reponer = df[df["cantidad_optima"] > 0].copy()
+
+        sucursales = ['cor_abastecer', 'exp_abastecer', 'for_abastecer', 'hip_abastecer']
+
+        # Eliminar valores negativos en abastecer
+        for suc in sucursales:
+            if suc in df_reponer.columns:
+                df_reponer[suc] = df_reponer[suc].clip(lower=0)
+
+        # Calcular distribución proporcional por fila
+        df_reponer["total_abastecer"] = df_reponer[sucursales].sum(axis=1)
+        for suc in sucursales:
+            df_reponer[f"{suc}_pct"] = df_reponer[suc] / df_reponer["total_abastecer"]
+            df_reponer[f"{suc}_optima"] = df_reponer[f"{suc}_pct"] * df_reponer["cantidad_optima"]
+            df_reponer[f"{suc}_presupuesto"] = df_reponer[f"{suc}_optima"] * df_reponer["costo_unit"]
+
+        # Sumar presupuesto por sucursal
+        costos = {
+            suc.replace("_abastecer", ""): df_reponer[f"{suc}_presupuesto"].sum()
+            for suc in sucursales
+        }
+
+        # Crear DataFrame para graficar
+        df_costos = pd.DataFrame(costos.items(), columns=["Sucursal", "Presupuesto ($)"])
+        df_costos["Presupuesto ($)"] = df_costos["Presupuesto ($)"].astype(int)
+        df_costos["texto"] = df_costos["Presupuesto ($)"].apply(lambda x: f"${x:,.0f}")
+        df_costos = df_costos.sort_values(by="Presupuesto ($)", ascending=False)
+
+        # Gráfico
+        fig = px.bar(
+            df_costos,
+            x="Sucursal",
+            y="Presupuesto ($)",
+            text="texto",
+            title="🏬 Presupuesto Estimado por Sucursal",
+            color="Presupuesto ($)",
+            color_continuous_scale="Reds"
+        )
+
+        fig.update_traces(
+            textposition="outside",
+            hovertemplate="<b>%{x}</b><br>Presupuesto: %{text}<extra></extra>",
+            showlegend=False
+        )
+
+        fig.update_layout(
+            title_font=dict(size=18, color="#454448", family="Arial Black"),
+            title_x=0.08,
+            xaxis_title=None,
+            yaxis_title=None,
+            margin=dict(t=70, b=40, l=30, r=20),
+            showlegend=False,
+            coloraxis_showscale=False
+        )
+
+        fig.update_yaxes(showticklabels=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+
+
+
+    def analisis_presupuesto_sucursal_00(self,df):
         # Filtrar artículos con cantidad óptima > 0
         df_reponer = df[df['cantidad_optima'] > 0].copy()
 
