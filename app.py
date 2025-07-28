@@ -3084,14 +3084,14 @@ class ProveedorDashboard:
 
         with col2:
             # Formatear columnas
-            df_exceso['exceso_STK'] = df_exceso['exceso_STK'].astype(int).map(lambda x: f"{x:,}")
-            df_exceso['costo_exceso_STK'] = df_exceso['costo_exceso_STK'].map(lambda x: f"${x:,.0f}")
-            df_exceso['dias_cobertura'] = df_exceso['dias_cobertura'].map(lambda x: f"{x:.0f}")
+            df_exceso['exceso_STK_format'] = df_exceso['exceso_STK'].astype(int).map(lambda x: f"{x:,}")
+            df_exceso['costo_exceso_STK_format'] = df_exceso['costo_exceso_STK'].map(lambda x: f"${x:,.0f}")
+            df_exceso['dias_cobertura_format'] = df_exceso['dias_cobertura'].map(lambda x: f"{x:.0f}")
 
             # Ordenar por mayor costo
             df_exceso = df_exceso.sort_values(by='costo_exceso_STK', ascending=False)
 
-            columnas = ["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK", "dias_cobertura"]
+            columnas = ["idarticulo", "descripcion", "exceso_STK_format", "costo_exceso_STK_format", "dias_cobertura_format"]
             st.caption(f"📦 {len(df_exceso)} artículos con exceso de stock detectado")
             st.dataframe(df_exceso[columnas].head(300), use_container_width=True, hide_index=True)
 
