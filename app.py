@@ -3050,8 +3050,10 @@ class ProveedorDashboard:
         df_exceso["rango_cobertura"] = df_exceso["dias_cobertura"].apply(categorizar_dias)
 
         # Conteo por rango
-        orden = ["🟢 0-30 días", "🟡 31-60 días", "🟠 61-90 días", "🔴 90+ días"]
-        colores = ["#2ecc71", "#f1c40f", "#e67e22", "#e74c3c"]
+        orden = ["🟡 31-60 días", "🟠 61-90 días", "🔴 90+ días"]
+        colores = [ "#f1c40f", "#e67e22", "#e74c3c"]
+        # orden = ["🟢 0-30 días", "🟡 31-60 días", "🟠 61-90 días", "🔴 90+ días"]
+        # colores = ["#2ecc71", "#f1c40f", "#e67e22", "#e74c3c"]
         conteo = df_exceso["rango_cobertura"].value_counts().reindex(orden).fillna(0).astype(int)
 
         # Crear gráfico
