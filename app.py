@@ -2999,7 +2999,7 @@ class ProveedorDashboard:
             orientation='h',
             text=[f"{v:,}" for v in conteo.values],
             textposition='outside',
-            marker_color=['#FF6B6B', '#4ECDC4', '#CFCFCF', '#B0BEC5'],  # colores personalizados
+            marker_color=['#FF6B6B', '#4ECDC4', '#CFCFCF', '#B0BEC5'],
             hoverinfo='skip'
         ))
 
@@ -3016,30 +3016,26 @@ class ProveedorDashboard:
         col1, col2 = st.columns([1, 2])
 
         with col1:
-            st.markdown("📊 Distribucion del análisis de variación de precios")
+            st.markdown("📊 Distribución del análisis de variación de precios")
             st.plotly_chart(fig, use_container_width=True)
 
-        # with col2:
-        #     with st.container():
-        #         df_final = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])]
-        #         st.markdown("<div style='height:400px'>", unsafe_allow_html=True)
-        #         st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
-        #         st.dataframe(df_final.head(300), use_container_width=True)
-        #         st.markdown("</div>", unsafe_allow_html=True)
-
         with col2:
-            df_final = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])]
+            df_final = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])].copy()
+
+            # ✅ Formatear columnas para mostrar
+            df_final['precio_actual'] = df_final['precio_actual'].map(lambda x: f"${x:,.2f}")
+            df_final['precio_optimo_ventas'] = df_final['precio_optimo_ventas'].map(lambda x: f"${x:,.2f}")
+            df_final.rename(columns={"pred_ventas_actual": "venta para hoy"}, inplace=True)
+            df_final["venta para hoy"] = df_final["venta para hoy"].astype(int)
+
             st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
             st.dataframe(df_final.head(300), use_container_width=True)
 
-
-        # st.plotly_chart(fig, use_container_width=True)
-
-        # === Paso 3: Tabla final solo con rebaja y alza ===
-
-        # === Opcional: Exportar CSV ===
-        csv = df_final.to_csv(index=False).encode('utf-8')
+        # Descargar versión sin formato
+        df_export = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])]
+        csv = df_export.to_csv(index=False).encode('utf-8')
         st.download_button("📥 Descargar CSV", csv, "ajuste_precios.csv", "text/csv")
+
 
 
 
