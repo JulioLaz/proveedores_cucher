@@ -3252,98 +3252,95 @@ class ProveedorDashboard:
                         else:
                             st.markdown(f"- ✅ No hay productos en el rango {nivel}, lo cual indica una buena rotación en este segmento.")
 
-                    # # === INSIGHTS POR SEGMENTO DE COBERTURA ===
-                    # st.markdown("### 🔍 Análisis por Segmento de Cobertura")
+#################################################################
+        with st.expander("🔎 Visualizar Exceso por Impacto", expanded=True):
 
-                    # segmentos = {
-                    #     "🟡 31-60 días": "Moderado",
-                    #     "🟠 61-90 días": "Alto",
-                    #     "🔴 90+ días": "Crítico"
-                    # }
+            # === Análisis de Pareto - Exceso de Stock ===
+            pareto_exceso = df_top.sort_values("costo_exceso_STK", ascending=False).copy()
+            pareto_exceso["Participación %"] = pareto_exceso["costo_exceso_STK"] / pareto_exceso["costo_exceso_STK"].sum() * 100
+            pareto_exceso["ranking"] = range(1, len(pareto_exceso) + 1)
+            pareto_exceso["descripcion_corta"] = pareto_exceso.apply(lambda row: f"{row['ranking']} - {row['producto_corto'][:14]}...", axis=1)
+            pareto_exceso["acumulado"] = pareto_exceso['Participación %'].cumsum()
+            pareto_exceso["individual_fmt"] = pareto_exceso["Participación %"].map("{:.1f}%".format)
+            pareto_exceso["acumulado_fmt"] = pareto_exceso["acumulado"].map("{:.0f}%".format)
 
-                    # for nivel, descripcion in segmentos.items():
-                    #     df_seg = df_top[df_top["rango_cobertura"] == nivel]
+            fig = make_subplots(specs=[[{"secondary_y": True}]])
 
-                    #     if not df_seg.empty:
-                    #         total_valor = df_seg["costo_exceso_STK"].sum()
-                    #         promedio_dias = df_seg["dias_cobertura"].mean()
-                    #         producto_top = df_seg.loc[df_seg["costo_exceso_STK"].idxmax()]
+            # === Barras de participación individual ===
+            fig.add_trace(
+                go.Bar(
+                    x=pareto_exceso["descripcion_corta"],
+                    y=pareto_exceso['Participación %'],
+                    name='Participación Individual (%)',
+                    marker_color='lightcoral',
+                    text=pareto_exceso["individual_fmt"],
+                    textposition='outside',
+                    hovertemplate="<b>%{customdata[0]}</b><br>Participación Individual: %{text}<extra></extra>",
+                    customdata=pareto_exceso[["descripcion"]]
+                ),
+                secondary_y=False
+            )
 
-                    #         col1, col2 = st.columns(2)
-                    #         with col1:
-                    #             st.markdown(f" #### {nivel} — Exceso {descripcion}")
-                    #         with col2:
-                    #             # Expander para ver detalle de productos en el rango
-                    #             with st.expander(f"🔽 Ver artículos en {nivel}", expanded=False):
-                    #                 cols_mostrar = ["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK"]
-                    #                 df_vista = df_seg[cols_mostrar].copy()
-                    #                 df_vista = df_vista.rename(columns={
-                    #                     "idarticulo": "🆔 ID Artículo",
-                    #                     "descripcion": "📦 Producto",
-                    #                     "exceso_STK": "📊 Exceso (Unid.)",
-                    #                     "costo_exceso_STK": "💰 Costo Exceso"
-                    #                 })
-                    #                 df_vista = df_vista.sort_values("💰 Costo Exceso", ascending=False)
-                    #                 df_vista["💰 Costo Exceso"] = df_vista["💰 Costo Exceso"].apply(lambda x: f"${x:,.0f}")
-                    #                 st.dataframe(df_vista, use_container_width=True, hide_index=True)
+            # === Línea de participación acumulada ===
+            fig.add_trace(
+                go.Scatter(
+                    x=pareto_exceso["descripcion_corta"],
+                    y=pareto_exceso["acumulado"],
+                    mode='lines+markers+text',
+                    name='Participación Acumulada (%)',
+                    line=dict(color='red', width=1),
+                    text=pareto_exceso["acumulado_fmt"],
+                    textposition="top center",
+                    hovertemplate="<b>%{customdata[0]}</b><br>Participación Acumulada: %{y:.1f}%<extra></extra>",
+                    customdata=pareto_exceso[["descripcion"]]
+                ),
+                secondary_y=True
+            )
 
-                    #                 # Descargar CSV
-                    #                 csv_data = df_seg[cols_mostrar].to_csv(index=False).encode("utf-8")
-                    #                 st.download_button(
-                    #                     label=f"📥 Descargar CSV de {nivel}",
-                    #                     data=csv_data,
-                    #                     file_name=f"exceso_segmento_{nivel.replace(' ', '_')}.csv",
-                    #                     mime="text/csv"
-                    #                 )
+            fig.update_layout(
+                title_text="📈 Análisis de Pareto - Concentración del Exceso de Stock",
+                title_font=dict(size=18, color='#454448', family='Arial Black'),
+                title_x=0.08,
+                xaxis_title="Ranking de Productos",
+                yaxis_title="Participación Individual (%)",
+                height=600,
+                margin=dict(t=70, b=50),
+                legend=dict(
+                    orientation="h",
+                    yanchor="top",
+                    y=1.075,
+                    xanchor="center",
+                    x=0.45,
+                    bgcolor='rgba(0,0,0,0)'
+                )
+            )
+
+            fig.update_yaxes(title_text="Participación Individual (%)", secondary_y=False)
+            fig.update_yaxes(title_text="Participación Acumulada (%)", secondary_y=True)
+
+            st.plotly_chart(fig, use_container_width=True)
+
+            # === Insight automático del Pareto ===
+            top_pareto = pareto_exceso[pareto_exceso["acumulado"] <= 80]
+            cant_top = len(top_pareto)
+            contribucion_top = top_pareto["costo_exceso_STK"].sum()
+
+            st.markdown(f"""
+            <div style='background-color:#f8f9fa;padding:1rem;border-radius:10px;border-left:5px solid #e74c3c'>
+            <b>🧠 Insight Pareto:</b><br>
+            - 🔝 <b>{cant_top} productos</b> concentran el <b>80% del exceso de stock</b> (inmovilizado total: <b>${contribucion_top:,.0f}</b>).<br>
+            - 🎯 Enfocar promociones, rebalanceos o acciones agresivas <b>en este grupo crítico</b> para reducir drásticamente el capital inmovilizado.
+            </div>
+            """, unsafe_allow_html=True)
 
 
-                    #         st.markdown(f"""
-                    #         - 🧾 **Total inmovilizado:** ${total_valor:,.0f}
-                    #         - 📅 **Cobertura promedio:** {promedio_dias:.1f} días
-                    #         - 🏷️ **Producto con mayor exceso:** {producto_top['producto_corto']} (${producto_top['costo_exceso_STK']:,.0f}, {int(producto_top['dias_cobertura'])} días)
-                    #         """)
-
-                    #         # Recomendaciones específicas por rango
-                    #         if nivel == "🟡 31-60 días":
-                    #             st.markdown("- 🟡 Recomendación: **Monitorear de cerca y planificar redistribución o promociones si no rota en las próximas semanas.**")
-                    #         elif nivel == "🟠 61-90 días":
-                    #             st.markdown("- 🟠 Recomendación: **Aplicar acciones correctivas ya (bonificaciones, descuentos selectivos, rotación interna).**")
-                    #         elif nivel == "🔴 90+ días":
-                    #             st.markdown("- 🔴 Recomendación: **Acción inmediata: evaluar liquidación, promociones agresivas o devolución a proveedor si aplica.**")
-
-                    #         # Expander para ver detalle de productos en el rango
-                    #         with st.expander(f"🔽 Ver artículos en {nivel}", expanded=False):
-                    #             cols_mostrar = ["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK"]
-                    #             df_vista = df_seg[cols_mostrar].copy()
-                    #             df_vista = df_vista.rename(columns={
-                    #                 "idarticulo": "🆔 ID Artículo",
-                    #                 "descripcion": "📦 Producto",
-                    #                 "exceso_STK": "📊 Exceso (Unid.)",
-                    #                 "costo_exceso_STK": "💰 Costo Exceso"
-                    #             })
-                    #             df_vista = df_vista.sort_values("💰 Costo Exceso", ascending=False)
-                    #             df_vista["💰 Costo Exceso"] = df_vista["💰 Costo Exceso"].apply(lambda x: f"${x:,.0f}")
-                    #             st.dataframe(df_vista, use_container_width=True, hide_index=True)
-
-                    #             # Descargar CSV
-                    #             csv_data = df_seg[cols_mostrar].to_csv(index=False).encode("utf-8")
-                    #             st.download_button(
-                    #                 label=f"📥 Descargar CSV de {nivel}",
-                    #                 data=csv_data,
-                    #                 file_name=f"exceso_segmento_{nivel.replace(' ', '_')}.csv",
-                    #                 mime="text/csv"
-                    #             )
-
-                    #     else:
-                    #         st.markdown(f"- ✅ No hay productos en el rango {nivel}, lo cual indica una buena rotación en este segmento.")
 
 #################################################################
-
         # Exportar versión sin formato
         columnas_old = ["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK", "dias_cobertura"]
         df_export = df[df['exceso_STK'] > 0][columnas_old]
         csv = df_export.to_csv(index=False).encode('utf-8')
-        st.download_button("📥 Descargar CSV", csv, "exceso_stock.csv", "text/csv")
+        st.download_button("📥 Descargar Exceso de Stock", csv, "exceso_stock.csv", "text/csv")
 
     def analisis_estacionalidad(self, df):
         st.subheader("📆 Estacionalidad y Demanda")
