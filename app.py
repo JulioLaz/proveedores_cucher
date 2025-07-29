@@ -2952,6 +2952,20 @@ class ProveedorDashboard:
 
     def analisis_riesgo_quiebre(self, df):
         st.subheader("📈 Análisis de Quiebres")
+
+        # === Parámetro: horizonte de análisis ===
+        with st.expander("⚙️ Ajustes de Estimación", expanded=False):
+            dias_analisis = st.slider("Selecciona el período estimado de demanda (días)", 7, 60, 30, step=1)
+            st.caption("🔄 Este valor ajustará la demanda proyectada (`cnt_optima`) proporcionalmente.")
+
+        # === Validación: columna base sin sobrescritura
+        if "cnt_optima_base_30d" not in df.columns:
+            df["cnt_optima_base_30d"] = df["cantidad_optima"]  # guardar original
+
+        # === Escalado proporcional de la demanda
+        df["cantidad_optima"] = df["cnt_optima_base_30d"] * (dias_analisis / 30)
+
+
         df_quiebre = analizar_quiebre(df)
         mostrar_analisis_quiebre_detallado(df_quiebre)
 
