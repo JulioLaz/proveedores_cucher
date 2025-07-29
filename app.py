@@ -2955,15 +2955,29 @@ class ProveedorDashboard:
 
         # === Parámetro: horizonte de análisis ===
         with st.expander("⚙️ Ajustes de Estimación", expanded=False):
-            dias_analisis = st.slider("Selecciona el período estimado de demanda (días)", 7, 60, 30, step=1)
-            st.caption("🔄 Este valor ajustará la demanda proyectada (`cnt_optima`) proporcionalmente.")
+            opcion_dias = st.selectbox(
+                "Selecciona el período estimado de demanda:",
+                options=["1 semana (7 días)", "15 días", "30 días", "45 días"],
+                index=2
+            )
+
+            dias_dict = {
+                "1 semana (7 días)": 7,
+                "15 días": 15,
+                "30 días": 30,
+                "45 días": 45
+            }
+
+            dias_analisis = dias_dict[opcion_dias]
+            multiplicador = dias_analisis / 33
+            st.caption(f"📆 Proyectando demanda para {dias_analisis} días (equivalente al {multiplicador:.2%} del total mensual).")
 
         # === Validación: columna base sin sobrescritura
-        if "cnt_optima_base_30d" not in df.columns:
-            df["cnt_optima_base_30d"] = df["cantidad_optima"]  # guardar original
+        if "cantidad_optima_base_33d" not in df.columns:
+            df["cantidad_optima_base_33d"] = df["cantidad_optima"]
 
-        # === Escalado proporcional de la demanda
-        df["cantidad_optima"] = df["cnt_optima_base_30d"] * (dias_analisis / 30)
+        # === Ajustar la demanda proyectada
+        df["cantidad_optima"] = df["cantidad_optima_base_33d"] * multiplicador
 
 
         df_quiebre = analizar_quiebre(df)
