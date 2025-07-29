@@ -2954,32 +2954,38 @@ class ProveedorDashboard:
         st.subheader("📈 Análisis de Quiebres")
 
         # === Parámetro: horizonte de análisis ===
-        with st.expander("⚙️ Ajustes de Estimación", expanded=False):
-            opcion_dias = st.selectbox(
-                "Selecciona el período estimado de demanda:",
-                options=["1 semana (7 días)", "15 días", "30 días", "45 días"],
-                index=2
+        # Línea horizontal al lado del título
+        col1, col2 = st.columns([1.5, 2])
+
+        with col1:
+            st.subheader("⚠️ Riesgo de Quiebre")
+
+        with col2:
+            opcion_dias = st.radio(
+                label="",
+                options=["7 días", "15 días", "30 días", "45 días"],
+                index=2,
+                horizontal=True
             )
 
-            dias_dict = {
-                "1 semana (7 días)": 7,
-                "15 días": 15,
-                "30 días": 30,
-                "45 días": 45
-            }
+        # Diccionario de equivalencias para 33 días hábiles
+        dias_dict = {
+            "7 días": 7,
+            "15 días": 15,
+            "30 días": 30,
+            "45 días": 45
+        }
 
-            dias_analisis = dias_dict[opcion_dias]
-            multiplicador = dias_analisis / 33
-            st.caption(f"📆 Proyectando demanda para {dias_analisis} días (equivalente al {multiplicador:.2%} del total mensual).")
+        dias_analisis = dias_dict[opcion_dias]
+        multiplicador = dias_analisis / 33
 
-        # === Validación: columna base sin sobrescritura
+        # Validar y ajustar demanda
         if "cantidad_optima_base_33d" not in df.columns:
             df["cantidad_optima_base_33d"] = df["cantidad_optima"]
 
-        # === Ajustar la demanda proyectada
         df["cantidad_optima"] = df["cantidad_optima_base_33d"] * multiplicador
 
-
+#######################################################
         df_quiebre = analizar_quiebre(df)
         mostrar_analisis_quiebre_detallado(df_quiebre)
 
