@@ -24,6 +24,9 @@ from limpiar_datos import limpiar_datos
 from insight_ABC import generar_insight_cantidad, generar_insight_ventas, generar_insight_margen, generar_insight_abc_completo, generar_insight_pareto
 from generar_excel import generar_excel
 from custom_css import custom_css, custom_sidebar
+from analisis_quiebre import analizar_quiebre
+from quiebre_streamlit_view import mostrar_analisis_quiebre_detallado
+
 
 locale = Locale.parse('es_AR')
 
@@ -2948,8 +2951,12 @@ class ProveedorDashboard:
             st.plotly_chart(fig2, use_container_width=True)
 
     def analisis_riesgo_quiebre(self, df):
-        st.subheader("⚠️ Riesgo de Quiebre")
+        st.subheader("📈 Análisis de Quiebres")
+        df_quiebre = analizar_quiebre(df)
+        mostrar_analisis_quiebre_detallado(df_quiebre)
 
+
+        st.subheader("⚠️ Riesgo de Quiebre")
         if df is None or df.empty:
             st.warning("⚠️ No hay datos disponibles para el análisis de riesgo.")
             return
@@ -3020,7 +3027,7 @@ class ProveedorDashboard:
 
         # 📥 Exportación opcional
         csv = df_riesgo[columnas].to_csv(index=False).encode('utf-8')
-        st.download_button("📥 Descargar CSV", csv, "riesgo_quiebre.csv", "text/csv")
+        st.download_button("📥 Descargar Riesgo de Quiebre", csv, "riesgo_quiebre.csv", "text/csv")
 
     def analisis_exceso_stock(self, df):
         st.subheader("📦 Exceso de Stock")
