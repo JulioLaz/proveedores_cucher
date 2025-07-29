@@ -20,7 +20,7 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
         st.markdown(
             f"""
             <div style="background-color:transparent;border-radius:8px;padding:2px;text-align:center;border:1px solid gray; margin-bottom: 5px">
-                <h5>💸 Valor Perdido Total</h5>
+                <h5>💸 Valor de Perdida Potencial</h5>
                 <p style="font-size:20px;font-weight:bold;color:#d9534f;">${total_perdido:,.0f}</p>
             </div>
             """,
@@ -48,9 +48,6 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
             """,
             unsafe_allow_html=True
         )
-
-
-
     # col1.metric("💸 Valor Perdido Total", f"${total_perdido:,.0f}")
     # col2.metric("📦 Unidades Potencialmente Perdidas", f"{total_unidades:,.0f}")
     # col3.metric("🎯 Artículos Afectados", f"{total_articulos_afectados:,}")
@@ -79,10 +76,14 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
         yaxis_title="Valor Perdido ($)",
         xaxis_title="Sucursal",
         title_x=0.2,
-        height=400
+        height=400,
+        xaxis_title=None,
+        yaxis_title=None
     )
+    fig.update_yaxes(showticklabels=False)
 
     st.plotly_chart(fig, use_container_width=True)
+
 
     # Mostrar tabla de detalle por artículo y sucursal
     st.markdown("### 🧾 Detalle de Pérdidas por Artículo y Sucursal")
