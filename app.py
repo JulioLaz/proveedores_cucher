@@ -3206,11 +3206,34 @@ class ProveedorDashboard:
                             total_valor = df_seg["costo_exceso_STK"].sum()
                             promedio_dias = df_seg["dias_cobertura"].mean()
                             producto_top = df_seg.loc[df_seg["costo_exceso_STK"].idxmax()]
+
                             col1, col2 = st.columns(2)
                             with col1:
                                 st.markdown(f" #### {nivel} — Exceso {descripcion}")
                             with col2:
-                                st.markdown(f" #### {nivel} — Exceso {descripcion}")
+                                # Expander para ver detalle de productos en el rango
+                                with st.expander(f"🔽 Ver artículos en {nivel}", expanded=False):
+                                    cols_mostrar = ["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK"]
+                                    df_vista = df_seg[cols_mostrar].copy()
+                                    df_vista = df_vista.rename(columns={
+                                        "idarticulo": "🆔 ID Artículo",
+                                        "descripcion": "📦 Producto",
+                                        "exceso_STK": "📊 Exceso (Unid.)",
+                                        "costo_exceso_STK": "💰 Costo Exceso"
+                                    })
+                                    df_vista = df_vista.sort_values("💰 Costo Exceso", ascending=False)
+                                    df_vista["💰 Costo Exceso"] = df_vista["💰 Costo Exceso"].apply(lambda x: f"${x:,.0f}")
+                                    st.dataframe(df_vista, use_container_width=True, hide_index=True)
+
+                                    # Descargar CSV
+                                    csv_data = df_seg[cols_mostrar].to_csv(index=False).encode("utf-8")
+                                    st.download_button(
+                                        label=f"📥 Descargar CSV de {nivel}",
+                                        data=csv_data,
+                                        file_name=f"exceso_segmento_{nivel.replace(' ', '_')}.csv",
+                                        mime="text/csv"
+                                    )
+
 
                             st.markdown(f"""
                             - 🧾 **Total inmovilizado:** ${total_valor:,.0f}
