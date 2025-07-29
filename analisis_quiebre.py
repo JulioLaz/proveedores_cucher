@@ -11,7 +11,7 @@ def analizar_quiebre(df_stock):
         temp = df_stock.copy()
         temp['sucursal'] = suc
         temp['porc_distribucion'] = temp[porc_col].fillna(0)
-        temp['cnt_suc_estimada'] = temp['cnt_optima'] * temp['porc_distribucion']
+        temp['cnt_suc_estimada'] = temp['cantidad_optima'] * temp['porc_distribucion']
 
         # Obtener el stock actual de la sucursal
         stock_suc = df_stock[df_stock['sucursal'] == suc][['idarticulo', 'stock_actual']]
