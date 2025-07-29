@@ -3105,6 +3105,7 @@ class ProveedorDashboard:
                     total_costo = df_exceso["costo_exceso_STK"].sum()
                     st.markdown(f"##### 💰 **Total inmovilizado en exceso:** `${total_costo:,.0f}`")
 
+
                 df_top = df_exceso.sort_values("costo_exceso_STK", ascending=False).head(50).copy()
 
                 # Validar y limpiar columnas necesarias
@@ -3128,7 +3129,7 @@ class ProveedorDashboard:
                         hover_data={
                             "exceso_STK": ":,.0f",
                             "dias_cobertura": ":.0f",
-                            "costo_exceso_STK": "$:,.0f",
+                            "costo_exceso_STK": ":,.0f",
                             "producto_corto": False
                         },
                         title="🧮 Exceso de Stock: Volumen vs Cobertura",
@@ -3152,46 +3153,8 @@ class ProveedorDashboard:
                     )
 
                     st.plotly_chart(fig, use_container_width=True)
-#################################################################
-                    # === INSIGHTS AUTOMÁTICOS ===
-                    st.markdown("### 📌 Insights Clave del Exceso de Stock")
-
-                    # Producto con mayor exceso en $
-                    top_exceso = df_top.loc[df_top["costo_exceso_STK"].idxmax()]
-                    st.markdown(f"""
-                    - 🔝 **Mayor inmovilizado:** El producto **{top_exceso['producto_corto']}** tiene el mayor exceso de stock con un valor de **${top_exceso['costo_exceso_STK']:,.0f}**, acumulando **{int(top_exceso['dias_cobertura'])} días** de cobertura y **{int(top_exceso['exceso_STK'])} unidades** excedentes.
-                    """)
-
-                    # Casos críticos por cobertura extrema
-                    criticos = df_top[df_top["dias_cobertura"] > 120]
-                    if not criticos.empty:
-                        n_criticos = len(criticos)
-                        promedio_exceso = criticos["costo_exceso_STK"].mean()
-                        st.markdown(f"""
-                        - ⚠️ **{n_criticos} productos tienen más de 120 días de cobertura**, lo que indica riesgo de obsolescencia. 
-                        El valor promedio inmovilizado por producto en este grupo es de **${promedio_exceso:,.0f}**.
-                        """)
-                    else:
-                        st.markdown("- ✅ **No hay productos con más de 120 días de cobertura**, lo cual es positivo para el flujo de rotación.")
-
-                    # Productos con mucho volumen pero menor cobertura
-                    volumen_alto_baja_cobertura = df_top[(df_top["exceso_STK"] > 1000) & (df_top["dias_cobertura"] < 60)]
-                    if not volumen_alto_baja_cobertura.empty:
-                        st.markdown(f"""
-                        - 📦 **{len(volumen_alto_baja_cobertura)} productos presentan alto volumen excedente (>1.000 unidades) pero baja cobertura (<60 días)**. 
-                        Podrían redistribuirse a sucursales con mayor demanda para evitar saturación local.
-                        """)
-                    
-                    # Recomendación final
-                    st.markdown("""
-                    ### ✅ Recomendaciones:
-                    - 🔄 Reasignar stock de productos con >90 días de cobertura hacia zonas de mayor rotación.
-                    - 🧼 Revisar precios y promociones para liquidar los productos con mayor inmovilizado.
-                    - 🔍 Evaluar estrategias de compra para evitar reincidencia de estos excesos.
-                    """)
 
 
-#################################################################
 
         # Exportar versión sin formato
         columnas_old = ["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK", "dias_cobertura"]
