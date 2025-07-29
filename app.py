@@ -2951,21 +2951,40 @@ class ProveedorDashboard:
             st.plotly_chart(fig2, use_container_width=True)
 
     def analisis_riesgo_quiebre(self, df):
-        st.subheader("📈 Análisis de Quiebres")
 
-        # === Parámetro: horizonte de análisis ===
-        # Línea horizontal al lado del título
         col1, col2 = st.columns([1.5, 2])
 
         with col1:
-            st.subheader("⚠️ Riesgo de Quiebre")
+            st.subheader(f"#### 📈 Análisis de Quiebres")
+
+        # with col2:
 
         with col2:
+            st.markdown(
+                """
+                <style>
+                div[data-testid="stRadio"] > label {
+                    justify-content: start;
+                }
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
+
             opcion_dias = st.radio(
-                label="",
+                label="Seleccionar la cantidad de días a proyectar:",
                 options=["7 días", "15 días", "30 días", "45 días"],
                 index=2,
-                horizontal=True )
+                horizontal=True
+            )
+
+
+
+            # opcion_dias = st.radio(
+            #     label="Seleccionar la cantidad de días a proyectar:",
+            #     options=["7 días", "15 días", "30 días", "45 días"],
+            #     index=2,
+            #     horizontal=True )
 
         # Diccionario de equivalencias para 33 días hábiles
         dias_dict = {
