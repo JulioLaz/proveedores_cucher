@@ -3206,9 +3206,13 @@ class ProveedorDashboard:
                             total_valor = df_seg["costo_exceso_STK"].sum()
                             promedio_dias = df_seg["dias_cobertura"].mean()
                             producto_top = df_seg.loc[df_seg["costo_exceso_STK"].idxmax()]
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.markdown(f" #### {nivel} — Exceso {descripcion}")
+                            with col2:
+                                st.markdown(f" #### {nivel} — Exceso {descripcion}")
 
                             st.markdown(f"""
-                            #### {nivel} — Exceso {descripcion}
                             - 🧾 **Total inmovilizado:** ${total_valor:,.0f}
                             - 📅 **Cobertura promedio:** {promedio_dias:.1f} días
                             - 🏷️ **Producto con mayor exceso:** {producto_top['producto_corto']} (${producto_top['costo_exceso_STK']:,.0f}, {int(producto_top['dias_cobertura'])} días)
@@ -3247,37 +3251,6 @@ class ProveedorDashboard:
 
                         else:
                             st.markdown(f"- ✅ No hay productos en el rango {nivel}, lo cual indica una buena rotación en este segmento.")
-
-                    ## === INSIGHTS POR SEGMENTO DE COBERTURA ===
-                    # st.markdown("### 🔍 Análisis por Segmento de Cobertura")
-
-                    # segmentos = {
-                    #     "🟡 31-60 días": "Moderado",
-                    #     "🟠 61-90 días": "Alto",
-                    #     "🔴 90+ días": "Crítico"
-                    # }
-
-                    # for nivel, descripcion in segmentos.items():
-                    #     df_seg = df_top[df_top["rango_cobertura"] == nivel]
-                    #     if not df_seg.empty:
-                    #         total_valor = df_seg["costo_exceso_STK"].sum()
-                    #         promedio_dias = df_seg["dias_cobertura"].mean()
-                    #         producto_top = df_seg.loc[df_seg["costo_exceso_STK"].idxmax()]
-                    #         st.markdown(f"""
-                    #         #### {nivel} — Exceso {descripcion}
-                    #         - 🧾 **Total inmovilizado:** ${total_valor:,.0f}
-                    #         - 📅 **Cobertura promedio:** {promedio_dias:.1f} días
-                    #         - 🏷️ **Producto con mayor exceso:** {producto_top['producto_corto']} (${producto_top['costo_exceso_STK']:,.0f}, {int(producto_top['dias_cobertura'])} días)
-                    #         """)
-                    #         if nivel == "🟡 31-60 días":
-                    #             st.markdown("- 🟡 Recomendación: **Monitorear de cerca y planificar redistribución o promociones si no rota en las próximas semanas.**")
-                    #         elif nivel == "🟠 61-90 días":
-                    #             st.markdown("- 🟠 Recomendación: **Aplicar acciones correctivas ya (bonificaciones, descuentos selectivos, rotación interna).**")
-                    #         elif nivel == "🔴 90+ días":
-                    #             st.markdown("- 🔴 Recomendación: **Acción inmediata: evaluar liquidación, promociones agresivas o devolución a proveedor si aplica.**")
-                    #     else:
-                    #         st.markdown(f"- ✅ No hay productos en el rango {nivel}, lo cual indica una buena rotación en este segmento.")
-
 
 #################################################################
 
