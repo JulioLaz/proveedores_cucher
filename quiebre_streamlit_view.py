@@ -14,9 +14,44 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
     total_unidades = df_quiebre["unidades_perdidas"].sum()
     total_articulos_afectados = df_quiebre[df_quiebre["unidades_perdidas"] > 0]["idarticulo"].nunique()
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
 
     with col1:
+
+        df_filtrado = df_quiebre[df_quiebre["valor_perdido"] > 0]
+
+        top_sucursales = (
+                df_filtrado.groupby("sucursal")["valor_perdido"]
+                .sum()
+                .sort_values(ascending=False)
+                .reset_index()
+            )
+
+        fig = px.bar(
+                top_sucursales,
+                x="valor_perdido",
+                y="sucursal",
+                orientation="h",
+                text_auto=".2s",
+                color_discrete_sequence=px.colors.qualitative.Safe
+                # color_discrete_sequence=["#d9534f"]  # rojo profesional o cualquier otro
+            )
+
+        fig.update_layout(
+                title="💰 Valor Perdido por Sucursal",
+                title_x=0.15,
+                height=400,
+                showlegend=False,
+                xaxis_title=None,
+                yaxis_title=None,
+                margin=dict(l=20, r=20, t=40, b=20)
+
+            )
+        fig.update_xaxes(showticklabels=False)
+        fig.update_yaxes(showticklabels=True)
+        st.plotly_chart(fig, use_container_width=True)
+
+    with col2:
         st.markdown(
             f"""
             <div style="background-color:transparent;border-radius:8px;padding:2px;text-align:center;border:1px solid gray; margin-bottom: 5px">
@@ -26,8 +61,6 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
             """,
             unsafe_allow_html=True
         )
-
-    with col2:
         st.markdown(
             f"""
             <div style="background-color:transparent ;border-radius:8px;padding:2px;text-align:center;border:1px solid gray; margin-bottom: 5px">
@@ -38,7 +71,6 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
             unsafe_allow_html=True
         )
 
-    with col3:
         st.markdown(
             f"""
             <div style="background-color:transparent ;border-radius:8px;padding:2px;text-align:center;border:1px solid gray; margin-bottom: 5px">
@@ -48,64 +80,39 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
             """,
             unsafe_allow_html=True
         )
-    # col1.metric("💸 Valor Perdido Total", f"${total_perdido:,.0f}")
-    # col2.metric("📦 Unidades Potencialmente Perdidas", f"{total_unidades:,.0f}")
-    # col3.metric("🎯 Artículos Afectados", f"{total_articulos_afectados:,}")
 
-    # ✅ Filtrar registros con pérdida real antes de agrupar
-    df_filtrado = df_quiebre[df_quiebre["valor_perdido"] > 0]
+    # df_filtrado = df_quiebre[df_quiebre["valor_perdido"] > 0]
 
-    top_sucursales = (
-        df_filtrado.groupby("sucursal")["valor_perdido"]
-        .sum()
-        .sort_values(ascending=False)
-        .reset_index()
-    )
-
-    fig = px.bar(
-        top_sucursales,
-        x="valor_perdido",
-        y="sucursal",
-        orientation="h",
-        text_auto=".2s",
-        color_discrete_sequence=["#d9534f"]  # rojo profesional o cualquier otro
-    )
-
-    fig.update_layout(
-        title="💰 Valor Perdido por Sucursal",
-        title_x=0.15,
-        height=400,
-        showlegend=False,
-        xaxis_title=None,
-        yaxis_title=None,
-        margin=dict(l=20, r=20, t=40, b=20)
-        # plot_bgcolor='white',
-        # paper_bgcolor='white'
-    )
-
-    fig.update_yaxes(showticklabels=True)
+    # top_sucursales = (
+    #     df_filtrado.groupby("sucursal")["valor_perdido"]
+    #     .sum()
+    #     .sort_values(ascending=False)
+    #     .reset_index()
+    # )
 
     # fig = px.bar(
     #     top_sucursales,
-    #     x="sucursal",
-    #     y="valor_perdido",
-    #     title="💰 Valor Perdido por Sucursal",
+    #     x="valor_perdido",
+    #     y="sucursal",
+    #     orientation="h",
     #     text_auto=".2s",
-    #     color="sucursal",
     #     color_discrete_sequence=px.colors.qualitative.Safe
+    #     # color_discrete_sequence=["#d9534f"]  # rojo profesional o cualquier otro
     # )
 
     # fig.update_layout(
-    #     yaxis_title="Valor Perdido ($)",
-    #     xaxis_title="Sucursal",
-    #     title_x=0.2,
+    #     title="💰 Valor Perdido por Sucursal",
+    #     title_x=0.15,
     #     height=400,
+    #     showlegend=False,
     #     xaxis_title=None,
-    #     yaxis_title=None
-    # )
-    # fig.update_yaxes(showticklabels=False)
+    #     yaxis_title=None,
+    #     margin=dict(l=20, r=20, t=40, b=20)
 
-    st.plotly_chart(fig, use_container_width=True)
+    # )
+    # fig.update_xaxes(showticklabels=False)
+    # fig.update_yaxes(showticklabels=True)
+    # st.plotly_chart(fig, use_container_width=True)
 
 
     # Mostrar tabla de detalle por artículo y sucursal
