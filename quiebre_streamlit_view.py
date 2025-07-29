@@ -2,7 +2,6 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 
-)
 def mostrar_analisis_quiebre_detallado(df_quiebre):
 
     if df_quiebre is None or df_quiebre.empty:
