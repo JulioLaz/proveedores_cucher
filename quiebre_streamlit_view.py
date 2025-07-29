@@ -1,6 +1,8 @@
 import streamlit as st
 import plotly.express as px
+import plotly.graph_objects as go
 
+)
 def mostrar_analisis_quiebre_detallado(df_quiebre):
 
     if df_quiebre is None or df_quiebre.empty:
@@ -13,6 +15,9 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
     total_perdido = df_quiebre["valor_perdido"].sum()
     total_unidades = df_quiebre["unidades_perdidas"].sum()
     total_articulos_afectados = df_quiebre[df_quiebre["unidades_perdidas"] > 0]["idarticulo"].nunique()
+    # Redondear y formatear los textos manualmente
+    top_sucursales["texto_valor"] = top_sucursales["valor_perdido"].apply(
+        lambda x: f"{x/1_000_000:.1f}M" if x >= 1_000_000 else f"{x/1_000:.1f}K")
 
     col1, col2 = st.columns([1.5,1])
 
@@ -27,28 +32,56 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
                 .reset_index()
             )
 
-        fig = px.bar(
-                top_sucursales,
-                x="valor_perdido",
-                y="sucursal",
-                orientation="h",
-                text_auto=".2s",
-                color_discrete_sequence=px.colors.qualitative.Safe
-                # color_discrete_sequence=["#d9534f"]  # rojo profesional o cualquier otro
-            )
+        fig = go.Figure()
+
+        fig.add_trace(go.Bar(
+            y=top_sucursales["sucursal"],
+            x=top_sucursales["valor_perdido"],
+            orientation="h",
+            text=top_sucursales["texto_valor"],
+            textposition="outside",
+            marker_color="#d9534f",
+            hovertemplate="%{y}: %{x:,.0f} <extra></extra>",
+            textfont=dict(size=16, color="black", family="Arial", weight="bold")
+        ))
 
         fig.update_layout(
-                title="💰 Valor Perdido por Sucursal",
-                title_x=0.15,
-                height=300,
-                showlegend=False,
-                xaxis_title=None,
-                yaxis_title=None,
-                margin=dict(l=20, r=20, t=40, b=20)
+            title="💰 Valor Perdido por Sucursal",
+            title_x=0.15,
+            height=400,
+            showlegend=False,
+            xaxis_title=None,
+            yaxis_title=None,
+            # plot_bgcolor='white',
+            # paper_bgcolor='white',
+            margin=dict(l=20, r=20, t=40, b=20)
+        )
 
-            )
         fig.update_xaxes(showticklabels=False)
-        fig.update_yaxes(showticklabels=True)
+
+
+        # fig = px.bar(
+        #         top_sucursales,
+        #         x="valor_perdido",
+        #         y="sucursal",
+        #         orientation="h",
+        #         text_auto=".2s",
+        #         # color_discrete_sequence=px.colors.qualitative.Safe
+        #         color_discrete_sequence=["#d9534f"]  # rojo profesional o cualquier otro
+        #     )
+
+        # fig.update_layout(
+        #         title="💰 Valor Perdido por Sucursal",
+        #         title_x=0.15,
+        #         height=300,
+        #         showlegend=False,
+        #         xaxis_title=None,
+        #         yaxis_title=None,
+        #         margin=dict(l=20, r=20, t=40, b=20)
+
+        #     )
+        # fig.update_xaxes(showticklabels=False)
+        # fig.update_yaxes(showticklabels=True)
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
