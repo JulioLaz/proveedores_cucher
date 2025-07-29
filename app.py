@@ -2965,8 +2965,7 @@ class ProveedorDashboard:
                 label="",
                 options=["7 días", "15 días", "30 días", "45 días"],
                 index=2,
-                horizontal=True
-            )
+                horizontal=True )
 
         # Diccionario de equivalencias para 33 días hábiles
         dias_dict = {

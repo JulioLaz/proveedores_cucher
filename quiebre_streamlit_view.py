@@ -11,16 +11,19 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
         return
 
     # KPIs principales
-    total_perdido = df_quiebre['valor_perdido_TOTAL'].sum()
-    total_unidades = df_quiebre['unidades_perdidas_TOTAL'].sum()
-    total_articulos_afectados = df_quiebre[df_quiebre['unidades_perdidas'] > 0]['idarticulo'].nunique()
+
+# KPIs principales
+    total_perdido = df_quiebre["valor_perdido"].sum()
+    total_unidades = df_quiebre["unidades_perdidas"].sum()
+    total_articulos_afectados = df_quiebre[df_quiebre["unidades_perdidas"] > 0]["idarticulo"].nunique()
+    # total_perdido = df_quiebre['valor_perdido_TOTAL'].sum()
+    # total_unidades = df_quiebre['unidades_perdidas_TOTAL'].sum()
+    # total_articulos_afectados = df_quiebre[df_quiebre['unidades_perdidas'] > 0]['idarticulo'].nunique()
 
     col1, col2, col3 = st.columns(3)
     col1.metric("💸 Valor Perdido Total", f"${total_perdido:,.0f}")
     col2.metric("📦 Unidades Potencialmente Perdidas", f"{total_unidades:,.0f}")
     col3.metric("🎯 Artículos Afectados", f"{total_articulos_afectados:,}")
-
-    # Gráfico de barras: valor perdido por sucursal
 
     # ✅ Filtrar registros con pérdida real antes de agrupar
     df_filtrado = df_quiebre[df_quiebre["valor_perdido"] > 0]
@@ -31,13 +34,6 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
         .sort_values(ascending=False)
         .reset_index()
     )
-
-    # top_sucursales = (
-    #     df_quiebre.groupby("sucursal")["valor_perdido"]
-    #     .sum()
-    #     .sort_values(ascending=False)
-    #     .reset_index()
-    # )
 
     fig = px.bar(
         top_sucursales,
