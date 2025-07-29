@@ -64,23 +64,46 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
 
     fig = px.bar(
         top_sucursales,
-        x="sucursal",
-        y="valor_perdido",
-        title="💰 Valor Perdido por Sucursal",
+        x="valor_perdido",
+        y="sucursal",
+        orientation="h",
         text_auto=".2s",
-        color="sucursal",
-        color_discrete_sequence=px.colors.qualitative.Safe
+        color_discrete_sequence=["#d9534f"]  # rojo profesional o cualquier otro
     )
 
     fig.update_layout(
-        yaxis_title="Valor Perdido ($)",
-        xaxis_title="Sucursal",
-        title_x=0.2,
+        title="💰 Valor Perdido por Sucursal",
+        title_x=0.15,
         height=400,
+        showlegend=False,
         xaxis_title=None,
-        yaxis_title=None
+        yaxis_title=None,
+        margin=dict(l=20, r=20, t=40, b=20)
+        # plot_bgcolor='white',
+        # paper_bgcolor='white'
     )
-    fig.update_yaxes(showticklabels=False)
+
+    fig.update_yaxes(showticklabels=True)
+
+    # fig = px.bar(
+    #     top_sucursales,
+    #     x="sucursal",
+    #     y="valor_perdido",
+    #     title="💰 Valor Perdido por Sucursal",
+    #     text_auto=".2s",
+    #     color="sucursal",
+    #     color_discrete_sequence=px.colors.qualitative.Safe
+    # )
+
+    # fig.update_layout(
+    #     yaxis_title="Valor Perdido ($)",
+    #     xaxis_title="Sucursal",
+    #     title_x=0.2,
+    #     height=400,
+    #     xaxis_title=None,
+    #     yaxis_title=None
+    # )
+    # fig.update_yaxes(showticklabels=False)
 
     st.plotly_chart(fig, use_container_width=True)
 
