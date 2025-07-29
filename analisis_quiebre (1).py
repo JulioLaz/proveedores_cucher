@@ -1,3 +1,4 @@
+
 import pandas as pd
 
 def analizar_quiebre(df_presupuesto):
@@ -11,7 +12,7 @@ def analizar_quiebre(df_presupuesto):
         temp = df_presupuesto.copy()
         temp['sucursal'] = suc
         temp['porc_distribucion'] = temp[porc_col].fillna(0)
-        temp['cnt_suc_estimada'] = temp['cantidad_optima'] * temp['porc_distribucion']
+        temp['cnt_suc_estimada'] = temp['cnt_optima'] * temp['porc_distribucion']
         temp['stock_actual'] = temp[stk_col].fillna(0)
 
         # Cálculo de unidades y valor perdido
