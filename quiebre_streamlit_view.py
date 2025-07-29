@@ -14,7 +14,7 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
     total_unidades = df_quiebre["unidades_perdidas"].sum()
     total_articulos_afectados = df_quiebre[df_quiebre["unidades_perdidas"] > 0]["idarticulo"].nunique()
 
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([1.5,1])
 
     with col1:
 
@@ -40,7 +40,7 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
         fig.update_layout(
                 title="💰 Valor Perdido por Sucursal",
                 title_x=0.15,
-                height=400,
+                height=300,
                 showlegend=False,
                 xaxis_title=None,
                 yaxis_title=None,
