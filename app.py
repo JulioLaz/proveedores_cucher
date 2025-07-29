@@ -3259,7 +3259,7 @@ class ProveedorDashboard:
 
         # === Paso 1: Reducir columnas necesarias ===
         columnas_necesarias = [
-            "idarticulo", "descripcion", "precio_actual","costo_unit"
+            "idarticulo", "descripcion", "precio_actual","costo_unit",
             "precio_optimo_ventas", "decision_precio", "pred_ventas_actual"
         ]
 
