@@ -19,8 +19,8 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
     with col1:
         st.markdown(
             f"""
-            <div style="background-color:transparent;border-radius:8px;padding:2px;text-align:center;border:1px solid gray; margin: 10px 0">
-                <h4>💸 Valor Perdido Total</h4>
+            <div style="background-color:transparent;border-radius:8px;padding:2px;text-align:center;border:1px solid gray; margin-bottom: 5px">
+                <h5>💸 Valor Perdido Total</h5>
                 <p style="font-size:20px;font-weight:bold;color:#d9534f;">${total_perdido:,.0f}</p>
             </div>
             """,
@@ -30,9 +30,9 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
     with col2:
         st.markdown(
             f"""
-            <div style="background-color:#f8f9fa;border-radius:8px;padding:2px;text-align:center;border:1px solid gray"">
-                <h4 style="margin-bottom:4px;">📦 Unidades Potencialmente Perdidas</h4>
-                <p style="font-size:24px;font-weight:bold;color:#f0ad4e;">{total_unidades:,.0f}</p>
+            <div style="background-color:transparent ;border-radius:8px;padding:2px;text-align:center;border:1px solid gray; margin-bottom: 5px">
+                <h5>📦 Unidades Potencialmente Perdidas</h5>
+                <p style="font-size:20px;font-weight:bold;color:#f0ad4e;">{total_unidades:,.0f}</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -41,9 +41,9 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
     with col3:
         st.markdown(
             f"""
-            <div style="background-color:#f8f9fa;border-radius:8px;padding:2px;text-align:center;border:1px solid gray"">
-                <h4 style="margin-bottom:4px;">🎯 Artículos Afectados</h4>
-                <p style="font-size:24px;font-weight:bold;color:#5bc0de;">{total_articulos_afectados:,}</p>
+            <div style="background-color:transparent ;border-radius:8px;padding:2px;text-align:center;border:1px solid gray; margin-bottom: 5px">
+                <h5>🎯 Artículos Afectados</h5>
+                <p style="font-size:20px;font-weight:bold;color:#5bc0de;">{total_articulos_afectados:,}</p>
             </div>
             """,
             unsafe_allow_html=True
