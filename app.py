@@ -2952,19 +2952,18 @@ class ProveedorDashboard:
 
     def analisis_riesgo_quiebre(self, df):
 
-        col1, col2 = st.columns([1.5, 2])
+        col1, col2 = st.columns([2, 1])
 
         with col1:
-            st.subheader(f"#### 📈 Análisis de Quiebres")
-
-        # with col2:
+            # st.subheader(" Análisis de Quiebres")
+            st.markdown("#### 📈 Análisis de Pérdidas Potenciales por Quiebre")
 
         with col2:
             st.markdown(
                 """
                 <style>
                 div[data-testid="stRadio"] > label {
-                    justify-content: start;
+                    justify-content: center;
                 }
                 </style>
                 """,
@@ -2978,13 +2977,6 @@ class ProveedorDashboard:
                 horizontal=True
             )
 
-
-
-            # opcion_dias = st.radio(
-            #     label="Seleccionar la cantidad de días a proyectar:",
-            #     options=["7 días", "15 días", "30 días", "45 días"],
-            #     index=2,
-            #     horizontal=True )
 
         # Diccionario de equivalencias para 33 días hábiles
         dias_dict = {
