@@ -3162,7 +3162,6 @@ class ProveedorDashboard:
         csv = df_export.to_csv(index=False).encode('utf-8')
         st.download_button("📥 Descargar CSV", csv, "exceso_stock.csv", "text/csv")
 
-
     def analisis_estacionalidad(self, df):
         st.subheader("📆 Estacionalidad y Demanda")
 
@@ -3243,77 +3242,10 @@ class ProveedorDashboard:
         csv = df_estacional[columnas].to_csv(index=False).encode('utf-8')
         st.download_button("📥 Descargar CSV", csv, "analisis_estacionalidad.csv", "text/csv")
 
-    # def analisis_estacionalidad(self, df):
-    #     st.subheader("📆 Estacionalidad y Demanda")
-
-    #     if df is None or df.empty:
-    #         st.warning("⚠️ No hay datos para el análisis estacional.")
-    #         return
-
-    #     # === Paso 1: Etiquetado estacional
-    #     df_estacional = df.copy()
-    #     df_estacional['Etiqueta Estacional'] = df_estacional['ranking_mes'].apply(
-    #         lambda x: "📈 Mes Alto" if x >= 9 else ("📉 Mes Bajo" if x <= 4 else "Mes Intermedio")
-    #     )
-
-    #     # === Paso 2: KPI - Productos en temporada actual
-    #     mes_actual = datetime.now().month
-    #     en_temporada = df_estacional[df_estacional['mes_pico'] == mes_actual]
-    #     total_temporada = len(en_temporada)
-
-    #     st.metric("📌 Productos en su mes pico actual", f"{total_temporada:,}")
-
-    #     # === Paso 3: Gráfico de distribución por etiqueta
-    #     conteo = df_estacional['Etiqueta Estacional'].value_counts().reindex(
-    #         ["📈 Mes Pico", "Mes Intermedio", "📉 Mes Bajo"]
-    #     ).fillna(0).astype(int)
-
-    #     fig = px.bar(
-    #         x=conteo.index,
-    #         y=conteo.values,
-    #         text=conteo.values,
-    #         color=conteo.index,
-    #         title="Distribución de Productos por Estacionalidad",
-    #         color_discrete_map={
-    #             "📈 Mes Alto": "#27ae60",
-    #             "📉 Mes Bajo": "#c0392b",
-    #             "Mes Intermedio": "#f1c40f"
-    #         },
-    #         labels={"x": "", "y": ""}
-    #     )
-
-    #     fig.update_traces(textposition='outside')
-    #     fig.update_layout(
-    #         showlegend=False,
-    #         height=400,
-    #         margin=dict(t=60, b=20, l=10, r=10),
-    #         title_font=dict(size=18, color='#333', family='Arial Black'),
-    #         title_x=0.1
-    #     )
-    #     st.plotly_chart(fig, use_container_width=True)
-
-    #     # === Paso 4: Tabla formateada
-    #     df_estacional = df_estacional.sort_values(by="ranking_mes", ascending=False)
-    #     df_estacional['cantidad_optima'] = df_estacional['cantidad_optima'].astype(int).map(lambda x: f"{x:,}")
-    #     columnas = ["idarticulo", "descripcion", "mes_pico", "mes_bajo", "ranking_mes", "Etiqueta Estacional", "cantidad_optima"]
-        
-    #     st.caption(f"📋 {len(df_estacional)} artículos con análisis estacional")
-    #     st.dataframe(df_estacional[columnas].head(300), use_container_width=True, hide_index=True)
-
-    #     csv = df_estacional[columnas].to_csv(index=False).encode('utf-8')
-    #     st.download_button("📥 Descargar CSV", csv, "analisis_estacionalidad.csv", "text/csv")
-
-    def analisis_estacionalidad00(self,df):
-        st.subheader("📆 Estacionalidad y Demanda")
-        df_estacional = df.copy()
-        df_estacional['Etiqueta Estacional'] = df_estacional['ranking_mes'].apply(lambda x: "📈 Mes alto" if x >= 9 else ("📉 Mes Bajo" if x <= 4 else "Mes Intermedio"))
-        st.dataframe(df_estacional[["idarticulo", "descripcion", "mes_pico", "mes_bajo", "ranking_mes", "Etiqueta Estacional", "cantidad_optima"]], use_container_width=True, hide_index=True)
-
     def analisis_oportunidad_perdida(self,df):
         st.subheader("📉 Valor Perdido por Falta de Stock")
-        # df_perdido = df[df['valor_perdido_TOTAL'] > 0].copy()
+        df_perdido = df[df['costo_exceso_STK'] > 0].copy()
         # st.dataframe(df_perdido[["idarticulo", "descripcion", "valor_perdido_TOTAL", "unidades_perdidas_TOTAL", "cnt_reabastecer"]], use_container_width=True)
-
 
     def analisis_ajuste_precios(self, df=None):
         st.subheader("💲 Propuesta de Ajuste de Precios")
@@ -3327,7 +3259,7 @@ class ProveedorDashboard:
 
         # === Paso 1: Reducir columnas necesarias ===
         columnas_necesarias = [
-            "idarticulo", "descripcion", "precio_actual",
+            "idarticulo", "descripcion", "precio_actual","costo_unit"
             "precio_optimo_ventas", "decision_precio", "pred_ventas_actual"
         ]
 
@@ -3370,6 +3302,7 @@ class ProveedorDashboard:
 
             # ✅ Formatear columnas para mostrar
             df_final['precio_actual'] = df_final['precio_actual'].map(lambda x: f"${x:,.2f}")
+            df_final['costo_unit'] = df_final['costo_unit'].map(lambda x: f"${x:,.2f}")
             df_final['precio_optimo_ventas'] = df_final['precio_optimo_ventas'].map(lambda x: f"${x:,.2f}")
             df_final.rename(columns={"pred_ventas_actual": "venta para hoy"}, inplace=True)
             df_final["venta para hoy"] = df_final["venta para hoy"].astype(int)
