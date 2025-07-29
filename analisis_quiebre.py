@@ -16,7 +16,7 @@ def analizar_quiebre(df_presupuesto):
 
         # Cálculo de unidades y valor perdido
         temp['unidades_perdidas'] = (temp['cnt_suc_estimada'] - temp['stock_actual']).clip(lower=0)
-        temp['valor_perdido'] = temp['unidades_perdidas'] * temp['precio_unitario']
+        temp['valor_perdido'] = temp['unidades_perdidas'] * temp['costo_unit']
 
         # Acción recomendada
         def recomendar_accion(row):
