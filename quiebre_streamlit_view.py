@@ -1,7 +1,5 @@
-
 import streamlit as st
 import plotly.express as px
-import plotly.graph_objects as go
 
 def mostrar_analisis_quiebre_detallado(df_quiebre):
 
@@ -21,9 +19,9 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
     with col1:
         st.markdown(
             f"""
-            <div style="background-color:#f8f9fa;border-radius:8px;padding:12px;text-align:center;">
-                <h4 style="margin-bottom:4px;">💸 Valor Perdido Total</h4>
-                <p style="font-size:24px;font-weight:bold;color:#d9534f;">${total_perdido:,.0f}</p>
+            <div style="background-color:#f8f9fa;border-radius:8px;padding:6px;text-align:center;border:1px solid gray"">
+                <h4">💸 Valor Perdido Total</h4>
+                <p style="font-size:20px;font-weight:bold;color:#d9534f;">${total_perdido:,.0f}</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -32,7 +30,7 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
     with col2:
         st.markdown(
             f"""
-            <div style="background-color:#f8f9fa;border-radius:8px;padding:12px;text-align:center;border:1px solid green">
+            <div style="background-color:#f8f9fa;border-radius:8px;padding:6px;text-align:center;border:1px solid gray"">
                 <h4 style="margin-bottom:4px;">📦 Unidades Potencialmente Perdidas</h4>
                 <p style="font-size:24px;font-weight:bold;color:#f0ad4e;">{total_unidades:,.0f}</p>
             </div>
@@ -43,7 +41,7 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
     with col3:
         st.markdown(
             f"""
-            <div style="background-color:#f8f9fa;border-radius:8px;padding:12px;text-align:center;">
+            <div style="background-color:#f8f9fa;border-radius:8px;padding:6px;text-align:center;border:1px solid gray"">
                 <h4 style="margin-bottom:4px;">🎯 Artículos Afectados</h4>
                 <p style="font-size:24px;font-weight:bold;color:#5bc0de;">{total_articulos_afectados:,}</p>
             </div>
