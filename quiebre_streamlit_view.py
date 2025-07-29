@@ -16,8 +16,8 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
     total_unidades = df_quiebre["unidades_perdidas"].sum()
     total_articulos_afectados = df_quiebre[df_quiebre["unidades_perdidas"] > 0]["idarticulo"].nunique()
     # Redondear y formatear los textos manualmente
-    top_sucursales["texto_valor"] = top_sucursales["valor_perdido"].apply(
-        lambda x: f"{x/1_000_000:.1f}M" if x >= 1_000_000 else f"{x/1_000:.1f}K")
+    # top_sucursales["texto_valor"] = top_sucursales["valor_perdido"].apply(
+    #     lambda x: f"{x/1_000_000:.1f}M" if x >= 1_000_000 else f"{x/1_000:.1f}K")
 
     col1, col2 = st.columns([1.5,1])
 
