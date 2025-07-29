@@ -15,14 +15,47 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
     total_perdido = df_quiebre["valor_perdido"].sum()
     total_unidades = df_quiebre["unidades_perdidas"].sum()
     total_articulos_afectados = df_quiebre[df_quiebre["unidades_perdidas"] > 0]["idarticulo"].nunique()
-    # total_perdido = df_quiebre['valor_perdido_TOTAL'].sum()
-    # total_unidades = df_quiebre['unidades_perdidas_TOTAL'].sum()
-    # total_articulos_afectados = df_quiebre[df_quiebre['unidades_perdidas'] > 0]['idarticulo'].nunique()
 
     col1, col2, col3 = st.columns(3)
-    col1.metric("💸 Valor Perdido Total", f"${total_perdido:,.0f}")
-    col2.metric("📦 Unidades Potencialmente Perdidas", f"{total_unidades:,.0f}")
-    col3.metric("🎯 Artículos Afectados", f"{total_articulos_afectados:,}")
+
+    with col1:
+        st.markdown(
+            f"""
+            <div style="background-color:#f8f9fa;border-radius:8px;padding:12px;text-align:center;">
+                <h4 style="margin-bottom:4px;">💸 Valor Perdido Total</h4>
+                <p style="font-size:24px;font-weight:bold;color:#d9534f;">${total_perdido:,.0f}</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with col2:
+        st.markdown(
+            f"""
+            <div style="background-color:#f8f9fa;border-radius:8px;padding:12px;text-align:center;border:1px solid green">
+                <h4 style="margin-bottom:4px;">📦 Unidades Potencialmente Perdidas</h4>
+                <p style="font-size:24px;font-weight:bold;color:#f0ad4e;">{total_unidades:,.0f}</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with col3:
+        st.markdown(
+            f"""
+            <div style="background-color:#f8f9fa;border-radius:8px;padding:12px;text-align:center;">
+                <h4 style="margin-bottom:4px;">🎯 Artículos Afectados</h4>
+                <p style="font-size:24px;font-weight:bold;color:#5bc0de;">{total_articulos_afectados:,}</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+
+    # col1.metric("💸 Valor Perdido Total", f"${total_perdido:,.0f}")
+    # col2.metric("📦 Unidades Potencialmente Perdidas", f"{total_unidades:,.0f}")
+    # col3.metric("🎯 Artículos Afectados", f"{total_articulos_afectados:,}")
 
     # ✅ Filtrar registros con pérdida real antes de agrupar
     df_filtrado = df_quiebre[df_quiebre["valor_perdido"] > 0]
