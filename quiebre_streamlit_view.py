@@ -56,7 +56,7 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
             f"""
             <div style="background-color:transparent;border-radius:8px;padding:2px;text-align:center;border:1px solid gray; margin-bottom: 5px">
                 <h5>💸 Valor de Perdida Potencial</h5>
-                <p style="font-size:20px;font-weight:bold;color:#d9534f;">${total_perdido:,.0f}</p>
+                <p style="font-size:20px;font-weight:bold;color:#d9534f;margin-bottom: 5px !important">${total_perdido:,.0f}</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -65,7 +65,7 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
             f"""
             <div style="background-color:transparent ;border-radius:8px;padding:2px;text-align:center;border:1px solid gray; margin-bottom: 5px">
                 <h5>📦 Unidades Potencialmente Perdidas</h5>
-                <p style="font-size:20px;font-weight:bold;color:#f0ad4e;">{total_unidades:,.0f}</p>
+                <p style="font-size:20px;font-weight:bold;color:#f0ad4e;margin-bottom: 5px !important">{total_unidades:,.0f}</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -75,7 +75,7 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
             f"""
             <div style="background-color:transparent ;border-radius:8px;padding:2px;text-align:center;border:1px solid gray; margin-bottom: 5px">
                 <h5>🎯 Artículos Afectados</h5>
-                <p style="font-size:20px;font-weight:bold;color:#5bc0de;">{total_articulos_afectados:,}</p>
+                <p style="font-size:20px;font-weight:bold;color:#5bc0de;margin-bottom: 5px !important">{total_articulos_afectados:,}</p>
             </div>
             """,
             unsafe_allow_html=True
