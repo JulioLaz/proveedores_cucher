@@ -1266,7 +1266,7 @@ class ProveedorDashboard:
                                                         ordered=True)
 
                     # Título
-                    titulo_top5 = f"Top {len(df_top5)} ID Artículo por {orden_por} en cada Sucursal"
+                    titulo_top5 = f"Top {df_top5.idarticulo.nunique()} ID Artículo por {orden_por} en cada Sucursal"
 
                     # Gráfico
                     fig2 = px.bar(
