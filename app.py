@@ -1209,8 +1209,8 @@ class ProveedorDashboard:
                     df_top5["Etiqueta"] = df_top5["sucursal"] + " - " + df_top5["idarticulo"]
                     df_top5["Etiqueta"] = pd.Categorical(df_top5["Etiqueta"], 
                                                         categories=[
-                                                            f"{idart}" 
-                                                            # f"{suc} - {idart}" 
+                                                            # f"{idart}" 
+                                                            f"{suc} - {idart}" 
                                                             for suc in orden_sucursales
                                                             for idart in df_top5[df_top5["sucursal"] == suc]["idarticulo"].tolist()
                                                         ],
