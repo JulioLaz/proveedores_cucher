@@ -1171,7 +1171,7 @@ class ProveedorDashboard:
                     
                     # Agrupar por sucursal e idarticulo
                     df_top5 = (
-                        df.groupby(["sucursal", "idarticulo"])
+                        df.groupby(["sucursal", "idarticulo", "descripcion"])
                         .agg({
                             "precio_total": "sum",
                             "costo_total": "sum",
