@@ -1233,7 +1233,7 @@ class ProveedorDashboard:
                     fig2.update_layout(
                         title_font=dict(size=20, color='#454448', family='Arial Black'),
                         title_x=0.3,
-                        height=500,
+                        # height=520,
                         xaxis_title=None,
                         yaxis_title=None,
                         margin=dict(t=80, b=180),
@@ -1259,7 +1259,7 @@ class ProveedorDashboard:
                         )
                     elif orden_por in ["Ventas", "Utilidad"]:
                         fig2.update_traces(
-                            texttemplate='<b>%${y:,.0f}</b>',
+                            texttemplate='<b>$%{y:,.0f}</b>',
                             textfont=dict(size=14),
                             textposition="outside"
                         )
