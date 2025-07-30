@@ -1123,11 +1123,11 @@ class ProveedorDashboard:
 
             # === Títulos ===
             titulo_dict = {
-                "Ventas": "Top 20 Productos por Ventas 💰",
-                "Utilidad": "Top 20 Productos por Utilidad 📈",
-                "Margen %": "Top 20 Productos por Margen (%) 🧮",
-                "Cantidad": "Top 20 Productos por Cantidad Vendida 📦",
-                "Participación %": "Top 20 por Participación (%) del Total 🧭"
+                "Ventas": f"Top {len(productos_top)} Productos por Ventas 💰",
+                "Utilidad": f"Top {len(productos_top)} Productos por Utilidad 📈",
+                "Margen %": f"Top {len(productos_top)} Productos por Margen (%) 🧮",
+                "Cantidad": f"Top {len(productos_top)} Productos por Cantidad Vendida 📦",
+                "Participación %": f"Top {len(productos_top)} por Participación (%) del Total 🧭"
             }
 
             # === Gráfico principal ===
@@ -1266,7 +1266,7 @@ class ProveedorDashboard:
                                                         ordered=True)
 
                     # Título
-                    titulo_top5 = f"Top 5 ID Artículo por {orden_por} en cada Sucursal"
+                    titulo_top5 = f"Top {len(df_top5)} ID Artículo por {orden_por} en cada Sucursal"
 
                     # Gráfico
                     fig2 = px.bar(
