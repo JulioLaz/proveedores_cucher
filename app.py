@@ -1211,10 +1211,11 @@ class ProveedorDashboard:
                     df_top5["idarticulo"] = df_top5["idarticulo"].astype(str)
 
                     # Etiqueta multilínea: ID, descripción corta y sucursal
+                    # df_top5["x_label"] = df_top5.apply(
+                        # lambda row: f"{row['idarticulo']}<br>{row['descripcion'][:25]}<br><b>{row['sucursal']}</b>", axis=1)
                     df_top5["x_label"] = df_top5.apply(
-                        lambda row: f"{row['idarticulo']}<br>{row['descripcion'][:25]}<br><b>{row['sucursal']}</b>", axis=1
-)
-
+                        lambda row: f"<b>{row['idarticulo']}</b><br><span style='font-size:11px'>{row['descripcion'][:28]}</span><br><span style='font-size:10px; font-weight:bold'>{row['sucursal']}</span>",
+                        axis=1)
 
                     df_top5["Etiqueta"] = df_top5["sucursal"] + " - " + df_top5["idarticulo"]
                     df_top5["Etiqueta"] = pd.Categorical(df_top5["Etiqueta"], 
@@ -1253,6 +1254,7 @@ class ProveedorDashboard:
                         plot_bgcolor='rgba(0,0,0,0)',
                         paper_bgcolor='rgba(0,0,0,0)',
                         font=dict(size=12),
+                        showlegend=False,  # ❌ Oculta la leyenda
                         yaxis=dict(
                             showticklabels=False,
                             showgrid=False,
@@ -1260,7 +1262,6 @@ class ProveedorDashboard:
                         ),
                         legend_title_text='Sucursal'
                     )
-
 
                     # Formato condicional para etiquetas sobre barras en gráfico por sucursal
                     if orden_por == "Cantidad":
