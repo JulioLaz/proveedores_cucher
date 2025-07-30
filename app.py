@@ -1233,7 +1233,7 @@ class ProveedorDashboard:
                     fig2.update_layout(
                         title_font=dict(size=20, color='#454448', family='Arial Black'),
                         title_x=0.3,
-                        # height=520,
+                        height=550,
                         xaxis_title=None,
                         yaxis_title=None,
                         margin=dict(t=80, b=180),
