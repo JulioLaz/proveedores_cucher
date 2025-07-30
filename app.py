@@ -1139,24 +1139,41 @@ class ProveedorDashboard:
                 title=titulo_dict[orden_por],
                 labels={"Producto": "Producto", orden_por: orden_por}
             )
-            fig.update_layout(
-                title_font=dict(size=22, color='#454448', family='Arial Black'),
-                title_x=0.3,
-                height=400,
-                xaxis_title=None,
-                yaxis_title=None,
-                margin=dict(t=60, b=10),
-                xaxis_tickangle=-45,
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)',
-                font=dict(size=12),
-                yaxis=dict(
-                    showticklabels=False,  # ⛔ oculta los valores del eje x
-                    showgrid=False,        # opcional: oculta líneas de grilla
-                    zeroline=False         # opcional: oculta línea cero
-                    
-                    )
-            )
+
+            if len(productos_top)<8:
+                fig.update_layout(
+                    title_font=dict(size=22, color='#454448', family='Arial Black'),
+                    title_x=0.3,
+                    height=400,
+                    xaxis_title=None,
+                    yaxis_title=None,
+                    margin=dict(t=60, b=10),
+                    xaxis_tickangle=0,
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    font=dict(size=12),
+                    yaxis=dict(
+                        showticklabels=False,  # ⛔ oculta los valores del eje x
+                        showgrid=False,        # opcional: oculta líneas de grilla
+                        zeroline=False         # opcional: oculta línea cero
+                    ))
+            else:
+                fig.update_layout(
+                    title_font=dict(size=22, color='#454448', family='Arial Black'),
+                    title_x=0.3,
+                    height=400,
+                    xaxis_title=None,
+                    yaxis_title=None,
+                    margin=dict(t=60, b=10),
+                    xaxis_tickangle=-45,
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    font=dict(size=12),
+                    yaxis=dict(
+                        showticklabels=False,  # ⛔ oculta los valores del eje x
+                        showgrid=False,        # opcional: oculta líneas de grilla
+                        zeroline=False         # opcional: oculta línea cero
+                    ))
 
 # Formato condicional para etiquetas sobre barras
             if orden_por == "Cantidad":
