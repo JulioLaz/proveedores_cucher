@@ -1165,12 +1165,12 @@ class ProveedorDashboard:
 
             ###############################################################################################################
             # === Gráfico adicional: Top 5 idarticulo por métrica y sucursal ===
+            # === Gráfico adicional: Top 5 idarticulo por métrica y sucursal ===
             try:
-                # Validar columnas necesarias
                 if "idarticulo" in df.columns and "sucursal" in df.columns:
-
+                    
                     # Agrupar por sucursal e idarticulo
-                    top_sucursal = (
+                    df_top5 = (
                         df.groupby(["sucursal", "idarticulo"])
                         .agg({
                             "precio_total": "sum",
@@ -1180,50 +1180,63 @@ class ProveedorDashboard:
                         .reset_index()
                     )
 
-                    # Crear métricas adicionales
-                    top_sucursal["Utilidad"] = top_sucursal["precio_total"] - top_sucursal["costo_total"]
-                    top_sucursal["Margen %"] = 100 * top_sucursal["Utilidad"] / top_sucursal["precio_total"].replace(0, pd.NA)
-                    top_sucursal["Participación %"] = 100 * top_sucursal["precio_total"] / top_sucursal["precio_total"].sum()
+                    # Crear métricas
+                    df_top5["Utilidad"] = df_top5["precio_total"] - df_top5["costo_total"]
+                    df_top5["Margen %"] = 100 * df_top5["Utilidad"] / df_top5["precio_total"].replace(0, pd.NA)
+                    df_top5["Participación %"] = 100 * df_top5["precio_total"] / df_top5["precio_total"].sum()
 
-                    # Renombrar columnas para consistencia
-                    top_sucursal.rename(columns={
+                    # Renombrar
+                    df_top5.rename(columns={
                         "precio_total": "Ventas",
                         "costo_total": "Costos",
                         "cantidad_total": "Cantidad"
                     }, inplace=True)
 
-                    # Filtrar top 5 por sucursal y métrica seleccionada
-                    top_5_sucursal = (
-                        top_sucursal[top_sucursal[orden_por].notna()]
-                        .sort_values(orden_por, ascending=False)
-                        .groupby("sucursal")
-                        .head(5)
+                    # Ordenar sucursales por ventas totales
+                    orden_sucursales = (
+                        df.groupby("sucursal")["precio_total"].sum().sort_values(ascending=False).index.tolist()
                     )
 
-                    # Para etiquetas legibles
-                    top_5_sucursal["idarticulo"] = top_5_sucursal["idarticulo"].astype(str)
+                    # Obtener top 5 artículos por sucursal (en orden deseado)
+                    df_top5 = df_top5[df_top5[orden_por].notna()]
+                    df_top5 = df_top5.sort_values([ "sucursal", orden_por], ascending=[True, False])
+                    df_top5 = df_top5.groupby("sucursal").head(5).copy()
 
-                    # Crear título dinámico
+                    # Convertir idarticulo a str para el eje x
+                    df_top5["idarticulo"] = df_top5["idarticulo"].astype(str)
+
+                    # Ordenar categoría compuesta para que Plotly las muestre bien agrupadas por sucursal
+                    df_top5["Etiqueta"] = df_top5["sucursal"] + " - " + df_top5["idarticulo"]
+                    df_top5["Etiqueta"] = pd.Categorical(df_top5["Etiqueta"], 
+                                                        categories=[
+                                                            f"{suc} - {idart}" 
+                                                            for suc in orden_sucursales
+                                                            for idart in df_top5[df_top5["sucursal"] == suc]["idarticulo"].tolist()
+                                                        ],
+                                                        ordered=True)
+
+                    # Título
                     titulo_top5 = f"Top 5 ID Artículo por {orden_por} en cada Sucursal"
 
-                    # === Gráfico con Plotly Express ===
+                    # Gráfico
                     fig2 = px.bar(
-                        top_5_sucursal,
-                        x="idarticulo",
+                        df_top5,
+                        x="Etiqueta",
                         y=orden_por,
                         color="sucursal",
                         text_auto='.2s' if orden_por in ["Ventas", "Utilidad"] else '.1f',
                         title=titulo_top5,
-                        labels={"idarticulo": "ID Artículo", orden_por: orden_por}
+                        labels={"Etiqueta": "ID Artículo por Sucursal", orden_por: orden_por}
                     )
+
+                    # Layout profesional
                     fig2.update_layout(
-                        barmode='group',
                         title_font=dict(size=20, color='#454448', family='Arial Black'),
                         title_x=0.3,
-                        height=450,
+                        height=500,
                         xaxis_title=None,
                         yaxis_title=None,
-                        margin=dict(t=80, b=120),
+                        margin=dict(t=80, b=180),
                         xaxis_tickangle=-45,
                         plot_bgcolor='rgba(0,0,0,0)',
                         paper_bgcolor='rgba(0,0,0,0)',
@@ -1232,31 +1245,19 @@ class ProveedorDashboard:
                             showticklabels=False,
                             showgrid=False,
                             zeroline=False
-                        )
+                        ),
+                        legend_title_text='Sucursal'
                     )
 
-                    # fig2.update_layout(
-                    #     title_font=dict(size=20, color='#454448', family='Arial Black'),
-                    #     title_x=0.3,
-                    #     height=450,
-                    #     xaxis_title=None,
-                    #     yaxis_title=None,
-                    #     margin=dict(t=80, b=120),
-                    #     xaxis_tickangle=-45,
-                    #     plot_bgcolor='rgba(0,0,0,0)',
-                    #     paper_bgcolor='rgba(0,0,0,0)',
-                    #     font=dict(size=12),
-                    #     yaxis=dict(
-                    #         showticklabels=False,  # oculta valores del eje Y
-                    #         showgrid=False,
-                    #         zeroline=False
-                    #     )
-                    # )
+                    # Mostrar
                     st.plotly_chart(fig2, use_container_width=True)
+
                 else:
                     st.info("⚠️ No se encontraron columnas 'idarticulo' o 'sucursal' en el DataFrame.")
+
             except Exception as e:
                 st.error(f"❌ Error al generar la gráfica Top 5 por sucursal: {e}")
+
 
 
 
