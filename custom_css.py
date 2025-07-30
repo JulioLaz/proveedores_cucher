@@ -263,6 +263,6 @@ def custom_sidebar():
 
             </style>
             <div class="sidebar-logo-box">
-                <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.png" alt="Cucher Mercados Logo">
+                <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.webp" alt="Cucher Mercados Logo">
             </div>
         """
