@@ -1157,6 +1157,27 @@ class ProveedorDashboard:
                     
                     )
             )
+
+# Formato condicional para etiquetas sobre barras
+            if orden_por == "Cantidad":
+                fig.update_traces(
+                    texttemplate='<b>%{y:,.0f}</b>',
+                    textfont=dict(size=14),
+                    textposition="outside"
+                )
+            elif orden_por in ["Ventas", "Utilidad"]:
+                fig.update_traces(
+                    texttemplate='<b>%{y:,.1f}</b>',
+                    textfont=dict(size=14),
+                    textposition="outside"
+                )
+            elif orden_por in ["Participación %", "Margen %"]:
+                fig.update_traces(
+                    texttemplate='<b>%{y:.1f}%</b>',
+                    textfont=dict(size=14),
+                    textposition="outside"
+                )
+
             fig.update_traces(marker_color='#8966c6')
             st.plotly_chart(fig, use_container_width=True)
 
@@ -1214,7 +1235,7 @@ class ProveedorDashboard:
                     # df_top5["x_label"] = df_top5.apply(
                         # lambda row: f"{row['idarticulo']}<br>{row['descripcion'][:25]}<br><b>{row['sucursal']}</b>", axis=1)
                     df_top5["x_label"] = df_top5.apply(
-                        lambda row: f"<b>{row['idarticulo']}</b><br><span style='font-size:11px'>{row['descripcion'][:28]}</span><br><span style='font-size:10px; font-weight:bold'>{row['sucursal']}</span>",
+                        lambda row: f"<b>{row['idarticulo']}</b><br><span style='font-size:11px'>{row['descripcion'][:20]}</span><br><span style='font-size:10px; font-weight:bold'>{row['sucursal']}</span>",
                         axis=1)
 
                     df_top5["Etiqueta"] = df_top5["sucursal"] + " - " + df_top5["idarticulo"]
@@ -1292,118 +1313,6 @@ class ProveedorDashboard:
 
             except Exception as e:
                 st.error(f"❌ Error al generar la gráfica Top 5 por sucursal: {e}")
-
-###############################################################################################################
-            # === Gráfico con separación por sucursal usando facet_col ===
-            # === Gráfico con separación por sucursal usando facet_col ===
-
-            # 1. Orden de sucursales por total vendido
-            orden_sucursales = (
-                df.groupby("sucursal")["precio_total"].sum()
-                .sort_values(ascending=False)
-                .index.tolist()
-            )
-
-            # 2. Agrupar y calcular métricas
-            df_top5 = (
-                df.groupby(["sucursal", "idarticulo", "descripcion"])
-                .agg({
-                    "precio_total": "sum",
-                    "costo_total": "sum",
-                    "cantidad_total": "sum"
-                })
-                .reset_index()
-            )
-
-            df_top5["Utilidad"] = df_top5["precio_total"] - df_top5["costo_total"]
-            df_top5["Margen %"] = 100 * df_top5["Utilidad"] / df_top5["precio_total"].replace(0, pd.NA)
-            df_top5["Participación %"] = 100 * df_top5["precio_total"] / df_top5["precio_total"].sum()
-
-            df_top5.rename(columns={
-                "precio_total": "Ventas",
-                "costo_total": "Costos",
-                "cantidad_total": "Cantidad"
-            }, inplace=True)
-
-            # 3. Filtrar top 5 por sucursal y métrica seleccionada
-            df_top5 = df_top5[df_top5[orden_por].notna()]
-            df_top5 = df_top5.sort_values(["sucursal", orden_por], ascending=[True, False])
-            df_top5 = df_top5.groupby("sucursal").head(5).copy()
-
-            # Convertir idarticulo a string para evitar formato numérico (eje x)
-            df_top5["idarticulo"] = df_top5["idarticulo"].astype(str)
-
-            # 4. Gráfico facetado
-            fig2 = px.bar(
-                df_top5,
-                x="idarticulo",
-                y=orden_por,
-                facet_col="sucursal",
-                text_auto=True,
-                custom_data=["descripcion", "sucursal"],
-                category_orders={"sucursal": orden_sucursales},
-                color_discrete_sequence=["#8966c6"],  # color uniforme
-                title=f"Top 5 ID Artículo por {orden_por} en cada Sucursal"
-            )
-
-            # 5. Layout y estilo general
-            fig2.update_layout(
-                title_font=dict(size=20, color='#454448', family='Arial Black'),
-                title_x=0.3,
-                height=550,
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)',
-                font=dict(size=12),
-                showlegend=False,
-                margin=dict(t=80, b=100),
-            )
-
-            # 6. Ajuste de ejes
-            fig2.update_xaxes(title_text="ID Artículo", tickangle=-30)
-            fig2.update_yaxes(showticklabels=False, showgrid=False)
-
-            # 7. Formato condicional de etiquetas y tooltips
-            if orden_por == "Cantidad":
-                fig2.update_traces(
-                    texttemplate='<b>%{y:,.0f}</b>',
-                    textfont=dict(size=14),
-                    textposition="outside",
-                    hovertemplate=(
-                        "<b>ID Artículo:</b> %{x}<br>" +
-                        "<b>Descripción:</b> %{customdata[0]}<br>" +
-                        "<b>Sucursal:</b> %{customdata[1]}<br>" +
-                        "<b>Cantidad:</b> %{y:,}<extra></extra>"
-                    )
-                )
-            elif orden_por in ["Ventas", "Utilidad"]:
-                fig2.update_traces(
-                    texttemplate='<b>$%{y:,.1f}</b>',
-                    textfont=dict(size=14),
-                    textposition="outside",
-                    hovertemplate=(
-                        "<b>ID Artículo:</b> %{x}<br>" +
-                        "<b>Descripción:</b> %{customdata[0]}<br>" +
-                        "<b>Sucursal:</b> %{customdata[1]}<br>" +
-                        f"<b>{orden_por}:</b> $%{{y:,.1f}}<extra></extra>"
-                    )
-                )
-            else:  # Para "Margen %" o "Participación %"
-                fig2.update_traces(
-                    texttemplate='<b>%{y:.1f}%</b>',
-                    textfont=dict(size=14),
-                    textposition="outside",
-                    hovertemplate=(
-                        "<b>ID Artículo:</b> %{x}<br>" +
-                        "<b>Descripción:</b> %{customdata[0]}<br>" +
-                        "<b>Sucursal:</b> %{customdata[1]}<br>" +
-                        f"<b>{orden_por}:</b> %{{y:.1f}}%<extra></extra>"
-                    )
-                )
-
-            # 8. Mostrar en Streamlit
-            st.plotly_chart(fig2, use_container_width=True)
-
-
 
 ###############################################################################################################
 
