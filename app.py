@@ -1295,6 +1295,7 @@ class ProveedorDashboard:
 
 ###############################################################################################################
             # === Gráfico con separación por sucursal usando facet_col ===
+            # === Gráfico con separación por sucursal usando facet_col ===
 
             # 1. Orden de sucursales por total vendido
             orden_sucursales = (
@@ -1329,6 +1330,7 @@ class ProveedorDashboard:
             df_top5 = df_top5.sort_values(["sucursal", orden_por], ascending=[True, False])
             df_top5 = df_top5.groupby("sucursal").head(5).copy()
 
+            # Convertir idarticulo a string para evitar formato numérico (eje x)
             df_top5["idarticulo"] = df_top5["idarticulo"].astype(str)
 
             # 4. Gráfico facetado
@@ -1336,19 +1338,19 @@ class ProveedorDashboard:
                 df_top5,
                 x="idarticulo",
                 y=orden_por,
-                color="sucursal",
                 facet_col="sucursal",
                 text_auto=True,
                 custom_data=["descripcion", "sucursal"],
                 category_orders={"sucursal": orden_sucursales},
+                color_discrete_sequence=["#8966c6"],  # color uniforme
                 title=f"Top 5 ID Artículo por {orden_por} en cada Sucursal"
             )
 
-            # 5. Layout y estilo
+            # 5. Layout y estilo general
             fig2.update_layout(
                 title_font=dict(size=20, color='#454448', family='Arial Black'),
                 title_x=0.3,
-                height=500,
+                height=550,
                 plot_bgcolor='rgba(0,0,0,0)',
                 paper_bgcolor='rgba(0,0,0,0)',
                 font=dict(size=12),
@@ -1356,11 +1358,11 @@ class ProveedorDashboard:
                 margin=dict(t=80, b=100),
             )
 
-            # 6. Ejes y texto
+            # 6. Ajuste de ejes
             fig2.update_xaxes(title_text="ID Artículo", tickangle=-30)
             fig2.update_yaxes(showticklabels=False, showgrid=False)
 
-            # 7. Etiquetas de barras y tooltips personalizados
+            # 7. Formato condicional de etiquetas y tooltips
             if orden_por == "Cantidad":
                 fig2.update_traces(
                     texttemplate='<b>%{y:,.0f}</b>',
@@ -1385,7 +1387,7 @@ class ProveedorDashboard:
                         f"<b>{orden_por}:</b> $%{{y:,.1f}}<extra></extra>"
                     )
                 )
-            else:
+            else:  # Para "Margen %" o "Participación %"
                 fig2.update_traces(
                     texttemplate='<b>%{y:.1f}%</b>',
                     textfont=dict(size=14),
