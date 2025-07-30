@@ -1209,7 +1209,8 @@ class ProveedorDashboard:
                     df_top5["Etiqueta"] = df_top5["sucursal"] + " - " + df_top5["idarticulo"]
                     df_top5["Etiqueta"] = pd.Categorical(df_top5["Etiqueta"], 
                                                         categories=[
-                                                            f"{suc} - {idart}" 
+                                                            f"{idart}" 
+                                                            # f"{suc} - {idart}" 
                                                             for suc in orden_sucursales
                                                             for idart in df_top5[df_top5["sucursal"] == suc]["idarticulo"].tolist()
                                                         ],
@@ -1237,7 +1238,7 @@ class ProveedorDashboard:
                         xaxis_title=None,
                         yaxis_title=None,
                         margin=dict(t=80, b=180),
-                        xaxis_tickangle=-45,
+                        # xaxis_tickangle=-45,
                         plot_bgcolor='rgba(0,0,0,0)',
                         paper_bgcolor='rgba(0,0,0,0)',
                         font=dict(size=12),
