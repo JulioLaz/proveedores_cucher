@@ -1139,7 +1139,6 @@ class ProveedorDashboard:
                 title=titulo_dict[orden_por],
                 labels={"Producto": "Producto", orden_por: orden_por}
             )
-
             fig.update_layout(
                 title_font=dict(size=22, color='#454448', family='Arial Black'),
                 title_x=0.3,
@@ -1163,6 +1162,86 @@ class ProveedorDashboard:
 
             if len(productos_top) < 5:
                 st.warning(f"⚠️ Solo hay {len(productos_top)} productos disponibles con datos en '{orden_por}'.")
+
+            ###############################################################################################################
+            # === Gráfico adicional: Top 5 idarticulo por métrica y sucursal ===
+            try:
+                # Validar columnas necesarias
+                if "idarticulo" in df.columns and "sucursal" in df.columns:
+
+                    # Agrupar por sucursal e idarticulo
+                    top_sucursal = (
+                        df.groupby(["sucursal", "idarticulo"])
+                        .agg({
+                            "precio_total": "sum",
+                            "costo_total": "sum",
+                            "cantidad_total": "sum"
+                        })
+                        .reset_index()
+                    )
+
+                    # Crear métricas adicionales
+                    top_sucursal["Utilidad"] = top_sucursal["precio_total"] - top_sucursal["costo_total"]
+                    top_sucursal["Margen %"] = 100 * top_sucursal["Utilidad"] / top_sucursal["precio_total"].replace(0, pd.NA)
+                    top_sucursal["Participación %"] = 100 * top_sucursal["precio_total"] / top_sucursal["precio_total"].sum()
+
+                    # Renombrar columnas para consistencia
+                    top_sucursal.rename(columns={
+                        "precio_total": "Ventas",
+                        "costo_total": "Costos",
+                        "cantidad_total": "Cantidad"
+                    }, inplace=True)
+
+                    # Filtrar top 5 por sucursal y métrica seleccionada
+                    top_5_sucursal = (
+                        top_sucursal[top_sucursal[orden_por].notna()]
+                        .sort_values(orden_por, ascending=False)
+                        .groupby("sucursal")
+                        .head(5)
+                    )
+
+                    # Para etiquetas legibles
+                    top_5_sucursal["idarticulo"] = top_5_sucursal["idarticulo"].astype(str)
+
+                    # Crear título dinámico
+                    titulo_top5 = f"Top 5 ID Artículo por {orden_por} en cada Sucursal"
+
+                    # === Gráfico con Plotly Express ===
+                    fig2 = px.bar(
+                        top_5_sucursal,
+                        x="idarticulo",
+                        y=orden_por,
+                        color="sucursal",
+                        text_auto='.2s' if orden_por in ["Ventas", "Utilidad"] else '.1f',
+                        title=titulo_top5,
+                        labels={"idarticulo": "ID Artículo", orden_por: orden_por}
+                    )
+                    fig2.update_layout(
+                        title_font=dict(size=20, color='#454448', family='Arial Black'),
+                        title_x=0.3,
+                        height=450,
+                        xaxis_title=None,
+                        yaxis_title=None,
+                        margin=dict(t=80, b=120),
+                        xaxis_tickangle=-45,
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        font=dict(size=12),
+                        yaxis=dict(
+                            showticklabels=False,  # oculta valores del eje Y
+                            showgrid=False,
+                            zeroline=False
+                        )
+                    )
+                    st.plotly_chart(fig2, use_container_width=True)
+                else:
+                    st.info("⚠️ No se encontraron columnas 'idarticulo' o 'sucursal' en el DataFrame.")
+            except Exception as e:
+                st.error(f"❌ Error al generar la gráfica Top 5 por sucursal: {e}")
+
+
+
+###############################################################################################################
 
             # === GRAFICOS ADICIONALES ===
             col1, col2 = st.columns(2)
