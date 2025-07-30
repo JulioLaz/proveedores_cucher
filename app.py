@@ -1259,7 +1259,7 @@ class ProveedorDashboard:
                         )
                     elif orden_por in ["Ventas", "Utilidad"]:
                         fig2.update_traces(
-                            texttemplate='<b>%{y:,.1f}</b>',
+                            texttemplate='<b>%${y:,.0f}</b>',
                             textfont=dict(size=14),
                             textposition="outside"
                         )
