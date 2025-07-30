@@ -1217,6 +1217,7 @@ class ProveedorDashboard:
                         labels={"idarticulo": "ID Artículo", orden_por: orden_por}
                     )
                     fig2.update_layout(
+                        barmode='group',
                         title_font=dict(size=20, color='#454448', family='Arial Black'),
                         title_x=0.3,
                         height=450,
@@ -1228,11 +1229,29 @@ class ProveedorDashboard:
                         paper_bgcolor='rgba(0,0,0,0)',
                         font=dict(size=12),
                         yaxis=dict(
-                            showticklabels=False,  # oculta valores del eje Y
+                            showticklabels=False,
                             showgrid=False,
                             zeroline=False
                         )
                     )
+
+                    # fig2.update_layout(
+                    #     title_font=dict(size=20, color='#454448', family='Arial Black'),
+                    #     title_x=0.3,
+                    #     height=450,
+                    #     xaxis_title=None,
+                    #     yaxis_title=None,
+                    #     margin=dict(t=80, b=120),
+                    #     xaxis_tickangle=-45,
+                    #     plot_bgcolor='rgba(0,0,0,0)',
+                    #     paper_bgcolor='rgba(0,0,0,0)',
+                    #     font=dict(size=12),
+                    #     yaxis=dict(
+                    #         showticklabels=False,  # oculta valores del eje Y
+                    #         showgrid=False,
+                    #         zeroline=False
+                    #     )
+                    # )
                     st.plotly_chart(fig2, use_container_width=True)
                 else:
                     st.info("⚠️ No se encontraron columnas 'idarticulo' o 'sucursal' en el DataFrame.")
