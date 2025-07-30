@@ -1206,6 +1206,16 @@ class ProveedorDashboard:
                     df_top5["idarticulo"] = df_top5["idarticulo"].astype(str)
 
                     # Ordenar categoría compuesta para que Plotly las muestre bien agrupadas por sucursal
+
+                    # Asegurar que idarticulo sea str
+                    df_top5["idarticulo"] = df_top5["idarticulo"].astype(str)
+
+                    # Etiqueta multilínea: ID, descripción corta y sucursal
+                    df_top5["x_label"] = df_top5.apply(
+                        lambda row: f"{row['idarticulo']}<br>{row['descripcion'][:25]}<br><b>{row['sucursal']}</b>", axis=1
+)
+
+
                     df_top5["Etiqueta"] = df_top5["sucursal"] + " - " + df_top5["idarticulo"]
                     df_top5["Etiqueta"] = pd.Categorical(df_top5["Etiqueta"], 
                                                         categories=[
@@ -1222,7 +1232,8 @@ class ProveedorDashboard:
                     # Gráfico
                     fig2 = px.bar(
                         df_top5,
-                        x="Etiqueta",
+                        x="x_label",
+                        # x="Etiqueta",
                         y=orden_por,
                         color="sucursal",
                         text_auto='.2s' if orden_por in ["Ventas", "Utilidad"] else '.1f',
