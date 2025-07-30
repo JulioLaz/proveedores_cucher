@@ -1249,6 +1249,28 @@ class ProveedorDashboard:
                         legend_title_text='Sucursal'
                     )
 
+
+                    # Formato condicional para etiquetas sobre barras en gráfico por sucursal
+                    if orden_por == "Cantidad":
+                        fig2.update_traces(
+                            texttemplate='<b>%{y:,.0f}</b>',
+                            textfont=dict(size=14),
+                            textposition="outside"
+                        )
+                    elif orden_por in ["Ventas", "Utilidad"]:
+                        fig2.update_traces(
+                            texttemplate='<b>%{y:,.1f}</b>',
+                            textfont=dict(size=14),
+                            textposition="outside"
+                        )
+                    elif orden_por in ["Participación %", "Margen %"]:
+                        fig2.update_traces(
+                            texttemplate='<b>%{y:.1f}%</b>',
+                            textfont=dict(size=14),
+                            textposition="outside"
+                        )
+
+
                     # Mostrar
                     st.plotly_chart(fig2, use_container_width=True)
 
