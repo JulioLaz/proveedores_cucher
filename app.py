@@ -26,7 +26,7 @@ from generar_excel import generar_excel
 from custom_css import custom_css, custom_sidebar
 from analisis_quiebre import analizar_quiebre
 from quiebre_streamlit_view import mostrar_analisis_quiebre_detallado
-
+from excel_proveedor import ProveedorAnalyzerStreamlit
 
 locale = Locale.parse('es_AR')
 
@@ -728,31 +728,54 @@ class ProveedorDashboard:
             st.sidebar.error("❌ No se encontró el ID del proveedor seleccionado.")
             return proveedor, fecha_inicio, fecha_fin, None
 
+        ############## 3333333333333333333333333333333333333333333333333333
+
         if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
             else:
-                with st.spinner(f"🔄 Consultando datos de {proveedor}"):
-                    df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
-                    if df_tickets is not None:
-                        st.session_state.analysis_data = df_tickets
-                        st.session_state.selected_proveedor = proveedor
-                        # st.rerun()
-                    else:
-                        st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
-                if fila > 0:
-                    # st.write('idproveedor: ', fila)
-                    with st.spinner(f"🔄 Consultando datos proveedor id: {fila}"):
-                        df_presu = self.query_resultados_idarticulo(fila)
-                        if df_presu is not None:
-                            st.session_state.resultados_data = df_presu
-                            # st.session_state.df_presu = df_presu
-                            # st.rerun()
-                        else:
-                            st.sidebar.error("❌ No se encontraron datos de presupuesto para el proveedor")
-                        # st.write(df_presu.head(5))
+                df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
+                df_presu = self.query_resultados_idarticulo(fila)
+
+                if df_tickets is not None and df_presu is not None:
+                    analyzer = ProveedorAnalyzerStreamlit(proveedor, df_presu, df_tickets)
+                    excel_bytes = analyzer.run_analysis()
+
+                    if excel_bytes:
+                        st.success("✅ Análisis generado")
+                        st.download_button(
+                            label="⬇️ Descargar Informe Excel",
+                            data=excel_bytes,
+                            file_name=f"{proveedor.replace(' ','_')}_ANALISIS_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
                 else:
-                    st.sidebar.error("❌ No se encontró el ID del proveedor seleccionado")
+                    st.sidebar.error("❌ No hay datos para este proveedor")
+
+
+        # if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
+        #     if not proveedor:
+        #         st.sidebar.error("❌ Selecciona un proveedor")
+        #     else:
+        #         with st.spinner(f"🔄 Consultando datos de {proveedor}"):
+        #             df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
+        #             if df_tickets is not None:
+        #                 st.session_state.analysis_data = df_tickets
+        #                 st.session_state.selected_proveedor = proveedor
+        #             else:
+        #                 st.sidebar.error("❌ No se encontraron datos para el período seleccionado")
+        #         if fila > 0:
+        #             with st.spinner(f"🔄 Consultando datos proveedor id: {fila}"):
+        #                 df_presu = self.query_resultados_idarticulo(fila)
+        #                 if df_presu is not None:
+        #                     st.session_state.resultados_data = df_presu
+
+        #                 else:
+        #                     st.sidebar.error("❌ No se encontraron datos de presupuesto para el proveedor")
+        #         else:
+        #             st.sidebar.error("❌ No se encontró el ID del proveedor seleccionado")
+
+############## 3333333333333333333333333333333333333333333333333333
 
         # Si existe en session_state, recuperarlo
         if "df_presu" in st.session_state:
