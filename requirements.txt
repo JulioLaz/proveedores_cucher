@@ -17,3 +17,10 @@ openpyxl>=3.1.0
 
 statsmodels
 babel>=2.12.1
+
+
+matplotlib
+seaborn
+xlsxwriter
+babel
+pandas-gbq
