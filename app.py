@@ -3087,7 +3087,13 @@ class ProveedorDashboard:
         }
 
         df_costos = pd.DataFrame(costos.items(), columns=["Sucursal", "Presupuesto ($)"])
-        df_costos["Presupuesto ($)"] = df_costos["Presupuesto ($)"].astype(int)
+        # df_costos["Presupuesto ($)"] = df_costos["Presupuesto ($)"].astype(int)
+        df_costos["Presupuesto ($)"] = (
+                pd.to_numeric(df_costos["Presupuesto ($)"], errors="coerce")
+                .fillna(0)
+                .round(0)
+                .astype(int)
+            )
         df_costos["texto"] = df_costos["Presupuesto ($)"].apply(lambda x: f"${x:,.0f}")
         df_costos = df_costos.sort_values(by="Presupuesto ($)", ascending=False)
 
