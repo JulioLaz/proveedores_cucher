@@ -28,6 +28,10 @@ from analisis_quiebre import analizar_quiebre
 from quiebre_streamlit_view import mostrar_analisis_quiebre_detallado
 from excel_proveedor import ProveedorAnalyzerStreamlit
 
+# 👇 NUEVA LÍNEA - Agregar al inicio después de los imports
+from components.executive_summary import show_executive_summary as render_executive_summary
+
+
 locale = Locale.parse('es_AR')
 
 def format_abbr(x):
@@ -728,31 +732,7 @@ class ProveedorDashboard:
             st.sidebar.error("❌ No se encontró el ID del proveedor seleccionado.")
             return proveedor, fecha_inicio, fecha_fin, None
 
-        ############## 3333333333333333333333333333333333333333333333333333
-
-        # if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
-        #     if not proveedor:
-        #         st.sidebar.error("❌ Selecciona un proveedor")
-        #     else:
-        #         df_tickets = self.query_bigquery_data(proveedor, fecha_inicio, fecha_fin)
-        #         df_presu = self.query_resultados_idarticulo(fila)
-
-        #         if df_tickets is not None and df_presu is not None:
-        #             analyzer = ProveedorAnalyzerStreamlit(proveedor, df_presu, df_tickets)
-        #             excel_bytes = analyzer.run_analysis()
-
-        #             if excel_bytes:
-        #                 st.success("✅ Análisis generado")
-        #                 st.download_button(
-        #                     label="⬇️ Descargar Informe Excel",
-        #                     data=excel_bytes,
-        #                     file_name=f"{proveedor.replace(' ','_')}_ANALISIS_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
-        #                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        #                 )
-        #         else:
-        #             st.sidebar.error("❌ No hay datos para este proveedor")
-
-
+   
         if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
@@ -895,220 +875,12 @@ class ProveedorDashboard:
         with tab7:
             self.show_presupuesto_estrategico(df_presu)
 
+
     def show_executive_summary(self, df, proveedor, metrics):
-        # === Estilos CSS personalizados ===
-        st.markdown("""
-        <style>
-            .insight-box, .success-box, .warning-box {
-                border-radius: 10px;
-                padding: 1rem;
-                margin: 0.5rem 0;
-                font-size: 0.95rem;
-                border-left: 6px solid #2a5298;
-            }
-            .success-box {
-                background-color: #e6f4ea;
-                border-left-color: #28a745;
-            }
-            .warning-box {
-                background-color: #fff3cd;
-                border-left-color: #ffc107;
-            }
-            .insight-box {
-                background-color: #d1ecf1;
-                border-left-color: #17a2b8;
-            }
-            #tabs-bui171-tabpanel-1 > div > div:nth-child(1) > div.stColumn > div > div > div > label {
-                display: none !important;
-            }
-
-
-        </style>
-        """, unsafe_allow_html=True)
-
-        # st.subheader(f"📈 Resumen Ejecutivo - {proveedor}")
-
-        # === KPIs principales (manuales dentro de cajas HTML) ===
-        col1, col2, col4, col5, col6 = st.columns(5)
-        with col1:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div style="text-align: center;">
-                    <div style="font-size: 1rem; color: #555;">💰 Ventas Totales</div>
-                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${metrics['total_ventas']:,.0f}</div>
-                </div>
-                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
-                    ⬆️ {metrics['margen_promedio']:.1f}% margen
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col2:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div style="text-align: center;">
-                    <div style="font-size: 1rem; color: #555;">📈 Utilidad Total</div>
-                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${metrics['total_utilidad']:,.0f}</div>
-                </div>
-                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
-                    ⬆️ ${metrics['ticket_promedio']:,.0f} ticket prom.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col4:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div style="text-align: center;">
-                    <div style="font-size: 1rem; color: #555;">📦 Cantidad Vendida</div>
-                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['total_cantidad']:,.0f}</div>
-                </div>
-                <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
-                    ⬆️ {metrics['productos_unicos']} productos únicos
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col5:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div style="text-align: center;">
-                    <div style="font-size: 1rem; color: #555;">📅 Días únicos con ventas</div>
-                    <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{metrics['dias_con_ventas']}</div>
-                </div>
-                <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
-                    Período analizado
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col6:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div style="text-align: center;">
-                    <div style="font-size: 1rem; color: #555;">🏪 Sucursales Presentes</div>
-                    <div style="font-size: 1rem; color: #1e3c72; padding: .4rem 0rem">{metrics['sucursales_presentes']}</div>
-                </div>
-                <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
-                    Sucursales activas
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        # === Insights automáticos ===
-        insights = self.generate_insights(df, metrics)
-
-        # Grilla 2 columnas
-        cols = st.columns(2)
-        for idx, (tipo, mensaje) in enumerate(insights):
-            col = cols[idx % 2]
-            with col:
-                if tipo == "success":
-                    st.markdown(f'<div class="success-box">{mensaje}</div>', unsafe_allow_html=True)
-                elif tipo == "warning":
-                    st.markdown(f'<div class="warning-box">{mensaje}</div>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<div class="insight-box">{mensaje}</div>', unsafe_allow_html=True)
-            if (idx + 1) % 2 == 0 and idx + 1 < len(insights):
-                cols = st.columns(2)
-
-       # === Gráficas de resumen ===
-        col1, col2 = st.columns(2)
-
-        # === Evolución Diaria de Ventas ===
-        with col1:
-            ventas_diarias = df.groupby('fecha')['precio_total'].sum().reset_index()
-
-            # Calcular línea de tendencia manual
-            ventas_diarias['fecha_ordinal'] = ventas_diarias['fecha'].map(pd.Timestamp.toordinal)
-            coef = np.polyfit(ventas_diarias['fecha_ordinal'], ventas_diarias['precio_total'], 1)
-            ventas_diarias['tendencia'] = coef[0] * ventas_diarias['fecha_ordinal'] + coef[1]
-            ventas_diarias['precio'] = ventas_diarias['precio_total'].apply(format_abbr)
-
-            fig = px.line(
-                ventas_diarias,
-                x='fecha',
-                y='precio_total',
-                custom_data=['precio'],  # Enlazamos el valor formateado
-                title="📈 Evolución Diaria de Ventas",
-                labels={'fecha': '', 'precio_total': 'Ventas'}
-            )
-
-            # Estilizar la línea principal con tooltip
-            fig.update_traces(
-                line_color='#2a5298',
-                line_width=1,
-                hovertemplate='<b>Fecha:</b> %{x}<br><b>Ventas:</b> %{customdata[0]}<extra></extra>'
-            )
-
-            # Agregar línea de tendencia como línea (sin leyenda)
-            fig.add_scatter(
-                x=ventas_diarias['fecha'],
-                y=ventas_diarias['tendencia'],
-                mode='lines',
-                line=dict(color='orange', width=1.5),
-                showlegend=False,
-                hoverinfo='skip'
-            )
-
-            fig.update_layout(
-                height=300,
-                margin=dict(t=60, b=20, l=10, r=10),
-                title_x=0.2,
-                xaxis_title=None,
-                yaxis_title=None
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
-
-
-        # === Top 5 Productos por Ventas ===
-        with col2:
-            top_productos = (
-                df.groupby('descripcion', as_index=False)['precio_total']
-                .sum()
-                .sort_values('precio_total', ascending=False)
-                .head(5)
-            )
-            top_productos['descripcion_corta'] = top_productos['descripcion'].str[:30]
-            top_productos['precio'] = top_productos['precio_total'].apply(format_abbr)
-
-            fig = px.bar(
-                top_productos,
-                x='precio_total',
-                y='descripcion_corta',
-                orientation='h',
-                text='precio',
-                custom_data=['precio'],  # Enlazamos el valor formateado
-                title="🏆 Top 5 Productos por Ventas",
-                labels={'precio_total': '', 'descripcion_corta': ''}
-            )
-            fig.update_yaxes(categoryorder='total ascending')
-
-            # Color uniforme profesional
-            fig.update_traces(
-                marker_color='#4682B4',
-                textposition='outside',
-                cliponaxis=False,
-                insidetextanchor='start',
-                hovertemplate='<b>Artículo:</b> %{y}<br><b>Venta:</b> %{customdata[0]}<extra></extra>'
-
-            )
-
-            fig.update_layout(
-                height=300,
-                margin=dict(t=60, b=20, l=10, r=80),
-                title_x=0.2,  # Centrar título
-                xaxis_title=None,
-                yaxis_title=None,
-                xaxis=dict(
-                    showticklabels=False,  # ⛔ oculta los valores del eje x
-                    showgrid=False,        # opcional: oculta líneas de grilla
-                    zeroline=False         # opcional: oculta línea cero
-                    )
-                    )
-
-            st.plotly_chart(fig, use_container_width=True, key="top_productos")
+        """Wrapper para el componente de resumen ejecutivo"""
+        render_executive_summary(df, proveedor, metrics)
+    
+    
     def show_products_analysis(self, df):
         """Análisis detallado de productos"""
         # st.subheader("🏆 Análisis Detallado de Productos - TOP 20")
