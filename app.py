@@ -565,18 +565,14 @@ class ProveedorDashboard:
         #     if len(ids) == 0: return None
 
         try:
-            # 🔥 Obtener IDs originales (antes de unificación)
-            mask = self.df_proveedores['proveedor'] == proveedor
-            
-            # Si existe idproveedor_original, usarlo; sino usar idproveedor
-            if 'idproveedor_original' in self.df_proveedores.columns:
-                ids = self.df_proveedores[mask]['idproveedor_original'].dropna().astype(int).astype(str).unique()
-            else:
-                ids = self.df_proveedores[mask]['idarticulo'].dropna().astype(int).astype(str).unique()
+            # 🔥 Obtener todos los IDs de artículos del proveedor (incluye unificados)
+            ids = self.df_proveedores[
+                self.df_proveedores['proveedor'] == proveedor
+            ]['idarticulo'].dropna().astype(int).astype(str).unique()
             
             if len(ids) == 0: 
                 return None
-
+            
             id_str = ','.join(ids)
             
             # Cliente BigQuery
@@ -615,6 +611,34 @@ class ProveedorDashboard:
             st.error(f"Error consultando BigQuery: {e}")
             return None
     
+    # def query_resultados_idarticulo(self, idproveedor):
+    #     credentials_path = self.credentials_path
+    #     project_id = self.project_id
+    #     dataset = 'presupuesto'
+    #     table = 'result_final_alert_all'
+
+    #     try:
+    #         client = bigquery.Client.from_service_account_json(credentials_path)
+
+    #         query = f"""
+    #             SELECT *
+    #             FROM `{project_id}.{dataset}.{table}`
+    #             WHERE idarticulo IS NOT NULL
+    #             AND idproveedor = {idproveedor}
+    #         """
+
+    #         df = client.query(query).to_dataframe()
+
+    #         if df.empty:
+    #             st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: {idproveedor}")
+    #         # else:
+    #             st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
+    #         return df
+
+    #     except Exception as e:
+    #         st.error(f"❌ Error al consultar BigQuery: {e}")
+    #         return pd.DataFrame()
+    
     def query_resultados_idarticulo(self, idproveedor):
         credentials_path = self.credentials_path
         project_id = self.project_id
@@ -622,27 +646,37 @@ class ProveedorDashboard:
         table = 'result_final_alert_all'
 
         try:
+            # 🔥 Obtener IDs originales si es un ID unificado
+            if idproveedor in self.NOMBRES_UNIFICADOS:
+                # Es un ID unificado, buscar los IDs originales
+                ids_originales = [k for k, v in self.PROVEEDOR_UNIFICADO.items() if v == idproveedor]
+                id_condition = f"idproveedor IN ({','.join(map(str, ids_originales))})"
+            else:
+                # Es un ID normal
+                id_condition = f"idproveedor = {idproveedor}"
+            
             client = bigquery.Client.from_service_account_json(credentials_path)
 
             query = f"""
                 SELECT *
                 FROM `{project_id}.{dataset}.{table}`
                 WHERE idarticulo IS NOT NULL
-                AND idproveedor = {idproveedor}
+                AND {id_condition}
             """
 
             df = client.query(query).to_dataframe()
 
             if df.empty:
                 st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: {idproveedor}")
-            # else:
+            else:
                 st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
+            
             return df
 
         except Exception as e:
             st.error(f"❌ Error al consultar BigQuery: {e}")
             return pd.DataFrame()
-    
+
     def calculate_metrics(self, df):
         """Calcular métricas principales"""
         
