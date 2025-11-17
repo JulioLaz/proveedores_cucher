@@ -639,11 +639,11 @@ class ProveedorDashboard:
 
             if df.empty:
                 st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: {idproveedor}")
-            else:
-                placeholder = st.empty()
-                st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
-                time.sleep(3)   # espera 3 segundos
-                placeholder.empty()  # borra el mensaje
+            # else:
+            #     placeholder = st.empty()
+            #     st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
+            #     time.sleep(3)   # espera 3 segundos
+            #     placeholder.empty()  # borra el mensaje
             return df
 
         except Exception as e:
