@@ -473,7 +473,30 @@ class InventoryDashboard:
         st.info(f"⏱️ Análisis completado en {exec_time:.2f} segundos")
 
 class ProveedorDashboard:
+
+    # Mapeos de unificación de proveedores
+    PROVEEDOR_UNIFICADO = {
+        # YAPUR → 12000001
+        1358: 12000001, 1285: 12000001, 1084: 12000001, 463: 12000001,
+        1346: 12000001, 1351: 12000001, 1361: 12000001, 1366: 12000001,
+        # COCA → 12000002
+        1268: 12000002, 1316: 12000002, 2289: 12000002, 1867: 12000002,
+        # UNILEVER → 12000003
+        503: 12000003, 1313: 12000003, 9: 12000003, 2466: 12000003,
+        # ARCOR → 12000004
+        181: 12000004, 189: 12000004, 440: 12000004, 1073: 12000004, 193: 12000004,
+        # QUILMES → 12000005
+        1332: 12000005, 2049: 12000005, 1702: 12000005
+    }
     
+    NOMBRES_UNIFICADOS = {
+        12000001: 'YAPUR',
+        12000002: 'COCA (Gaseosas y Cervezas)',
+        12000003: 'UNILEVER',
+        12000004: 'ARCOR',
+        12000005: 'QUILMES'
+    }
+
     def __init__(self):
         self.df_proveedores = None
         self.df_tickets = None
@@ -503,25 +526,57 @@ class ProveedorDashboard:
             self.sheet_name = "proveedores_all"
             self.project_id = "youtube-analysis-24"
             self.bigquery_table = "tickets.tickets_all"
-    @st.cache_data(ttl=3600)
     
+    # @st.cache_data(ttl=3600)
+    # def load_proveedores(_self):
+    #     """Cargar datos de proveedores desde Google Sheet público"""
+    #     url = f"https://docs.google.com/spreadsheets/d/{_self.sheet_id}/gviz/tq?tqx=out:csv&sheet={_self.sheet_name}"
+    #     df = pd.read_csv(url)
+    #     df = df.dropna(subset=['idproveedor'])  # elimina filas sin idproveedor
+    #     df['idproveedor'] = df['idproveedor'].astype(int)
+    #     df['proveedor'] = df['proveedor'].astype(str).str.strip().str.upper()
+    #     return df
+    
+    @st.cache_data(ttl=3600)
     def load_proveedores(_self):
         """Cargar datos de proveedores desde Google Sheet público"""
         url = f"https://docs.google.com/spreadsheets/d/{_self.sheet_id}/gviz/tq?tqx=out:csv&sheet={_self.sheet_name}"
         df = pd.read_csv(url)
-        df = df.dropna(subset=['idproveedor'])  # elimina filas sin idproveedor
+        df = df.dropna(subset=['idproveedor'])
         df['idproveedor'] = df['idproveedor'].astype(int)
         df['proveedor'] = df['proveedor'].astype(str).str.strip().str.upper()
+        
+        # 🔥 UNIFICACIÓN DE PROVEEDORES
+        df['idproveedor_original'] = df['idproveedor']  # Guardar original
+        df['idproveedor'] = df['idproveedor'].map(_self.PROVEEDOR_UNIFICADO).fillna(df['idproveedor']).astype(int)
+        df['proveedor'] = df['idproveedor'].map(_self.NOMBRES_UNIFICADOS).fillna(df['proveedor'])
+        
+        # Eliminar duplicados (mantener solo una fila por proveedor unificado)
+        df = df.drop_duplicates(subset=['idproveedor'], keep='first')
+        
         return df
-    
+
     def query_bigquery_data(self, proveedor, fecha_inicio, fecha_fin):
         """Consultar datos de BigQuery"""
+        # try:
+        #     # Obtener IDs de artículos
+        #     ids = self.df_proveedores[self.df_proveedores['proveedor'] == proveedor ]['idarticulo'].dropna().astype(int).astype(str).unique()
+            
+        #     if len(ids) == 0: return None
+
         try:
-            # Obtener IDs de artículos
-            ids = self.df_proveedores[self.df_proveedores['proveedor'] == proveedor ]['idarticulo'].dropna().astype(int).astype(str).unique()
+            # 🔥 Obtener IDs originales (antes de unificación)
+            mask = self.df_proveedores['proveedor'] == proveedor
             
-            if len(ids) == 0: return None
+            # Si existe idproveedor_original, usarlo; sino usar idproveedor
+            if 'idproveedor_original' in self.df_proveedores.columns:
+                ids = self.df_proveedores[mask]['idproveedor_original'].dropna().astype(int).astype(str).unique()
+            else:
+                ids = self.df_proveedores[mask]['idarticulo'].dropna().astype(int).astype(str).unique()
             
+            if len(ids) == 0: 
+                return None
+
             id_str = ','.join(ids)
             
             # Cliente BigQuery
@@ -1656,6 +1711,7 @@ class ProveedorDashboard:
         else:
             interpretacion = "📉 Estacionalidad baja o estable"
         st.info(f"**🔍 Interpretación:** {interpretacion}")
+
         ### nuevo analisis por articulo:
     def show_presupuesto_estrategico(self, df):
         if df is None or df.empty:
