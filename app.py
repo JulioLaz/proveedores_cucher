@@ -640,41 +640,43 @@ class ProveedorDashboard:
             if df.empty:
                 st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: {idproveedor}")
             else:
+                placeholder = st.empty()
                 st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
-            
+                time.sleep(3)   # espera 3 segundos
+                placeholder.empty()  # borra el mensaje
             return df
 
         except Exception as e:
             st.error(f"❌ Error al consultar BigQuery: {e}")
             return pd.DataFrame()
 
-    def query_resultados_idarticulo_000(self, idproveedor):
-        credentials_path = self.credentials_path
-        project_id = self.project_id
-        dataset = 'presupuesto'
-        table = 'result_final_alert_all'
+    # def query_resultados_idarticulo_000(self, idproveedor):
+    #     credentials_path = self.credentials_path
+    #     project_id = self.project_id
+    #     dataset = 'presupuesto'
+    #     table = 'result_final_alert_all'
 
-        try:
-            client = bigquery.Client.from_service_account_json(credentials_path)
+    #     try:
+    #         client = bigquery.Client.from_service_account_json(credentials_path)
 
-            query = f"""
-                SELECT *
-                FROM `{project_id}.{dataset}.{table}`
-                WHERE idarticulo IS NOT NULL
-                AND idproveedor = {idproveedor}
-            """
+    #         query = f"""
+    #             SELECT *
+    #             FROM `{project_id}.{dataset}.{table}`
+    #             WHERE idarticulo IS NOT NULL
+    #             AND idproveedor = {idproveedor}
+    #         """
 
-            df = client.query(query).to_dataframe()
+    #         df = client.query(query).to_dataframe()
 
-            if df.empty:
-                st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: {idproveedor}")
-            # else:
-                st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
-            return df
+    #         if df.empty:
+    #             st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: {idproveedor}")
+    #         # else:
+    #             st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
+    #         return df
 
-        except Exception as e:
-            st.error(f"❌ Error al consultar BigQuery: {e}")
-            return pd.DataFrame()
+    #     except Exception as e:
+    #         st.error(f"❌ Error al consultar BigQuery: {e}")
+    #         return pd.DataFrame()
     
     def calculate_metrics(self, df):
         """Calcular métricas principales"""
