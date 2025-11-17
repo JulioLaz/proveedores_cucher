@@ -546,13 +546,12 @@ class ProveedorDashboard:
         df['idproveedor'] = df['idproveedor'].astype(int)
         df['proveedor'] = df['proveedor'].astype(str).str.strip().str.upper()
         
-        # 🔥 UNIFICACIÓN DE PROVEEDORES
+        # 🔥 UNIFICACIÓN: Cambiar ID pero MANTENER todas las filas
         df['idproveedor_original'] = df['idproveedor']  # Guardar original
         df['idproveedor'] = df['idproveedor'].map(_self.PROVEEDOR_UNIFICADO).fillna(df['idproveedor']).astype(int)
         df['proveedor'] = df['idproveedor'].map(_self.NOMBRES_UNIFICADOS).fillna(df['proveedor'])
         
-        # Eliminar duplicados (mantener solo una fila por proveedor unificado)
-        df = df.drop_duplicates(subset=['idproveedor'], keep='first')
+        # ✅ NO eliminar duplicados aquí - mantener todos los artículos
         
         return df
 
@@ -611,34 +610,6 @@ class ProveedorDashboard:
             st.error(f"Error consultando BigQuery: {e}")
             return None
     
-    # def query_resultados_idarticulo(self, idproveedor):
-    #     credentials_path = self.credentials_path
-    #     project_id = self.project_id
-    #     dataset = 'presupuesto'
-    #     table = 'result_final_alert_all'
-
-    #     try:
-    #         client = bigquery.Client.from_service_account_json(credentials_path)
-
-    #         query = f"""
-    #             SELECT *
-    #             FROM `{project_id}.{dataset}.{table}`
-    #             WHERE idarticulo IS NOT NULL
-    #             AND idproveedor = {idproveedor}
-    #         """
-
-    #         df = client.query(query).to_dataframe()
-
-    #         if df.empty:
-    #             st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: {idproveedor}")
-    #         # else:
-    #             st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
-    #         return df
-
-    #     except Exception as e:
-    #         st.error(f"❌ Error al consultar BigQuery: {e}")
-    #         return pd.DataFrame()
-    
     def query_resultados_idarticulo(self, idproveedor):
         credentials_path = self.credentials_path
         project_id = self.project_id
@@ -646,37 +617,27 @@ class ProveedorDashboard:
         table = 'result_final_alert_all'
 
         try:
-            # 🔥 Obtener IDs originales si es un ID unificado
-            if idproveedor in self.NOMBRES_UNIFICADOS:
-                # Es un ID unificado, buscar los IDs originales
-                ids_originales = [k for k, v in self.PROVEEDOR_UNIFICADO.items() if v == idproveedor]
-                id_condition = f"idproveedor IN ({','.join(map(str, ids_originales))})"
-            else:
-                # Es un ID normal
-                id_condition = f"idproveedor = {idproveedor}"
-            
             client = bigquery.Client.from_service_account_json(credentials_path)
 
             query = f"""
                 SELECT *
                 FROM `{project_id}.{dataset}.{table}`
                 WHERE idarticulo IS NOT NULL
-                AND {id_condition}
+                AND idproveedor = {idproveedor}
             """
 
             df = client.query(query).to_dataframe()
 
             if df.empty:
                 st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: {idproveedor}")
-            else:
+            # else:
                 st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
-            
             return df
 
         except Exception as e:
             st.error(f"❌ Error al consultar BigQuery: {e}")
             return pd.DataFrame()
-
+    
     def calculate_metrics(self, df):
         """Calcular métricas principales"""
         
@@ -766,7 +727,8 @@ class ProveedorDashboard:
         if self.df_proveedores is None:
             with st.spinner("Cargando proveedores..."):
                 self.df_proveedores = self.load_proveedores()
-
+        
+        # proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())  # ✅ Esto sí elimina duplicados solo para el selector
         proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())
         proveedor_actual = st.session_state.get("selected_proveedor")
         df_proveedor_ids = self.df_proveedores[['idproveedor', 'proveedor']]
