@@ -74,25 +74,21 @@ def prepare_products_data(df):
 def get_top_products(productos_stats, orden_por, top_n=20):
     """
     Obtiene el top N de productos según métrica seleccionada
+    
+    Args:
+        productos_stats (DataFrame): Datos de productos procesados
+        orden_por (str): Métrica para ordenar
+        top_n (int): Número de productos a retornar
+    
+    Returns:
+        DataFrame: Top N productos ordenados
     """
     productos_top = productos_stats[productos_stats[orden_por].notna()].copy()
-    productos_top = (
-        productos_top
-        .sort_values(orden_por, ascending=False)
-        .head(top_n)
-        .copy()
-    )
-
-    # Nombre completo para hover
-    productos_top["Producto_full"] = productos_top["descripcion"]
-
-    # Nombre corto solo para el eje X (15 chars)
+    productos_top = productos_top.sort_values(orden_por, ascending=False).head(top_n).copy()
     productos_top["Producto"] = productos_top["descripcion"].apply(
-        lambda x: x if len(x) <= 15 else x[:15] + "..."
+        lambda x: x[:40] + "..." if len(x) > 40 else x
     )
-
     return productos_top
-
 
 
 # ============================================
