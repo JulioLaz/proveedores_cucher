@@ -71,38 +71,6 @@ def prepare_products_data(df):
 
     return productos_stats
 
-
-# def prepare_products_data(df):
-#     """
-#     Procesa y agrega datos por producto
-    
-#     Args:
-#         df (DataFrame): DataFrame con datos de tickets
-    
-#     Returns:
-#         DataFrame: Datos agregados por producto con métricas calculadas
-#     """
-#     productos_stats = df.groupby("descripcion").agg({
-#         "precio_total": "sum",
-#         "costo_total": "sum",
-#         "cantidad_total": "sum"
-#     }).reset_index()
-
-#     # Calcular métricas
-#     productos_stats["Utilidad"] = productos_stats["precio_total"] - productos_stats["costo_total"]
-#     productos_stats["Margen %"] = 100 * productos_stats["Utilidad"] / productos_stats["precio_total"].replace(0, pd.NA)
-#     productos_stats["Participación %"] = 100 * productos_stats["precio_total"] / productos_stats["precio_total"].sum()
-
-#     # Renombrar columnas
-#     productos_stats.rename(columns={
-#         "precio_total": "Ventas",
-#         "costo_total": "Costos",
-#         "cantidad_total": "Cantidad"
-#     }, inplace=True)
-
-#     return productos_stats
-
-
 def get_top_products(productos_stats, orden_por, top_n=20):
     """
     Obtiene el top N de productos según métrica seleccionada
@@ -118,16 +86,13 @@ def get_top_products(productos_stats, orden_por, top_n=20):
     productos_top = productos_stats[productos_stats[orden_por].notna()].copy()
     productos_top = productos_top.sort_values(orden_por, ascending=False).head(top_n).copy()
     productos_top["Producto"] = productos_top["descripcion"].apply(
-        lambda x: x[:40] + "..." if len(x) > 40 else x
-    )
+        lambda x: x[:15] + "..." if len(x) > 15 else x )
     return productos_top
 
 
 # ============================================
 # GRÁFICO PRINCIPAL - TOP PRODUCTOS
 # ============================================
-import plotly.express as px
-import streamlit as st
 
 def render_top_products_chart(productos_top, orden_por):
     """
