@@ -104,10 +104,10 @@ def render_top_products_chart(productos_top, orden_por):
     fig.update_layout(
         title_font=dict(size=22, color='#454448', family='Arial Black'),
         title_x=0.3,
-        height=400,
+        height=450,
         xaxis_title=None,
         yaxis_title=None,
-        margin=dict(t=60, b=10),
+        margin=dict(t=60, b=0),
         xaxis_tickangle=angle,
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
