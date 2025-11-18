@@ -128,7 +128,7 @@ def render_top_products_chart(productos_top, orden_por):
         )
     elif orden_por in ["Ventas", "Utilidad"]:
         fig.update_traces(
-            texttemplate='<b>%${y:,.0f}</b>',
+            texttemplate='<b>$%{y:,.0f}</b>',
             textfont=dict(size=14),
             textposition="outside"
         )
