@@ -142,18 +142,18 @@ def render_top_products_chart(productos_top, orden_por):
     fig.update_traces(marker_color='#8966c6')
    
    # Configurar hovertemplate según el caso
-    if orden_por == "Cantidad":
-      fig.update_traces(
-         hovertemplate="<b>%{x}</b><br>Cantidad: %{y:,}<br>Ventas: $%{customdata[0]:,}<br>Utilidad: $%{customdata[1]:,}<extra></extra>"
-      )
-    elif orden_por in ["Ventas", "Utilidad"]:
-      fig.update_traces(
-         hovertemplate="<b>%{x}</b><br>$ %{y:,}<br>Cantidad: %{customdata[0]:,}<extra></extra>"
-      )
-    elif orden_por in ["Participación %", "Margen %"]:
-      fig.update_traces(
-         hovertemplate="<b>%{x}</b><br>%{y:.1f}%<br>Cantidad: %{customdata[0]:,}<extra></extra>"
-      )
+   #  if orden_por == "Cantidad":
+   #    fig.update_traces(
+   #       hovertemplate="<b>%{x}</b><br>Cantidad: %{y:,}<br>Ventas: $%{customdata[0]:,}<br>Utilidad: $%{customdata[1]:,}<extra></extra>"
+   #    )
+   #  elif orden_por in ["Ventas", "Utilidad"]:
+   #    fig.update_traces(
+   #       hovertemplate="<b>%{x}</b><br>$ %{y:,}<br>Cantidad: %{customdata[0]:,}<extra></extra>"
+   #    )
+   #  elif orden_por in ["Participación %", "Margen %"]:
+   #    fig.update_traces(
+   #       hovertemplate="<b>%{x}</b><br>%{y:.1f}%<br>Cantidad: %{customdata[0]:,}<extra></extra>"
+   #    )
 
    # Mostrar gráfico en Streamlit
     st.plotly_chart(fig, use_container_width=True)
