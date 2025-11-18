@@ -94,6 +94,7 @@ def get_top_products(productos_stats, orden_por, top_n=20):
     return productos_top
 
 
+
 # ============================================
 # GRÁFICO PRINCIPAL - TOP PRODUCTOS
 # ============================================
@@ -127,10 +128,6 @@ def render_top_products_chart(productos_top, orden_por):
 
     # ¿Tenemos idarticulo en el DF?
     has_id = "idarticulo" in productos_top.columns
-
-    custom_data_cols = ["Producto_full"]
-    if has_id:
-        custom_data_cols.append("idarticulo")
 
     # Crear gráfico
     fig = px.bar(
@@ -199,13 +196,13 @@ def render_top_products_chart(productos_top, orden_por):
         valor_line = "%{y:.1f}%"
 
     hover = (
-        "<b>%{customdata[0]}</b><br>"  # nombre completo del producto
-        + f"{etiqueta_metrica}<br>"
-        + valor_line + "<br>"
+        "<b>%{x}</b><br>"           # nombre producto
+        + f"{etiqueta_metrica}<br>" # nombre de la métrica
+        + valor_line + "<br>"       # valor formateado
     )
 
     if has_id:
-        hover += "idarticulo: %{customdata[1]}"
+        hover += "idarticulo: %{customdata[0]}"
 
     hover += "<extra></extra>"
 
