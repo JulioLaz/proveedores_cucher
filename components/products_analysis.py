@@ -16,6 +16,9 @@ from plotly.subplots import make_subplots
 # PROCESAMIENTO DE DATOS
 # ============================================
 
+import pandas as pd
+import numpy as np
+
 def prepare_products_data(df):
     """
     Procesa y agrega datos por producto
@@ -25,17 +28,36 @@ def prepare_products_data(df):
     
     Returns:
         DataFrame: Datos agregados por producto con métricas calculadas
+                   (incluye columnas: idarticulo, descripcion, Producto)
     """
-    productos_stats = df.groupby("descripcion").agg({
+    # Agrupar por idarticulo + descripcion si está disponible
+    if "idarticulo" in df.columns:
+        group_cols = ["idarticulo", "descripcion"]
+    else:
+        group_cols = ["descripcion"]  # fallback
+
+    productos_stats = df.groupby(group_cols, as_index=False).agg({
         "precio_total": "sum",
         "costo_total": "sum",
         "cantidad_total": "sum"
-    }).reset_index()
+    })
 
-    # Calcular métricas
+    # Calcular métricas básicas
     productos_stats["Utilidad"] = productos_stats["precio_total"] - productos_stats["costo_total"]
-    productos_stats["Margen %"] = 100 * productos_stats["Utilidad"] / productos_stats["precio_total"].replace(0, pd.NA)
-    productos_stats["Participación %"] = 100 * productos_stats["precio_total"] / productos_stats["precio_total"].sum()
+    
+    # Evitar divisiones por cero / NaN
+    productos_stats["Margen %"] = np.where(
+        productos_stats["precio_total"] > 0,
+        100 * productos_stats["Utilidad"] / productos_stats["precio_total"],
+        0
+    )
+    
+    total_ventas = productos_stats["precio_total"].sum()
+    productos_stats["Participación %"] = np.where(
+        total_ventas > 0,
+        100 * productos_stats["precio_total"] / total_ventas,
+        0
+    )
 
     # Renombrar columnas
     productos_stats.rename(columns={
@@ -44,7 +66,41 @@ def prepare_products_data(df):
         "cantidad_total": "Cantidad"
     }, inplace=True)
 
+    # Columna que usará el gráfico en el eje X
+    productos_stats["Producto"] = productos_stats["descripcion"]
+
     return productos_stats
+
+
+# def prepare_products_data(df):
+#     """
+#     Procesa y agrega datos por producto
+    
+#     Args:
+#         df (DataFrame): DataFrame con datos de tickets
+    
+#     Returns:
+#         DataFrame: Datos agregados por producto con métricas calculadas
+#     """
+#     productos_stats = df.groupby("descripcion").agg({
+#         "precio_total": "sum",
+#         "costo_total": "sum",
+#         "cantidad_total": "sum"
+#     }).reset_index()
+
+#     # Calcular métricas
+#     productos_stats["Utilidad"] = productos_stats["precio_total"] - productos_stats["costo_total"]
+#     productos_stats["Margen %"] = 100 * productos_stats["Utilidad"] / productos_stats["precio_total"].replace(0, pd.NA)
+#     productos_stats["Participación %"] = 100 * productos_stats["precio_total"] / productos_stats["precio_total"].sum()
+
+#     # Renombrar columnas
+#     productos_stats.rename(columns={
+#         "precio_total": "Ventas",
+#         "costo_total": "Costos",
+#         "cantidad_total": "Cantidad"
+#     }, inplace=True)
+
+#     return productos_stats
 
 
 def get_top_products(productos_stats, orden_por, top_n=20):
@@ -70,31 +126,38 @@ def get_top_products(productos_stats, orden_por, top_n=20):
 # ============================================
 # GRÁFICO PRINCIPAL - TOP PRODUCTOS
 # ============================================
+import plotly.express as px
+import streamlit as st
+
 def render_top_products_chart(productos_top, orden_por):
     """
     Renderiza gráfico de barras con top productos
     
     Args:
-        productos_top (DataFrame): Top productos a graficar (debe tener 'Producto' e 'idarticulo')
+        productos_top (DataFrame): Top productos a graficar
+                                   (debe tener 'Producto' e idealmente 'idarticulo')
         orden_por (str): Métrica seleccionada
     """
     # Títulos según métrica
     titulo_dict = {
-        "Ventas":        f"Top {len(productos_top)} Productos por Ventas 💰",
-        "Utilidad":      f"Top {len(productos_top)} Productos por Utilidad 📈",
-        "Margen %":      f"Top {len(productos_top)} Productos por Margen (%) 🧮",
-        "Cantidad":      f"Top {len(productos_top)} Productos por Cantidad Vendida 📦",
+        "Ventas":          f"Top {len(productos_top)} Productos por Ventas 💰",
+        "Utilidad":        f"Top {len(productos_top)} Productos por Utilidad 📈",
+        "Margen %":        f"Top {len(productos_top)} Productos por Margen (%) 🧮",
+        "Cantidad":        f"Top {len(productos_top)} Productos por Cantidad Vendida 📦",
         "Participación %": f"Top {len(productos_top)} por Participación (%) del Total 🧭"
     }
 
-    # Etiqueta "linda" de la métrica para mostrar en el hover
+    # Nombre "amigable" de la métrica para mostrar en hover
     etiqueta_metrica = {
-        "Ventas": "Venta",
-        "Utilidad": "Utilidad",
-        "Margen %": "Margen %",
-        "Cantidad": "Cantidad",
+        "Ventas":          "Venta",
+        "Utilidad":        "Utilidad",
+        "Margen %":        "Margen %",
+        "Cantidad":        "Cantidad",
         "Participación %": "Participación %"
     }[orden_por]
+
+    # ¿Tenemos idarticulo en el DF?
+    has_id = "idarticulo" in productos_top.columns
 
     # Crear gráfico
     fig = px.bar(
@@ -104,8 +167,7 @@ def render_top_products_chart(productos_top, orden_por):
         text_auto='.2s' if orden_por in ["Ventas", "Utilidad"] else '.1f',
         title=titulo_dict[orden_por],
         labels={"Producto": "Producto", orden_por: orden_por},
-        # idarticulo disponible en customdata[0]
-        custom_data=["idarticulo"]
+        custom_data=["idarticulo"] if has_id else None
     )
 
     # Configuración de layout según cantidad de productos
@@ -117,7 +179,7 @@ def render_top_products_chart(productos_top, orden_por):
         height=450,
         xaxis_title=None,
         yaxis_title=None,
-        margin=dict(t=90, b=0),  # más margen arriba para que no se corte el texto
+        margin=dict(t=90, b=0),     # más margen arriba para que no se corte
         xaxis_tickangle=angle,
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
@@ -135,7 +197,7 @@ def render_top_products_chart(productos_top, orden_por):
             texttemplate='<b>%{y:,.0f}</b>',
             textfont=dict(size=14),
             textposition="outside",
-            cliponaxis=False  # evita que se corte la primera etiqueta
+            cliponaxis=False
         )
     elif orden_por in ["Ventas", "Utilidad"]:
         fig.update_traces(
@@ -155,38 +217,26 @@ def render_top_products_chart(productos_top, orden_por):
     # Color barras
     fig.update_traces(marker_color='#8966c6')
 
-    # ===== Hover / tooltip según métrica =====
+    # ===== Hover / tooltip =====
     if orden_por in ["Ventas", "Utilidad"]:
-        # Producto
-        # Línea 2: nombre de la métrica
-        # Línea 3: valor con $
-        # Línea 4: idarticulo
-        fig.update_traces(
-            hovertemplate=(
-                "<b>%{x}</b><br>"
-                + f"{etiqueta_metrica}<br>"
-                + "$ %{y:,.0f}<br>"
-                + "idarticulo: %{customdata[0]}<extra></extra>"
-            )
-        )
+        valor_line = "$ %{y:,.0f}"
     elif orden_por == "Cantidad":
-        fig.update_traces(
-            hovertemplate=(
-                "<b>%{x}</b><br>"
-                + f"{etiqueta_metrica}<br>"
-                + "%{y:,.0f}<br>"
-                + "idarticulo: %{customdata[0]}<extra></extra>"
-            )
-        )
-    elif orden_por in ["Participación %", "Margen %"]:
-        fig.update_traces(
-            hovertemplate=(
-                "<b>%{x}</b><br>"
-                + f"{etiqueta_metrica}<br>"
-                + "%{y:.1f}%<br>"
-                + "idarticulo: %{customdata[0]}<extra></extra>"
-            )
-        )
+        valor_line = "%{y:,.0f}"
+    else:  # Participación % / Margen %
+        valor_line = "%{y:.1f}%"
+
+    hover = (
+        "<b>%{x}</b><br>"           # nombre producto
+        + f"{etiqueta_metrica}<br>" # nombre de la métrica
+        + valor_line + "<br>"       # valor formateado
+    )
+
+    if has_id:
+        hover += "idarticulo: %{customdata[0]}"
+
+    hover += "<extra></extra>"
+
+    fig.update_traces(hovertemplate=hover)
 
     # Mostrar gráfico en Streamlit
     st.plotly_chart(fig, use_container_width=True)
