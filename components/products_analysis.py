@@ -74,19 +74,23 @@ def prepare_products_data(df):
 def get_top_products(productos_stats, orden_por, top_n=20):
     """
     Obtiene el top N de productos según métrica seleccionada
-    
-    Args:
-        productos_stats (DataFrame): Datos de productos procesados
-        orden_por (str): Métrica para ordenar
-        top_n (int): Número de productos a retornar
-    
-    Returns:
-        DataFrame: Top N productos ordenados
     """
     productos_top = productos_stats[productos_stats[orden_por].notna()].copy()
-    productos_top = productos_top.sort_values(orden_por, ascending=False).head(top_n).copy()
+    productos_top = (
+        productos_top
+        .sort_values(orden_por, ascending=False)
+        .head(top_n)
+        .copy()
+    )
+
+    # Nombre completo para hover
+    productos_top["Producto_full"] = productos_top["descripcion"]
+
+    # Nombre corto solo para el eje X (15 chars)
     productos_top["Producto"] = productos_top["descripcion"].apply(
-        lambda x: x[:15] + "..." if len(x) > 15 else x )
+        lambda x: x if len(x) <= 15 else x[:15] + "..."
+    )
+
     return productos_top
 
 
@@ -123,6 +127,10 @@ def render_top_products_chart(productos_top, orden_por):
 
     # ¿Tenemos idarticulo en el DF?
     has_id = "idarticulo" in productos_top.columns
+
+    custom_data_cols = ["Producto_full"]
+    if has_id:
+        custom_data_cols.append("idarticulo")
 
     # Crear gráfico
     fig = px.bar(
@@ -191,13 +199,13 @@ def render_top_products_chart(productos_top, orden_por):
         valor_line = "%{y:.1f}%"
 
     hover = (
-        "<b>%{x}</b><br>"           # nombre producto
-        + f"{etiqueta_metrica}<br>" # nombre de la métrica
-        + valor_line + "<br>"       # valor formateado
+        "<b>%{customdata[0]}</b><br>"  # nombre completo del producto
+        + f"{etiqueta_metrica}<br>"
+        + valor_line + "<br>"
     )
 
     if has_id:
-        hover += "idarticulo: %{customdata[0]}"
+        hover += "idarticulo: %{customdata[1]}"
 
     hover += "<extra></extra>"
 
