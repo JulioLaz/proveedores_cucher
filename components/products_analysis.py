@@ -70,23 +70,31 @@ def get_top_products(productos_stats, orden_por, top_n=20):
 # ============================================
 # GRÁFICO PRINCIPAL - TOP PRODUCTOS
 # ============================================
-
 def render_top_products_chart(productos_top, orden_por):
     """
     Renderiza gráfico de barras con top productos
     
     Args:
-        productos_top (DataFrame): Top productos a graficar
+        productos_top (DataFrame): Top productos a graficar (debe tener 'Producto' e 'idarticulo')
         orden_por (str): Métrica seleccionada
     """
     # Títulos según métrica
     titulo_dict = {
-        "Ventas": f"Top {len(productos_top)} Productos por Ventas 💰",
-        "Utilidad": f"Top {len(productos_top)} Productos por Utilidad 📈",
-        "Margen %": f"Top {len(productos_top)} Productos por Margen (%) 🧮",
-        "Cantidad": f"Top {len(productos_top)} Productos por Cantidad Vendida 📦",
+        "Ventas":        f"Top {len(productos_top)} Productos por Ventas 💰",
+        "Utilidad":      f"Top {len(productos_top)} Productos por Utilidad 📈",
+        "Margen %":      f"Top {len(productos_top)} Productos por Margen (%) 🧮",
+        "Cantidad":      f"Top {len(productos_top)} Productos por Cantidad Vendida 📦",
         "Participación %": f"Top {len(productos_top)} por Participación (%) del Total 🧭"
     }
+
+    # Etiqueta "linda" de la métrica para mostrar en el hover
+    etiqueta_metrica = {
+        "Ventas": "Venta",
+        "Utilidad": "Utilidad",
+        "Margen %": "Margen %",
+        "Cantidad": "Cantidad",
+        "Participación %": "Participación %"
+    }[orden_por]
 
     # Crear gráfico
     fig = px.bar(
@@ -95,7 +103,9 @@ def render_top_products_chart(productos_top, orden_por):
         y=orden_por,
         text_auto='.2s' if orden_por in ["Ventas", "Utilidad"] else '.1f',
         title=titulo_dict[orden_por],
-        labels={"Producto": "Producto", orden_por: orden_por}
+        labels={"Producto": "Producto", orden_por: orden_por},
+        # idarticulo disponible en customdata[0]
+        custom_data=["idarticulo"]
     )
 
     # Configuración de layout según cantidad de productos
@@ -107,7 +117,7 @@ def render_top_products_chart(productos_top, orden_por):
         height=450,
         xaxis_title=None,
         yaxis_title=None,
-        margin=dict(t=60, b=0),
+        margin=dict(t=90, b=0),  # más margen arriba para que no se corte el texto
         xaxis_tickangle=angle,
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
@@ -119,44 +129,140 @@ def render_top_products_chart(productos_top, orden_por):
         )
     )
 
-    # Formato condicional para etiquetas
+    # ===== Texto encima de las barras =====
     if orden_por == "Cantidad":
         fig.update_traces(
             texttemplate='<b>%{y:,.0f}</b>',
             textfont=dict(size=14),
-            textposition="outside"
+            textposition="outside",
+            cliponaxis=False  # evita que se corte la primera etiqueta
         )
     elif orden_por in ["Ventas", "Utilidad"]:
         fig.update_traces(
             texttemplate='<b>$%{y:,.0f}</b>',
             textfont=dict(size=14),
-            textposition="outside"
+            textposition="outside",
+            cliponaxis=False
         )
     elif orden_por in ["Participación %", "Margen %"]:
         fig.update_traces(
             texttemplate='<b>%{y:.1f}%</b>',
             textfont=dict(size=14),
-            textposition="outside"
+            textposition="outside",
+            cliponaxis=False
         )
 
+    # Color barras
     fig.update_traces(marker_color='#8966c6')
-   
-   # Configurar hovertemplate según el caso
-   #  if orden_por == "Cantidad":
-   #    fig.update_traces(
-   #       hovertemplate="<b>%{x}</b><br>Cantidad: %{y:,}<br>Ventas: $%{customdata[0]:,}<br>Utilidad: $%{customdata[1]:,}<extra></extra>"
-   #    )
-   #  elif orden_por in ["Ventas", "Utilidad"]:
-   #    fig.update_traces(
-   #       hovertemplate="<b>%{x}</b><br>$ %{y:,}<br>Cantidad: %{customdata[0]:,}<extra></extra>"
-   #    )
-   #  elif orden_por in ["Participación %", "Margen %"]:
-   #    fig.update_traces(
-   #       hovertemplate="<b>%{x}</b><br>%{y:.1f}%<br>Cantidad: %{customdata[0]:,}<extra></extra>"
-   #    )
 
-   # Mostrar gráfico en Streamlit
+    # ===== Hover / tooltip según métrica =====
+    if orden_por in ["Ventas", "Utilidad"]:
+        # Producto
+        # Línea 2: nombre de la métrica
+        # Línea 3: valor con $
+        # Línea 4: idarticulo
+        fig.update_traces(
+            hovertemplate=(
+                "<b>%{x}</b><br>"
+                + f"{etiqueta_metrica}<br>"
+                + "$ %{y:,.0f}<br>"
+                + "idarticulo: %{customdata[0]}<extra></extra>"
+            )
+        )
+    elif orden_por == "Cantidad":
+        fig.update_traces(
+            hovertemplate=(
+                "<b>%{x}</b><br>"
+                + f"{etiqueta_metrica}<br>"
+                + "%{y:,.0f}<br>"
+                + "idarticulo: %{customdata[0]}<extra></extra>"
+            )
+        )
+    elif orden_por in ["Participación %", "Margen %"]:
+        fig.update_traces(
+            hovertemplate=(
+                "<b>%{x}</b><br>"
+                + f"{etiqueta_metrica}<br>"
+                + "%{y:.1f}%<br>"
+                + "idarticulo: %{customdata[0]}<extra></extra>"
+            )
+        )
+
+    # Mostrar gráfico en Streamlit
     st.plotly_chart(fig, use_container_width=True)
+
+# def render_top_products_chart(productos_top, orden_por):
+#     """
+#     Renderiza gráfico de barras con top productos
+    
+#     Args:
+#         productos_top (DataFrame): Top productos a graficar
+#         orden_por (str): Métrica seleccionada
+#     """
+#     # Títulos según métrica
+#     titulo_dict = {
+#         "Ventas": f"Top {len(productos_top)} Productos por Ventas 💰",
+#         "Utilidad": f"Top {len(productos_top)} Productos por Utilidad 📈",
+#         "Margen %": f"Top {len(productos_top)} Productos por Margen (%) 🧮",
+#         "Cantidad": f"Top {len(productos_top)} Productos por Cantidad Vendida 📦",
+#         "Participación %": f"Top {len(productos_top)} por Participación (%) del Total 🧭"
+#     }
+
+#     # Crear gráfico
+#     fig = px.bar(
+#         productos_top,
+#         x="Producto",
+#         y=orden_por,
+#         text_auto='.2s' if orden_por in ["Ventas", "Utilidad"] else '.1f',
+#         title=titulo_dict[orden_por],
+#         labels={"Producto": "Producto", orden_por: orden_por}
+#     )
+
+#     # Configuración de layout según cantidad de productos
+#     angle = 0 if len(productos_top) < 8 else -45
+    
+#     fig.update_layout(
+#         title_font=dict(size=22, color='#454448', family='Arial Black'),
+#         title_x=0.3,
+#         height=450,
+#         xaxis_title=None,
+#         yaxis_title=None,
+#         margin=dict(t=60, b=0),
+#         xaxis_tickangle=angle,
+#         plot_bgcolor='rgba(0,0,0,0)',
+#         paper_bgcolor='rgba(0,0,0,0)',
+#         font=dict(size=12),
+#         yaxis=dict(
+#             showticklabels=False,
+#             showgrid=False,
+#             zeroline=False
+#         )
+#     )
+
+#     # Formato condicional para etiquetas
+#     if orden_por == "Cantidad":
+#         fig.update_traces(
+#             texttemplate='<b>%{y:,.0f}</b>',
+#             textfont=dict(size=14),
+#             textposition="outside"
+#         )
+#     elif orden_por in ["Ventas", "Utilidad"]:
+#         fig.update_traces(
+#             texttemplate='<b>$%{y:,.0f}</b>',
+#             textfont=dict(size=14),
+#             textposition="outside"
+#         )
+#     elif orden_por in ["Participación %", "Margen %"]:
+#         fig.update_traces(
+#             texttemplate='<b>%{y:.1f}%</b>',
+#             textfont=dict(size=14),
+#             textposition="outside"
+#         )
+
+#     fig.update_traces(marker_color='#8966c6')
+   
+#    # Mostrar gráfico en Streamlit
+#     st.plotly_chart(fig, use_container_width=True)
 
     # Advertencia si hay pocos productos
     if len(productos_top) < 5:
