@@ -747,7 +747,8 @@ class ProveedorDashboard:
         proveedor_actual = st.session_state.get("selected_proveedor")
         df_proveedor_ids = self.df_proveedores[['idproveedor', 'proveedor']]
         if not proveedor_actual:
-            st.sidebar.markdown('<div class="animated-title">🔎 proveedor ⬇️</div>', unsafe_allow_html=True)
+            st.sidebar.markdown('<div >🔎 Elegir proveedor</div>', unsafe_allow_html=True)
+            # st.sidebar.markdown('<div class="animated-title">🔎 Elegir proveedor</div>', unsafe_allow_html=True)
         else:
             st.sidebar.markdown("#### 🏪 Selección de Proveedor")
 
