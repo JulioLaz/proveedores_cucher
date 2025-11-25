@@ -4,6 +4,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 import time
+import pandas as pd
+from io import BytesIO
+from datetime import datetime
 
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
     
@@ -372,18 +375,40 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # === EXPORTAR RANKING ===
     st.markdown("---")
     
-    # Preparar CSV con datos sin formato
-    df_export = ranking[[
-        'Ranking', 'Proveedor', 'Venta Total', '% Participación Ventas',
-        'Presupuesto', 'Artículos', 'Cantidad Vendida',
-        'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
-    ]].copy()
+   #  # Preparar CSV con datos sin formato
+   #  df_export = ranking[[
+   #      'Ranking', 'Proveedor', 'Venta Total', '% Participación Ventas',
+   #      'Presupuesto', 'Artículos', 'Cantidad Vendida',
+   #      'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
+   #  ]].copy()
     
-    csv = df_export.to_csv(index=False).encode('utf-8')
+   #  csv = df_export.to_csv(index=False).encode('utf-8')
+   #  st.download_button(
+   #      "📥 Descargar Ranking Completo (CSV)",
+   #      csv,
+   #      f"ranking_proveedores_{datetime.now().strftime('%Y%m%d')}.csv",
+   #      "text/csv",
+   #      use_container_width=True
+   #  )
+
+   # Preparar DataFrame con datos sin formato
+    df_export = ranking[[
+      'Ranking', 'Proveedor', 'Venta Total', '% Participación Ventas',
+      'Presupuesto', 'Artículos', 'Cantidad Vendida',
+      'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
+   ]].copy()
+
+   # Crear buffer en memoria para el archivo Excel
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+      df_export.to_excel(writer, index=False, sheet_name='Ranking')
+    output.seek(0)  # volver al inicio del buffer
+
+   # Botón de descarga en formato XLSX
     st.download_button(
-        "📥 Descargar Ranking Completo (CSV)",
-        csv,
-        f"ranking_proveedores_{datetime.now().strftime('%Y%m%d')}.csv",
-        "text/csv",
-        use_container_width=True
-    )
+      label="📥 Descargar Ranking Completo (Excel)",
+      data=output,
+      file_name=f"ranking_proveedores_{datetime.now().strftime('%Y%m%d')}.xlsx",
+      mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      use_container_width=True
+   )
