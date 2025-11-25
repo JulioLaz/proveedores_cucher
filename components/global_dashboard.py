@@ -16,7 +16,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
    #  """, unsafe_allow_html=True)
     
     # === SELECTOR DE PERÍODO ===
-    st.markdown("---")
+   #  st.markdown("---")
     col1, col2, col3 = st.columns([2, 2, 1])
     
     with col1:
@@ -57,7 +57,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         .kpi-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 15px;
-            padding: 1.5rem;
+            padding: 1rem;
             color: white;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             height: 140px;
@@ -79,14 +79,16 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             color: #333;
         }
         .kpi-label {
-            font-size: 0.9rem;
+            font-size: 1.2rem;
             opacity: 0.9;
             font-weight: 500;
+            text-align: center;
         }
         .kpi-value {
-            font-size: 2rem;
+            font-size: 1.2rem;
             font-weight: bold;
             margin: 0.3rem 0;
+            text-align: end;
         }
         .kpi-delta {
             font-size: 0.85rem;
@@ -97,7 +99,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     # === CARGA DE DATOS DE VENTAS CON FILTRO DE FECHA ===
     with st.spinner(f"🔄 Cargando ventas de los últimos {dias_periodo} días y presupuesto..."):
-        start_time = time.time()
+      #   start_time = time.time()
         
         # Consultar VENTAS desde BigQuery CON FILTRO DE FECHA
         from google.cloud import bigquery
@@ -173,7 +175,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     ranking['Ranking'] = range(1, len(ranking) + 1)
     
     # === KPIs GLOBALES CON ESTILO MEJORADO ===
-    st.markdown("---")
+   #  st.markdown("---")
     
     col1, col2, col3, col4, col5 = st.columns(5)
     
@@ -233,8 +235,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         """, unsafe_allow_html=True)
     
     # === VISUALIZACIONES ===
-    st.markdown("---")
-    st.markdown("### 📊 Análisis Visual de Proveedores")
+   #  st.markdown("---")
+   #  st.markdown("### 📊 Análisis Visual de Proveedores")
     
     col1, col2 = st.columns(2)
     
