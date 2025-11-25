@@ -6,24 +6,50 @@ from datetime import datetime
 import time
 
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
-    """
-    Dashboard Global de Proveedores - Vista inicial con ranking por ventas y presupuesto
     
-    Args:
-        df_proveedores: DataFrame con relación proveedor-articulo
-        query_function: Función para consultar BigQuery (query_resultados_idarticulo)
-        credentials_path: Ruta credenciales GCP
-        project_id: ID proyecto BigQuery
-        bigquery_table: Tabla de tickets para ventas
-    """
+   #  st.markdown("""
+   #  <div class="main-header">
+   #      <p style='padding:5px 0px; font-size:1.8rem; font-weight:bold;'>
+   #          🏆 Dashboard Ejecutivo - Ranking de Proveedores
+   #      </p>
+   #  </div>
+   #  """, unsafe_allow_html=True)
     
-    st.markdown("""
-    <div class="main-header">
-        <p style='padding:5px 0px; font-size:1.8rem; font-weight:bold;'>
-            🏆 Dashboard Ejecutivo - Ranking de Proveedores
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    # === SELECTOR DE PERÍODO ===
+    st.markdown("---")
+    col1, col2, col3 = st.columns([2, 2, 1])
+    
+    with col1:
+        periodo_opciones = {
+            "Últimos 30 días": 30,
+            "Últimos 60 días": 60,
+            "Últimos 90 días": 90,
+            "Últimos 6 meses": 180,
+            "Último año": 365,
+            "Personalizado": None
+        }
+        
+        periodo_seleccionado = st.selectbox(
+            "📅 Período de análisis de ventas:",
+            options=list(periodo_opciones.keys()),
+            index=0  # Default: Últimos 30 días
+        )
+    
+    with col2:
+        if periodo_seleccionado == "Personalizado":
+            from datetime import datetime, timedelta
+            col_a, col_b = st.columns(2)
+            fecha_desde = col_a.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
+            fecha_hasta = col_b.date_input("Hasta:", value=datetime.now().date())
+            dias_periodo = (fecha_hasta - fecha_desde).days
+        else:
+            dias_periodo = periodo_opciones[periodo_seleccionado]
+            from datetime import datetime, timedelta
+            fecha_hasta = datetime.now().date()
+            fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
+    
+    with col3:
+        st.metric("📆 Días", f"{dias_periodo}")
     
     # === ESTILOS MEJORADOS PARA KPIs ===
     st.markdown("""
@@ -52,10 +78,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
             color: #333;
         }
-        .kpi-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
         .kpi-label {
             font-size: 0.9rem;
             opacity: 0.9;
@@ -73,11 +95,11 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     </style>
     """, unsafe_allow_html=True)
     
-    # === CARGA DE DATOS DE VENTAS ===
-    with st.spinner("🔄 Cargando datos de ventas y presupuesto..."):
+    # === CARGA DE DATOS DE VENTAS CON FILTRO DE FECHA ===
+    with st.spinner(f"🔄 Cargando ventas de los últimos {dias_periodo} días y presupuesto..."):
         start_time = time.time()
         
-        # Consultar VENTAS desde BigQuery
+        # Consultar VENTAS desde BigQuery CON FILTRO DE FECHA
         from google.cloud import bigquery
         client = bigquery.Client.from_service_account_json(credentials_path)
         
@@ -87,12 +109,13 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             SUM(precio_total) as venta_total,
             SUM(cantidad_total) as cantidad_vendida
         FROM `{project_id}.{bigquery_table}`
+        WHERE DATE(fecha_comprobante) BETWEEN '{fecha_desde}' AND '{fecha_hasta}'
         GROUP BY idarticulo
         """
         
         df_ventas = client.query(query_ventas).to_dataframe()
         
-        # Consultar PRESUPUESTO
+        # Consultar PRESUPUESTO (sin filtro de fecha - es snapshot actual)
         df_presupuesto = query_function(
             credentials_path=credentials_path,
             project_id=project_id,
@@ -100,13 +123,13 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             table='result_final_alert_all'
         )
         
-        load_time = time.time() - start_time
+      #   load_time = time.time() - start_time
     
     if df_ventas is None or df_ventas.empty or df_presupuesto is None or df_presupuesto.empty:
         st.error("❌ No se pudieron cargar los datos necesarios")
         return
     
-    st.success(f"✅ Datos cargados en {load_time:.2f}s | {len(df_ventas):,} artículos con ventas | {len(df_presupuesto):,} artículos con presupuesto")
+   #  st.success(f"✅ Datos cargados en {load_time:.2f}s | {len(df_ventas):,} artículos con ventas | {len(df_presupuesto):,} artículos con presupuesto")
     
     # === MERGE COMPLETO: PROVEEDORES + VENTAS + PRESUPUESTO ===
     df_merge = df_proveedores[['idarticulo', 'proveedor', 'idproveedor']].merge(
@@ -157,9 +180,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col1:
         st.markdown(f"""
         <div class="kpi-card kpi-card-green">
-            <div class="kpi-icon">💰</div>
             <div>
-                <div class="kpi-label">Ventas Totales</div>
+                <div class="kpi-label">💰 Ventas</div>
                 <div class="kpi-value">${ranking['Venta Total'].sum():,.0f}</div>
                 <div class="kpi-delta">⬆️ {ranking['% Participación Ventas'].count()} proveedores</div>
             </div>
@@ -169,9 +191,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col2:
         st.markdown(f"""
         <div class="kpi-card kpi-card-orange">
-            <div class="kpi-icon">💵</div>
             <div>
-                <div class="kpi-label">Presupuesto Total</div>
+                <div class="kpi-label">💵 Presupuesto</div>
                 <div class="kpi-value">${ranking['Presupuesto'].sum():,.0f}</div>
                 <div class="kpi-delta">📊 Inversión requerida</div>
             </div>
@@ -181,9 +202,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col3:
         st.markdown(f"""
         <div class="kpi-card kpi-card-blue">
-            <div class="kpi-icon">📦</div>
             <div>
-                <div class="kpi-label">Cantidad Vendida</div>
+                <div class="kpi-label">📦 Cantidad Vendida</div>
                 <div class="kpi-value">{ranking['Cantidad Vendida'].sum():,.0f}</div>
                 <div class="kpi-delta">🎯 {ranking['Artículos'].sum():,} artículos totales</div>
             </div>
@@ -193,9 +213,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col4:
         st.markdown(f"""
         <div class="kpi-card kpi-card-purple">
-            <div class="kpi-icon">⚠️</div>
             <div>
-                <div class="kpi-label">Exceso de Stock</div>
+                <div class="kpi-label">⚠️ Exceso de Stock</div>
                 <div class="kpi-value">${ranking['Costo Exceso'].sum():,.0f}</div>
                 <div class="kpi-delta">📊 {ranking['Art. con Exceso'].sum():,} artículos</div>
             </div>
@@ -205,9 +224,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col5:
         st.markdown(f"""
         <div class="kpi-card" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #333;">
-            <div class="kpi-icon">❌</div>
             <div>
-                <div class="kpi-label">Sin Stock</div>
+                <div class="kpi-label">❌ Sin Stock</div>
                 <div class="kpi-value">{ranking['Art. Sin Stock'].sum():,}</div>
                 <div class="kpi-delta">🔴 Artículos críticos</div>
             </div>
