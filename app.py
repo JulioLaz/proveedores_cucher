@@ -33,6 +33,7 @@ from components.executive_summary import show_executive_summary as render_execut
 from components.products_analysis import show_products_analysis as render_products_analysis  # 👈 NUEVA LÍNEA
 from components.temporal_analysis import show_temporal_analysis as render_temporal_analysis  # 👈 NUEVA LÍNEA
 from components.advanced_analysis import show_advanced_analysis as render_advanced_analysis  # 👈 NUEVA LÍNEA
+from components.global_dashboard import show_global_dashboard
 
 locale = Locale.parse('es_AR')
 
@@ -650,34 +651,7 @@ class ProveedorDashboard:
             st.error(f"❌ Error al consultar BigQuery: {e}")
             return pd.DataFrame()
 
-    # def query_resultados_idarticulo_000(self, idproveedor):
-    #     credentials_path = self.credentials_path
-    #     project_id = self.project_id
-    #     dataset = 'presupuesto'
-    #     table = 'result_final_alert_all'
-
-    #     try:
-    #         client = bigquery.Client.from_service_account_json(credentials_path)
-
-    #         query = f"""
-    #             SELECT *
-    #             FROM `{project_id}.{dataset}.{table}`
-    #             WHERE idarticulo IS NOT NULL
-    #             AND idproveedor = {idproveedor}
-    #         """
-
-    #         df = client.query(query).to_dataframe()
-
-    #         if df.empty:
-    #             st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: {idproveedor}")
-    #         # else:
-    #             st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
-    #         return df
-
-    #     except Exception as e:
-    #         st.error(f"❌ Error al consultar BigQuery: {e}")
-    #         return pd.DataFrame()
-    
+   
     def calculate_metrics(self, df):
         """Calcular métricas principales"""
         
@@ -895,41 +869,70 @@ class ProveedorDashboard:
                 <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>📈 Dashboard de Análisis por Proveedor</p>
             </div>
             """, unsafe_allow_html=True)
-        
-        if st.session_state.analysis_data is None:
 
-            # Mostrar información general
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.markdown("""
-                ### 🎯 Funcionalidades
-                - Análisis completo por proveedor
-                - Métricas financieras avanzadas
-                - Visualizaciones interactivas
-                - Insights automáticos
-                - Exportación de reportes
-                """)
+        if st.session_state.analysis_data is None:
+            # Dashboard Global de Proveedores
+            show_global_dashboard(
+                df_proveedores=self.df_proveedores,
+                query_function=query_resultados_idarticulo,
+                credentials_path=self.credentials_path,
+                project_id=self.project_id
+            )
+            return  # ⚠️ IMPORTANTE: Salir aquí para no mostrar el resto
+        
+        # === BOTÓN VOLVER ===
+        col1, col2 = st.columns([1, 5])
+        with col1:
+            if st.button("← Dashboard Global", type="secondary", use_container_width=True):
+                st.session_state.analysis_data = None
+                st.session_state.selected_proveedor = None
+                st.session_state.resultados_data = None
+                st.rerun()
+        
+        with col2:
+            proveedor = st.session_state.selected_proveedor
+            st.markdown(f"""
+            <div class="main-header">
+                <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>
+                    📊 Análisis Detallado: {proveedor}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # if st.session_state.analysis_data is None:
+
+        #     # Mostrar información general
+        #     col1, col2, col3 = st.columns(3)
+        #     with col1:
+        #         st.markdown("""
+        #         ### 🎯 Funcionalidades
+        #         - Análisis completo por proveedor
+        #         - Métricas financieras avanzadas
+        #         - Visualizaciones interactivas
+        #         - Insights automáticos
+        #         - Exportación de reportes
+        #         """)
             
-            with col2:
-                st.markdown("""
-                ### 📊 Métricas Incluidas
-                - Ventas y rentabilidad
-                - Análisis de productos
-                - Evolución temporal
-                - Distribución geográfica
-                - Tendencias de mercado
-                """)
+        #     with col2:
+        #         st.markdown("""
+        #         ### 📊 Métricas Incluidas
+        #         - Ventas y rentabilidad
+        #         - Análisis de productos
+        #         - Evolución temporal
+        #         - Distribución geográfica
+        #         - Tendencias de mercado
+        #         """)
             
-            with col3:
-                st.markdown("""
-                ### 🔍 Análisis Avanzado
-                - Top productos por categoría
-                - Análisis de estacionalidad
-                - Comparativas periodo a periodo
-                - Identificación de oportunidades
-                - Alertas de rendimiento
-                """)
-            return
+        #     with col3:
+        #         st.markdown("""
+        #         ### 🔍 Análisis Avanzado
+        #         - Top productos por categoría
+        #         - Análisis de estacionalidad
+        #         - Comparativas periodo a periodo
+        #         - Identificación de oportunidades
+        #         - Alertas de rendimiento
+        #         """)
+        #     return
         
         # Si hay datos, mostrar análisis
         df = st.session_state.analysis_data
