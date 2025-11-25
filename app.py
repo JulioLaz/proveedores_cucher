@@ -866,7 +866,7 @@ class ProveedorDashboard:
         else:
             st.markdown("""
             <div class="main-header">
-                <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>📈 Dashboard de Análisis por Proveedor</p>
+                <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>📈 Dashboard: Análisis de Proveedores</p>
             </div>
             """, unsafe_allow_html=True)
 

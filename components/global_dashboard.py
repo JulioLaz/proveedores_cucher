@@ -235,7 +235,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         """, unsafe_allow_html=True)
     
     # === VISUALIZACIONES ===
-   #  st.markdown("---")
+    st.markdown("---")
    #  st.markdown("### 📊 Análisis Visual de Proveedores")
     
     col1, col2 = st.columns(2)
@@ -243,7 +243,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col1:
         # TOP VENTAS con slider
         st.markdown("#### 🏆 Ranking por Venta Total")
-        top_ventas_num = st.slider("Cantidad de proveedores (Ventas):", 5, 30, 20, step=5, key='slider_ventas')
+        top_ventas_num = st.slider("Cantidad de proveedores (Ventas):", 5, 80, 20, step=5, key='slider_ventas')
         
         top_ventas = ranking.head(top_ventas_num).copy()
         top_ventas['Venta_M'] = top_ventas['Venta Total'] / 1_000_000
@@ -275,7 +275,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col2:
         # TOP PRESUPUESTO con slider
         st.markdown("#### 💰 Ranking por Presupuesto")
-        top_presu_num = st.slider("Cantidad de proveedores (Presupuesto):", 5, 30, 20, step=5, key='slider_presu')
+        top_presu_num = st.slider("Cantidad de proveedores (Presupuesto):", 5, 80, 20, step=5, key='slider_presu')
         
         ranking_presu = ranking.sort_values('Presupuesto', ascending=False).head(top_presu_num).copy()
         ranking_presu['Presupuesto_M'] = ranking_presu['Presupuesto'] / 1_000_000
