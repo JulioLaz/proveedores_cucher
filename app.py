@@ -876,9 +876,10 @@ class ProveedorDashboard:
                 df_proveedores=self.df_proveedores,
                 query_function=query_resultados_idarticulo,
                 credentials_path=self.credentials_path,
-                project_id=self.project_id
+                project_id=self.project_id,
+                bigquery_table=self.bigquery_table  # 👈 NUEVO PARÁMETRO
             )
-            return  # ⚠️ IMPORTANTE: Salir aquí para no mostrar el resto
+            return# ⚠️ IMPORTANTE: Salir aquí para no mostrar el resto
         
         # === BOTÓN VOLVER ===
         col1, col2 = st.columns([1, 5])

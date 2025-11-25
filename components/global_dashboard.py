@@ -5,15 +5,16 @@ import plotly.graph_objects as go
 from datetime import datetime
 import time
 
-def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id):
+def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
     """
-    Dashboard Global de Proveedores - Vista inicial antes de seleccionar proveedor
+    Dashboard Global de Proveedores - Vista inicial con ranking por ventas y presupuesto
     
     Args:
         df_proveedores: DataFrame con relación proveedor-articulo
         query_function: Función para consultar BigQuery (query_resultados_idarticulo)
         credentials_path: Ruta credenciales GCP
         project_id: ID proyecto BigQuery
+        bigquery_table: Tabla de tickets para ventas
     """
     
     st.markdown("""
@@ -24,11 +25,74 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     </div>
     """, unsafe_allow_html=True)
     
-    # === CARGA DE DATOS ===
-    with st.spinner("🔄 Cargando datos globales de presupuesto..."):
+    # === ESTILOS MEJORADOS PARA KPIs ===
+    st.markdown("""
+    <style>
+        .kpi-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .kpi-card-green {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .kpi-card-orange {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .kpi-card-blue {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .kpi-card-purple {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+        .kpi-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .kpi-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.3rem 0;
+        }
+        .kpi-delta {
+            font-size: 0.85rem;
+            opacity: 0.95;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # === CARGA DE DATOS DE VENTAS ===
+    with st.spinner("🔄 Cargando datos de ventas y presupuesto..."):
         start_time = time.time()
         
-        # Consultar TODOS los artículos con presupuesto
+        # Consultar VENTAS desde BigQuery
+        from google.cloud import bigquery
+        client = bigquery.Client.from_service_account_json(credentials_path)
+        
+        query_ventas = f"""
+        SELECT 
+            idarticulo,
+            SUM(precio_total) as venta_total,
+            SUM(cantidad_total) as cantidad_vendida
+        FROM `{project_id}.{bigquery_table}`
+        GROUP BY idarticulo
+        """
+        
+        df_ventas = client.query(query_ventas).to_dataframe()
+        
+        # Consultar PRESUPUESTO
         df_presupuesto = query_function(
             credentials_path=credentials_path,
             project_id=project_id,
@@ -38,151 +102,186 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         
         load_time = time.time() - start_time
     
-    if df_presupuesto is None or df_presupuesto.empty:
-        st.error("❌ No se pudieron cargar los datos de presupuesto")
+    if df_ventas is None or df_ventas.empty or df_presupuesto is None or df_presupuesto.empty:
+        st.error("❌ No se pudieron cargar los datos necesarios")
         return
     
-    st.success(f"✅ Datos cargados en {load_time:.2f}s | {len(df_presupuesto):,} artículos procesados")
+    st.success(f"✅ Datos cargados en {load_time:.2f}s | {len(df_ventas):,} artículos con ventas | {len(df_presupuesto):,} artículos con presupuesto")
     
-    # === MERGE PROVEEDORES ===
-    df_merge = df_presupuesto.merge(
-        df_proveedores[['idarticulo', 'proveedor', 'idproveedor']],
+    # === MERGE COMPLETO: PROVEEDORES + VENTAS + PRESUPUESTO ===
+    df_merge = df_proveedores[['idarticulo', 'proveedor', 'idproveedor']].merge(
+        df_ventas, on='idarticulo', how='left'
+    ).merge(
+        df_presupuesto[['idarticulo', 'PRESUPUESTO', 'exceso_STK', 'costo_exceso_STK', 'STK_TOTAL']],
         on='idarticulo',
-        how='inner'
+        how='left'
     )
+    
+    # Rellenar NaN
+    df_merge['venta_total'] = df_merge['venta_total'].fillna(0)
+    df_merge['cantidad_vendida'] = df_merge['cantidad_vendida'].fillna(0)
+    df_merge['PRESUPUESTO'] = df_merge['PRESUPUESTO'].fillna(0)
+    df_merge['exceso_STK'] = df_merge['exceso_STK'].fillna(0)
+    df_merge['costo_exceso_STK'] = df_merge['costo_exceso_STK'].fillna(0)
+    df_merge['STK_TOTAL'] = df_merge['STK_TOTAL'].fillna(0)
     
     # === AGREGACIÓN POR PROVEEDOR ===
     ranking = df_merge.groupby(['proveedor', 'idproveedor']).agg({
+        'venta_total': 'sum',
+        'cantidad_vendida': 'sum',
         'idarticulo': 'count',
         'PRESUPUESTO': 'sum',
-        'nivel_riesgo': lambda x: (x.str.contains('🔴', na=False)).sum(),
-        'dias_cobertura': 'mean',
         'exceso_STK': lambda x: (x > 0).sum(),
         'costo_exceso_STK': 'sum',
         'STK_TOTAL': lambda x: (x == 0).sum()
     }).reset_index()
     
     ranking.columns = [
-        'Proveedor', 'ID', 'Artículos', 'Presupuesto', 
-        'Alertas Críticas', 'Días Cobertura Prom', 
-        'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
+        'Proveedor', 'ID', 'Venta Total', 'Cantidad Vendida', 
+        'Artículos', 'Presupuesto', 'Art. con Exceso', 
+        'Costo Exceso', 'Art. Sin Stock'
     ]
     
-    ranking = ranking.sort_values('Presupuesto', ascending=False).reset_index(drop=True)
+    # Calcular participación de ventas
+    ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(2)
+    
+    # Ordenar por ventas (principal)
+    ranking = ranking.sort_values('Venta Total', ascending=False).reset_index(drop=True)
     ranking['Ranking'] = range(1, len(ranking) + 1)
     
-    # === KPIs GLOBALES ===
+    # === KPIs GLOBALES CON ESTILO MEJORADO ===
     st.markdown("---")
+    
     col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
-        st.metric(
-            "💰 Presupuesto Total",
-            f"${ranking['Presupuesto'].sum():,.0f}",
-            delta=f"{len(ranking)} proveedores"
-        )
+        st.markdown(f"""
+        <div class="kpi-card kpi-card-green">
+            <div class="kpi-icon">💰</div>
+            <div>
+                <div class="kpi-label">Ventas Totales</div>
+                <div class="kpi-value">${ranking['Venta Total'].sum():,.0f}</div>
+                <div class="kpi-delta">⬆️ {ranking['% Participación Ventas'].count()} proveedores</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
-        st.metric(
-            "📦 Total Artículos",
-            f"{ranking['Artículos'].sum():,}",
-            delta=f"{df_merge['idarticulo'].nunique():,} únicos"
-        )
+        st.markdown(f"""
+        <div class="kpi-card kpi-card-orange">
+            <div class="kpi-icon">💵</div>
+            <div>
+                <div class="kpi-label">Presupuesto Total</div>
+                <div class="kpi-value">${ranking['Presupuesto'].sum():,.0f}</div>
+                <div class="kpi-delta">📊 Inversión requerida</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col3:
-        st.metric(
-            "🚨 Alertas Críticas",
-            f"{ranking['Alertas Críticas'].sum():,}",
-            delta="Nivel 🔴 Alto"
-        )
+        st.markdown(f"""
+        <div class="kpi-card kpi-card-blue">
+            <div class="kpi-icon">📦</div>
+            <div>
+                <div class="kpi-label">Cantidad Vendida</div>
+                <div class="kpi-value">{ranking['Cantidad Vendida'].sum():,.0f}</div>
+                <div class="kpi-delta">🎯 {ranking['Artículos'].sum():,} artículos totales</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col4:
-        st.metric(
-            "⚠️ Exceso de Stock",
-            f"${ranking['Costo Exceso'].sum():,.0f}",
-            delta=f"{ranking['Art. con Exceso'].sum():,} artículos"
-        )
+        st.markdown(f"""
+        <div class="kpi-card kpi-card-purple">
+            <div class="kpi-icon">⚠️</div>
+            <div>
+                <div class="kpi-label">Exceso de Stock</div>
+                <div class="kpi-value">${ranking['Costo Exceso'].sum():,.0f}</div>
+                <div class="kpi-delta">📊 {ranking['Art. con Exceso'].sum():,} artículos</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col5:
-        st.metric(
-            "❌ Sin Stock",
-            f"{ranking['Art. Sin Stock'].sum():,}",
-            delta="Artículos"
-        )
+        st.markdown(f"""
+        <div class="kpi-card" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #333;">
+            <div class="kpi-icon">❌</div>
+            <div>
+                <div class="kpi-label">Sin Stock</div>
+                <div class="kpi-value">{ranking['Art. Sin Stock'].sum():,}</div>
+                <div class="kpi-delta">🔴 Artículos críticos</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     # === VISUALIZACIONES ===
     st.markdown("---")
     st.markdown("### 📊 Análisis Visual de Proveedores")
     
-    col1, col2 = st.columns([2, 1])
+    col1, col2 = st.columns(2)
     
     with col1:
-        # TREEMAP INTERACTIVO
-        top_treemap = ranking.head(20).copy()
-        top_treemap['Texto'] = top_treemap.apply(
-            lambda x: f"{x['Proveedor']}<br>${x['Presupuesto']:,.0f}<br>{x['Artículos']} arts.", 
-            axis=1
-        )
+        # TOP VENTAS con slider
+        st.markdown("#### 🏆 Ranking por Venta Total")
+        top_ventas_num = st.slider("Cantidad de proveedores (Ventas):", 5, 30, 20, step=5, key='slider_ventas')
         
-        fig_tree = px.treemap(
-            top_treemap,
-            path=['Proveedor'],
-            values='Presupuesto',
-            color='Alertas Críticas',
-            color_continuous_scale='Reds',
-            title='🗺️ Mapa de Presupuesto por Proveedor (TOP 20)',
-            hover_data={
-                'Presupuesto': ':$,.0f',
-                'Artículos': ':,',
-                'Alertas Críticas': ':,'
-            }
-        )
+        top_ventas = ranking.head(top_ventas_num).copy()
+        top_ventas['Venta_M'] = top_ventas['Venta Total'] / 1_000_000
+        top_ventas['Texto'] = top_ventas['Venta Total'].apply(lambda x: f"${x/1_000_000:.1f}M")
         
-        fig_tree.update_traces(
-            textposition="middle center",
-            textfont_size=11,
-            marker=dict(line=dict(width=2, color='white'))
-        )
-        
-        fig_tree.update_layout(
-            height=500,
-            margin=dict(t=50, b=10, l=10, r=10),
-            title_font=dict(size=16, color='#333', family='Arial Black'),
-            title_x=0.05
-        )
-        
-        st.plotly_chart(fig_tree, use_container_width=True)
-    
-    with col2:
-        # TOP 10 BARRAS
-        top10 = ranking.head(10).copy()
-        top10['Presupuesto_M'] = top10['Presupuesto'] / 1_000_000
-        top10['Texto'] = top10['Presupuesto'].apply(lambda x: f"${x/1_000_000:.1f}M")
-        
-        fig_bar = go.Figure(go.Bar(
-            y=top10['Proveedor'][::-1],
-            x=top10['Presupuesto_M'][::-1],
+        fig_ventas = go.Figure(go.Bar(
+            y=top_ventas['Proveedor'][::-1],
+            x=top_ventas['Venta_M'][::-1],
             orientation='h',
-            text=top10['Texto'][::-1],
+            text=top_ventas['Texto'][::-1],
             textposition='outside',
-            marker_color='#e74c3c',
-            hovertemplate='<b>%{y}</b><br>Presupuesto: %{text}<extra></extra>'
+            marker_color='#2ecc71',
+            hovertemplate='<b>%{y}</b><br>Venta: %{text}<br>Participación: ' + 
+                          top_ventas['% Participación Ventas'][::-1].apply(lambda x: f"{x:.1f}%") + '<extra></extra>'
         ))
         
-        fig_bar.update_layout(
-            title='🏆 TOP 10 Proveedores',
-            title_font=dict(size=16, color='#333', family='Arial Black'),
-            title_x=0.1,
-            height=500,
-            margin=dict(t=50, b=10, l=10, r=10),
+        fig_ventas.update_layout(
+            height=max(400, top_ventas_num * 25),
+            margin=dict(t=10, b=10, l=10, r=10),
             xaxis=dict(visible=False),
-            yaxis=dict(visible=True),
+            yaxis=dict(visible=True, tickfont=dict(size=10)),
             showlegend=False,
             plot_bgcolor='white',
             paper_bgcolor='white'
         )
         
-        st.plotly_chart(fig_bar, use_container_width=True)
+        st.plotly_chart(fig_ventas, use_container_width=True)
+    
+    with col2:
+        # TOP PRESUPUESTO con slider
+        st.markdown("#### 💰 Ranking por Presupuesto")
+        top_presu_num = st.slider("Cantidad de proveedores (Presupuesto):", 5, 30, 20, step=5, key='slider_presu')
+        
+        ranking_presu = ranking.sort_values('Presupuesto', ascending=False).head(top_presu_num).copy()
+        ranking_presu['Presupuesto_M'] = ranking_presu['Presupuesto'] / 1_000_000
+        ranking_presu['Texto'] = ranking_presu['Presupuesto'].apply(lambda x: f"${x/1_000_000:.1f}M")
+        
+        fig_presu = go.Figure(go.Bar(
+            y=ranking_presu['Proveedor'][::-1],
+            x=ranking_presu['Presupuesto_M'][::-1],
+            orientation='h',
+            text=ranking_presu['Texto'][::-1],
+            textposition='outside',
+            marker_color='#e74c3c',
+            hovertemplate='<b>%{y}</b><br>Presupuesto: %{text}<extra></extra>'
+        ))
+        
+        fig_presu.update_layout(
+            height=max(400, top_presu_num * 25),
+            margin=dict(t=10, b=10, l=10, r=10),
+            xaxis=dict(visible=False),
+            yaxis=dict(visible=True, tickfont=dict(size=10)),
+            showlegend=False,
+            plot_bgcolor='white',
+            paper_bgcolor='white'
+        )
+        
+        st.plotly_chart(fig_presu, use_container_width=True)
     
     # === TABLA RANKING DETALLADA ===
     st.markdown("---")
@@ -190,42 +289,23 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     # Formatear columnas para display
     df_display = ranking.copy()
+    df_display['Venta Total'] = df_display['Venta Total'].apply(lambda x: f"${x:,.0f}")
     df_display['Presupuesto'] = df_display['Presupuesto'].apply(lambda x: f"${x:,.0f}")
-    df_display['Días Cobertura Prom'] = df_display['Días Cobertura Prom'].apply(lambda x: f"{x:.1f}")
     df_display['Costo Exceso'] = df_display['Costo Exceso'].apply(lambda x: f"${x:,.0f}")
+    df_display['% Participación Ventas'] = df_display['% Participación Ventas'].apply(lambda x: f"{x:.2f}%")
     
-    # Mostrar top 20 por defecto, con opción de ver más
-    num_mostrar = st.slider("Cantidad de proveedores a mostrar:", 10, len(df_display), 20, step=5)
+    # Slider para cantidad de proveedores en tabla
+    num_mostrar = st.slider("Cantidad de proveedores a mostrar:", 10, len(df_display), 20, step=5, key='slider_tabla')
     
     st.dataframe(
         df_display.head(num_mostrar)[[
-            'Ranking', 'Proveedor', 'Presupuesto', 'Artículos',
-            'Alertas Críticas', 'Días Cobertura Prom', 
-            'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
+            'Ranking', 'Proveedor', 'Venta Total', '% Participación Ventas',
+            'Presupuesto', 'Artículos', 'Art. con Exceso', 
+            'Costo Exceso', 'Art. Sin Stock'
         ]],
         use_container_width=True,
         hide_index=True
     )
-    
-    # === SELECTOR RÁPIDO DE PROVEEDOR ===
-    st.markdown("---")
-    st.markdown("### 🔍 Análisis Rápido de Proveedor")
-    
-    col1, col2 = st.columns([3, 1])
-    
-    with col1:
-        proveedor_seleccionado = st.selectbox(
-            "Selecciona un proveedor para análisis detallado:",
-            options=ranking['Proveedor'].tolist(),
-            index=0,
-            key='quick_select_proveedor'
-        )
-    
-    with col2:
-        if st.button("🚀 Analizar Proveedor", type="primary", use_container_width=True):
-            # Guardar en session_state para que el sidebar lo detecte
-            st.session_state.selected_proveedor = proveedor_seleccionado
-            st.info(f"✅ Selecciona **{proveedor_seleccionado}** en el sidebar y presiona 'Realizar Análisis'")
     
     # === INSIGHTS AUTOMÁTICOS ===
     st.markdown("---")
@@ -237,41 +317,49 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         top_proveedor = ranking.iloc[0]
         st.markdown(f"""
         <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #4caf50'>
-        <b>🏆 Proveedor Líder</b><br>
+        <b>🏆 Proveedor Líder en Ventas</b><br>
         <b>{top_proveedor['Proveedor']}</b><br>
-        💰 ${top_proveedor['Presupuesto']:,.0f}<br>
-        📦 {top_proveedor['Artículos']} artículos<br>
-        📊 {(top_proveedor['Presupuesto'] / ranking['Presupuesto'].sum() * 100):.1f}% del presupuesto total
+        💰 ${top_proveedor['Venta Total']:,.0f}<br>
+        📊 {top_proveedor['% Participación Ventas']:.1f}% del total<br>
+        📦 {top_proveedor['Artículos']} artículos
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
-        mas_alertas = ranking.nlargest(1, 'Alertas Críticas').iloc[0]
+        top_presupuesto = ranking.nlargest(1, 'Presupuesto').iloc[0]
         st.markdown(f"""
-        <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid #f44336'>
-        <b>🚨 Mayor Riesgo</b><br>
-        <b>{mas_alertas['Proveedor']}</b><br>
-        ⚠️ {mas_alertas['Alertas Críticas']} alertas críticas<br>
-        ❌ {mas_alertas['Art. Sin Stock']} artículos sin stock<br>
-        🎯 Requiere atención inmediata
+        <div style='background-color:#fff3e0;padding:1rem;border-radius:10px;border-left:5px solid #ff9800'>
+        <b>💰 Mayor Presupuesto Requerido</b><br>
+        <b>{top_presupuesto['Proveedor']}</b><br>
+        💵 ${top_presupuesto['Presupuesto']:,.0f}<br>
+        📦 {top_presupuesto['Artículos']} artículos<br>
+        🎯 Inversión prioritaria
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
         mas_exceso = ranking.nlargest(1, 'Costo Exceso').iloc[0]
         st.markdown(f"""
-        <div style='background-color:#fff3e0;padding:1rem;border-radius:10px;border-left:5px solid #ff9800'>
-        <b>📦 Mayor Exceso</b><br>
+        <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid #f44336'>
+        <b>⚠️ Mayor Exceso de Stock</b><br>
         <b>{mas_exceso['Proveedor']}</b><br>
         💸 ${mas_exceso['Costo Exceso']:,.0f} inmovilizado<br>
-        📊 {mas_exceso['Art. con Exceso']} artículos con exceso<br>
+        📊 {mas_exceso['Art. con Exceso']} artículos<br>
         🔄 Optimizar inventario
         </div>
         """, unsafe_allow_html=True)
     
     # === EXPORTAR RANKING ===
     st.markdown("---")
-    csv = ranking.to_csv(index=False).encode('utf-8')
+    
+    # Preparar CSV con datos sin formato
+    df_export = ranking[[
+        'Ranking', 'Proveedor', 'Venta Total', '% Participación Ventas',
+        'Presupuesto', 'Artículos', 'Cantidad Vendida',
+        'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
+    ]].copy()
+    
+    csv = df_export.to_csv(index=False).encode('utf-8')
     st.download_button(
         "📥 Descargar Ranking Completo (CSV)",
         csv,
