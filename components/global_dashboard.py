@@ -92,7 +92,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     # === CARGA DE DATOS DE VENTAS CON FILTRO DE FECHA ===
     with st.spinner(f"🔄 Cargando ventas de los últimos {dias_periodo} días y presupuesto..."):
-        start_time = time.time()
+        # start_time = time.time()
         
         from google.cloud import bigquery
         client = bigquery.Client.from_service_account_json(credentials_path)
@@ -116,7 +116,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             table='result_final_alert_all'
         )
         
-        load_time = time.time() - start_time
+        # load_time = time.time() - start_time
     
     if df_ventas is None or df_ventas.empty or df_presupuesto is None or df_presupuesto.empty:
         st.error("❌ No se pudieron cargar los datos necesarios")
