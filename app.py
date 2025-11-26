@@ -65,6 +65,15 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+    <style>
+    div[data-testid="stToolbar"] {
+        pointer-events: none !important;
+        opacity: 0 !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
 
