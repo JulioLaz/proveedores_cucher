@@ -153,8 +153,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     df_merge['costo_exceso_STK'] = df_merge['costo_exceso_STK'].fillna(0)
     df_merge['STK_TOTAL'] = df_merge['STK_TOTAL'].fillna(0)
     total_articulos_unicos = df_merge['idarticulo'].nunique()
-    st.success(f"✅ Datos: {df_ventas['idarticulo'].nunique():,} artículos únicos")
-    
+    # st.success(f"✅ Datos: {df_ventas['idarticulo'].nunique():,} artículos únicos")
+
     # === AGREGACIÓN POR PROVEEDOR ===
     ranking = df_merge.groupby(['proveedor', 'idproveedor']).agg({
         'venta_total': 'sum',
@@ -211,7 +211,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             <div>
                 <div class="kpi-label">📦 Cantidad Vendida</div>
                 <div class="kpi-value">{ranking['Cantidad Vendida'].sum():,.0f}</div>
-                <div class="kpi-delta">🎯 {total_articulos_unicos} artículos totales</div>
+                <div class="kpi-delta">🎯 {df_ventas['idarticulo'].nunique():,.0f} artículos totales</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
