@@ -49,14 +49,14 @@ st.set_page_config(page_title="Proveedores", page_icon="📊", layout="wide", in
 st.markdown(custom_css(), unsafe_allow_html=True)
 
 ### OCULTAR TOOLBAR COMPLETA
-st.markdown("""
-    <style>
-    div[data-testid="stToolbar"] {
-        pointer-events: none !important;
-        opacity: 0 !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# st.markdown("""
+#     <style>
+#     div[data-testid="stToolbar"] {
+#         pointer-events: none !important;
+#         opacity: 0 !important;
+#     }
+#     </style>
+# """, unsafe_allow_html=True)
 
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
