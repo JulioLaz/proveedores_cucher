@@ -153,7 +153,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     df_merge['costo_exceso_STK'] = df_merge['costo_exceso_STK'].fillna(0)
     df_merge['STK_TOTAL'] = df_merge['STK_TOTAL'].fillna(0)
     total_articulos_unicos = df_merge['idarticulo'].nunique()
-
+    st.success(f"✅ Datos combinados: {len(df_merge):,} registros | {total_articulos_unicos:,} artículos únicos")
     # === AGREGACIÓN POR PROVEEDOR ===
     ranking = df_merge.groupby(['proveedor', 'idproveedor']).agg({
         'venta_total': 'sum',
@@ -170,7 +170,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         'Artículos', 'Presupuesto', 'Art. con Exceso', 
         'Costo Exceso', 'Art. Sin Stock'
     ]
-    print(ranking.head())
     # Calcular participación de ventas
     ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(2)
     
