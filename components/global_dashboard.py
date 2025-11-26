@@ -199,8 +199,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                 <div style="font-size: 1.5rem; font-weight: bold; color: white;">{ranking['Cantidad Vendida'].sum():,.0f}</div>
             </div>
             <div style="color: white; font-size: 0.8rem; margin-top: 0.2rem;">
-                🎯 {df_ventas['idarticulo'].nunique():,} artículos totales #            
-
+                🎯 {df_ventas['idarticulo'].nunique():,} art únicos
             </div>
         </div>
         """, unsafe_allow_html=True)
