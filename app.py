@@ -877,8 +877,9 @@ class ProveedorDashboard:
         else:
             st.markdown("""
             <div class="main-header">
-                <p style='top: -1.8rem;
-                    text-align: center;
+                <p style='
+                    top: -1.8rem;
+                    right: 3rem;
                     position: absolute;
                     padding: 5px 0px;
                     font-size: 1.8rem;
