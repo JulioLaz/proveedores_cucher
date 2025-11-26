@@ -878,6 +878,7 @@ class ProveedorDashboard:
             st.markdown("""
             <div class="main-header">
                 <p style='top: -1.8rem;
+                    left: 3rem;
                     position: absolute;
                     padding: 5px 0px;
                     font-size: 1.8rem;
