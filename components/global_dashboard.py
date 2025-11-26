@@ -178,10 +178,10 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         st.markdown(f"""
         <div class="metric-box ">
             <div style="text-align: center;">
-                <div style="font-size: 1rem; color: white;">📦 Cantidad Vendida</div>
-                <div style="font-size: 1.5rem; font-weight: bold; color: white;">{ranking['Cantidad Vendida'].sum():,.0f}</div>
+                <div style="font-size: 1rem; color: #555;">📦 Cantidad Vendida</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{ranking['Cantidad Vendida'].sum():,.0f}</div>
             </div>
-            <div style="color: white; font-size: 0.8rem; margin-top: 0.2rem;">
+            <div style="color: #555; font-size: 0.8rem; margin-top: 0.2rem;">
                 🎯 {df_ventas['idarticulo'].nunique():,} art únicos
             </div>
         </div>
