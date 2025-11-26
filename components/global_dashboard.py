@@ -9,17 +9,8 @@ from io import BytesIO
 from datetime import datetime
 
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
-    
-   #  st.markdown("""
-   #  <div class="main-header">
-   #      <p style='padding:5px 0px; font-size:1.8rem; font-weight:bold;'>
-   #          🏆 Dashboard Ejecutivo - Ranking de Proveedores
-   #      </p>
-   #  </div>
-   #  """, unsafe_allow_html=True)
-    
+       
     # === SELECTOR DE PERÍODO ===
-   #  st.markdown("---")
     col1, col2, col3 = st.columns([2, 2, 1])
     
     with col1:
@@ -152,8 +143,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     df_merge['exceso_STK'] = df_merge['exceso_STK'].fillna(0)
     df_merge['costo_exceso_STK'] = df_merge['costo_exceso_STK'].fillna(0)
     df_merge['STK_TOTAL'] = df_merge['STK_TOTAL'].fillna(0)
-    total_articulos_unicos = df_merge['idarticulo'].nunique()
-    # st.success(f"✅ Datos: {df_ventas['idarticulo'].nunique():,} artículos únicos")
 
     # === AGREGACIÓN POR PROVEEDOR ===
     ranking = df_merge.groupby(['proveedor', 'idproveedor']).agg({

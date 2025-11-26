@@ -47,24 +47,8 @@ st.set_page_config(page_title="Proveedores", page_icon="📊", layout="wide", in
 
 # === CARGAR CSS PERSONALIZADO ===
 st.markdown(custom_css(), unsafe_allow_html=True)
-# Inyectar CSS para ocultar el botón de la toolbar
 
-st.markdown("""
-    <style>
-    /* Ocultar y desactivar el botón Share */
-    span[data-testid="stToolbarActionButtonLabel"] {
-        display: none !important;
-        pointer-events: none !important;
-        visibility: hidden !important;
-    }
-    div[data-testid="stToolbarActionButtonIcon"] {
-        display: none !important;
-        pointer-events: none !important;
-        visibility: hidden !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
+### OCULTAR TOOLBAR COMPLETA
 st.markdown("""
     <style>
     div[data-testid="stToolbar"] {
@@ -893,7 +877,11 @@ class ProveedorDashboard:
         else:
             st.markdown("""
             <div class="main-header">
-                <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>📈 Dashboard: Análisis de Proveedores</p>
+                <p style='top: -2.5rem;
+                    position: absolute;
+                    padding: 5px 0px;
+                    font-size: 1.8rem;
+                    color: black;'>📈 Dashboard: Análisis de Proveedores</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -926,41 +914,6 @@ class ProveedorDashboard:
                 </p>
             </div>
             """, unsafe_allow_html=True)
-
-        # if st.session_state.analysis_data is None:
-
-        #     # Mostrar información general
-        #     col1, col2, col3 = st.columns(3)
-        #     with col1:
-        #         st.markdown("""
-        #         ### 🎯 Funcionalidades
-        #         - Análisis completo por proveedor
-        #         - Métricas financieras avanzadas
-        #         - Visualizaciones interactivas
-        #         - Insights automáticos
-        #         - Exportación de reportes
-        #         """)
-            
-        #     with col2:
-        #         st.markdown("""
-        #         ### 📊 Métricas Incluidas
-        #         - Ventas y rentabilidad
-        #         - Análisis de productos
-        #         - Evolución temporal
-        #         - Distribución geográfica
-        #         - Tendencias de mercado
-        #         """)
-            
-        #     with col3:
-        #         st.markdown("""
-        #         ### 🔍 Análisis Avanzado
-        #         - Top productos por categoría
-        #         - Análisis de estacionalidad
-        #         - Comparativas periodo a periodo
-        #         - Identificación de oportunidades
-        #         - Alertas de rendimiento
-        #         """)
-        #     return
         
         # Si hay datos, mostrar análisis
         df = st.session_state.analysis_data
