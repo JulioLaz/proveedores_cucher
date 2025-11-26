@@ -161,7 +161,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     ranking['Ranking'] = range(1, len(ranking) + 1)
     
     # === KPIs PRINCIPALES CON ESTILO MEJORADO ===
-    st.markdown("---")
+    # st.markdown("---")
     
     col1, col2, col3, col4, col5 = st.columns(5)
     
