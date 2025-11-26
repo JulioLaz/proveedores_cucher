@@ -890,7 +890,7 @@ class ProveedorDashboard:
             <div class="main-header">
                 <p style='
                     position: absolute;
-                    top: -1.8rem;
+                    top: -1.3rem;
                     left: 3rem !important;
                     padding: 5px 0px;
                     font-size: 1.8rem;
