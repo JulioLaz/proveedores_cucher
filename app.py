@@ -58,6 +58,17 @@ st.markdown(custom_css(), unsafe_allow_html=True)
 #     </style>
 # """, unsafe_allow_html=True)
 
+st.markdown("""
+    <style>
+    span[data-testid="stToolbarActionButtonLabel"],
+    div[data-testid="stToolbarActionButtonIcon"] {
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
 
@@ -880,7 +891,7 @@ class ProveedorDashboard:
                 <p style='
                     position: absolute;
                     top: -1.8rem;
-                    left: 3rem;
+                    left: 3rem !important;
                     padding: 5px 0px;
                     font-size: 1.8rem;
                     color: black;'>__📈 Dashboard: Análisis de Proveedores</p>
