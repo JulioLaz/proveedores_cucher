@@ -48,10 +48,19 @@ st.set_page_config(page_title="Proveedores", page_icon="📊", layout="wide", in
 # === CARGAR CSS PERSONALIZADO ===
 st.markdown(custom_css(), unsafe_allow_html=True)
 # Inyectar CSS para ocultar el botón de la toolbar
+
 st.markdown("""
     <style>
+    /* Ocultar y desactivar el botón Share */
+    span[data-testid="stToolbarActionButtonLabel"] {
+        display: none !important;
+        pointer-events: none !important;
+        visibility: hidden !important;
+    }
     div[data-testid="stToolbarActionButtonIcon"] {
         display: none !important;
+        pointer-events: none !important;
+        visibility: hidden !important;
     }
     </style>
 """, unsafe_allow_html=True)
