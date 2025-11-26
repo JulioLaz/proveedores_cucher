@@ -49,6 +49,7 @@ st.set_page_config(page_title="Proveedores", page_icon="📊", layout="wide", in
 st.markdown(custom_css(), unsafe_allow_html=True)
 
 ### OCULTAR TOOLBAR COMPLETA
+
 # st.markdown("""
 #     <style>
 #     div[data-testid="stToolbar"] {
@@ -60,13 +61,20 @@ st.markdown(custom_css(), unsafe_allow_html=True)
 
 st.markdown("""
     <style>
-    span[data-testid="stToolbarActionButtonLabel"],
-    div[data-testid="stToolbarActionButtonIcon"] {
-        visibility: hidden !important;
+    /* Ocultar y desactivar el botón Share */
+    span[data-testid="stToolbarActionButtonLabel"] {
+        display: none !important;
         pointer-events: none !important;
+        visibility: hidden !important;
+    }
+    div[data-testid="stToolbarActionButtonIcon"] {
+        display: none !important;
+        pointer-events: none !important;
+        visibility: hidden !important;
     }
     </style>
 """, unsafe_allow_html=True)
+
 
 
 # === DETECTAR ENTORNO ===
