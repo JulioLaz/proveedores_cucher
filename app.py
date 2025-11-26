@@ -826,7 +826,8 @@ class ProveedorDashboard:
         if not filtro.empty:
             fila = int(filtro['idproveedor'].iloc[0])
         else:
-            st.sidebar.error("❌ No se encontró el ID del proveedor seleccionado.")
+            st.sidebar.error("Selecciona un proveedor y analiza.")
+            # st.sidebar.error("❌ No se encontró el ID del proveedor seleccionado.")
             return proveedor, fecha_inicio, fecha_fin, None
 
    
@@ -894,7 +895,7 @@ class ProveedorDashboard:
                     left: 3rem !important;
                     padding: 5px 0px;
                     font-size: 1.8rem;
-                    color: black;'>__📈 Dashboard: Análisis de Proveedores</p>
+                    color: black;'>📈 Dashboard: Análisis de Proveedores</p>
             </div>
             """, unsafe_allow_html=True)
 
