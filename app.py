@@ -47,6 +47,14 @@ st.set_page_config(page_title="Proveedores", page_icon="📊", layout="wide", in
 
 # === CARGAR CSS PERSONALIZADO ===
 st.markdown(custom_css(), unsafe_allow_html=True)
+# Inyectar CSS para ocultar el botón de la toolbar
+st.markdown("""
+    <style>
+    div[data-testid="stToolbarActionButtonIcon"] {
+        display: none !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
