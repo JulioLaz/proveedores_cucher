@@ -170,7 +170,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         'Artículos', 'Presupuesto', 'Art. con Exceso', 
         'Costo Exceso', 'Art. Sin Stock'
     ]
-    
+    print(ranking.head())
     # Calcular participación de ventas
     ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(2)
     
