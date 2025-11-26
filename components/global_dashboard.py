@@ -9,8 +9,18 @@ from io import BytesIO
 from datetime import datetime
 
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
-       
+    """Dashboard Global de Proveedores - Vista inicial con ranking por ventas y presupuesto"""
+    
+    st.markdown("""
+    <div class="main-header">
+        <p style='padding:5px 0px; font-size:1.8rem; font-weight:bold;'>
+            🏆 Dashboard Ejecutivo - Ranking de Proveedores
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
     # === SELECTOR DE PERÍODO ===
+    st.markdown("---")
     col1, col2, col3 = st.columns([2, 2, 1])
     
     with col1:
@@ -26,7 +36,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         periodo_seleccionado = st.selectbox(
             "📅 Período de análisis de ventas:",
             options=list(periodo_opciones.keys()),
-            index=0  # Default: Últimos 30 días
+            index=0
         )
     
     with col2:
@@ -45,57 +55,53 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col3:
         st.metric("📆 Días", f"{dias_periodo}")
     
-    # === ESTILOS MEJORADOS PARA KPIs ===
+    # === ESTILOS CSS MEJORADOS ===
     st.markdown("""
     <style>
-        .kpi-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
+        .metric-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
             padding: 1rem;
-            color: white;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            height: 140px;
+            transition: all 0.3s ease;
+            height: 120px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: center;
         }
-        .kpi-card-green {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        
+        .metric-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
-        .kpi-card-orange {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        
+        .metric-box-green {
+            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
         }
-        .kpi-card-blue {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        
+        .metric-box-orange {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
         }
-        .kpi-card-purple {
+        
+        .metric-box-blue {
+            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+            color: white;
+        }
+        
+        .metric-box-purple {
             background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            color: #333;
         }
-        .kpi-label {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            font-weight: 500;
-            text-align: center;
-        }
-        .kpi-value {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin: 0.3rem 0;
-            text-align: end;
-        }
-        .kpi-delta {
-            font-size: 0.85rem;
-            opacity: 0.95;
+        
+        .metric-box-red {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
         }
     </style>
     """, unsafe_allow_html=True)
     
     # === CARGA DE DATOS DE VENTAS CON FILTRO DE FECHA ===
     with st.spinner(f"🔄 Cargando ventas de los últimos {dias_periodo} días y presupuesto..."):
-      #   start_time = time.time()
+        start_time = time.time()
         
-        # Consultar VENTAS desde BigQuery CON FILTRO DE FECHA
         from google.cloud import bigquery
         client = bigquery.Client.from_service_account_json(credentials_path)
         
@@ -111,7 +117,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         
         df_ventas = client.query(query_ventas).to_dataframe()
         
-        # Consultar PRESUPUESTO (sin filtro de fecha - es snapshot actual)
         df_presupuesto = query_function(
             credentials_path=credentials_path,
             project_id=project_id,
@@ -119,15 +124,15 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             table='result_final_alert_all'
         )
         
-      #   load_time = time.time() - start_time
+        load_time = time.time() - start_time
     
     if df_ventas is None or df_ventas.empty or df_presupuesto is None or df_presupuesto.empty:
         st.error("❌ No se pudieron cargar los datos necesarios")
         return
     
-   #  st.success(f"✅ Datos cargados en {load_time:.2f}s | {len(df_ventas):,} artículos con ventas | {len(df_presupuesto):,} artículos con presupuesto")
+    st.success(f"✅ Datos cargados en {load_time:.2f}s | {len(df_ventas):,} artículos con ventas ({dias_periodo} días) | {len(df_presupuesto):,} artículos con presupuesto")
     
-    # === MERGE COMPLETO: PROVEEDORES + VENTAS + PRESUPUESTO ===
+    # === MERGE Y AGREGACIÓN ===
     df_merge = df_proveedores[['idarticulo', 'proveedor', 'idproveedor']].merge(
         df_ventas, on='idarticulo', how='left'
     ).merge(
@@ -136,15 +141,13 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         how='left'
     )
     
-    # Rellenar NaN
     df_merge['venta_total'] = df_merge['venta_total'].fillna(0)
     df_merge['cantidad_vendida'] = df_merge['cantidad_vendida'].fillna(0)
     df_merge['PRESUPUESTO'] = df_merge['PRESUPUESTO'].fillna(0)
     df_merge['exceso_STK'] = df_merge['exceso_STK'].fillna(0)
     df_merge['costo_exceso_STK'] = df_merge['costo_exceso_STK'].fillna(0)
     df_merge['STK_TOTAL'] = df_merge['STK_TOTAL'].fillna(0)
-
-    # === AGREGACIÓN POR PROVEEDOR ===
+    
     ranking = df_merge.groupby(['proveedor', 'idproveedor']).agg({
         'venta_total': 'sum',
         'cantidad_vendida': 'sum',
@@ -160,69 +163,77 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         'Artículos', 'Presupuesto', 'Art. con Exceso', 
         'Costo Exceso', 'Art. Sin Stock'
     ]
-    # Calcular participación de ventas
-    ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(2)
     
-    # Ordenar por ventas (principal)
+    ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(2)
     ranking = ranking.sort_values('Venta Total', ascending=False).reset_index(drop=True)
     ranking['Ranking'] = range(1, len(ranking) + 1)
     
-    # === KPIs GLOBALES CON ESTILO MEJORADO ===
-   #  st.markdown("---")
+    # === KPIs PRINCIPALES CON ESTILO MEJORADO ===
+    st.markdown("---")
     
     col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.markdown(f"""
-        <div class="kpi-card kpi-card-green">
-            <div>
-                <div class="kpi-label">💰 Ventas</div>
-                <div class="kpi-value">${ranking['Venta Total'].sum():,.0f}</div>
-                <div class="kpi-delta">⬆️ {ranking['% Participación Ventas'].count()} proveedores</div>
+        <div class="metric-box metric-box-green">
+            <div style="text-align: center;">
+                <div style="font-size: 1rem; color: #555;">💰 Ventas Totales</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Venta Total'].sum():,.0f}</div>
+            </div>
+            <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
+                ⬆️ {len(ranking)} proveedores
             </div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown(f"""
-        <div class="kpi-card kpi-card-orange">
-            <div>
-                <div class="kpi-label">💵 Presupuesto</div>
-                <div class="kpi-value">${ranking['Presupuesto'].sum():,.0f}</div>
-                <div class="kpi-delta">📊 Inversión requerida</div>
+        <div class="metric-box metric-box-orange">
+            <div style="text-align: center;">
+                <div style="font-size: 1rem; color: #555;">💵 Presupuesto Total</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Presupuesto'].sum():,.0f}</div>
+            </div>
+            <div style="color: #d35400; font-size: 0.8rem; margin-top: 0.2rem;">
+                📊 Inversión requerida
             </div>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
         st.markdown(f"""
-        <div class="kpi-card kpi-card-blue">
-            <div>
-                <div class="kpi-label">📦 Cantidad Vendida</div>
-                <div class="kpi-value">{ranking['Cantidad Vendida'].sum():,.0f}</div>
-                <div class="kpi-delta">🎯 {df_ventas['idarticulo'].nunique():,.0f} artículos totales</div>
+        <div class="metric-box metric-box-blue">
+            <div style="text-align: center;">
+                <div style="font-size: 1rem; color: white;">📦 Cantidad Vendida</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: white;">{ranking['Cantidad Vendida'].sum():,.0f}</div>
+            </div>
+            <div style="color: white; font-size: 0.8rem; margin-top: 0.2rem;">
+                🎯 {ranking['Artículos'].sum():,} artículos totales
             </div>
         </div>
         """, unsafe_allow_html=True)
     
     with col4:
         st.markdown(f"""
-        <div class="kpi-card kpi-card-purple">
-            <div>
-                <div class="kpi-label">⚠️ Exceso de Stock</div>
-                <div class="kpi-value">${ranking['Costo Exceso'].sum():,.0f}</div>
-                <div class="kpi-delta">📊 {ranking['Art. con Exceso'].sum():,} artículos</div>
+        <div class="metric-box metric-box-purple">
+            <div style="text-align: center;">
+                <div style="font-size: 1rem; color: #555;">⚠️ Exceso de Stock</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Costo Exceso'].sum():,.0f}</div>
+            </div>
+            <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
+                📊 {ranking['Art. con Exceso'].sum():,} artículos
             </div>
         </div>
         """, unsafe_allow_html=True)
     
     with col5:
         st.markdown(f"""
-        <div class="kpi-card" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #333;">
-            <div>
-                <div class="kpi-label">❌ Sin Stock</div>
-                <div class="kpi-value">{ranking['Art. Sin Stock'].sum():,}</div>
-                <div class="kpi-delta">🔴 Artículos críticos</div>
+        <div class="metric-box metric-box-red">
+            <div style="text-align: center;">
+                <div style="font-size: 1rem; color: #555;">❌ Sin Stock</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{ranking['Art. Sin Stock'].sum():,}</div>
+            </div>
+            <div style="color: #c0392b; font-size: 0.8rem; margin-top: 0.2rem;">
+                🔴 Artículos críticos
             </div>
         </div>
         """, unsafe_allow_html=True)
