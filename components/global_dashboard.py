@@ -11,16 +11,8 @@ from datetime import datetime
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
     """Dashboard Global de Proveedores - Vista inicial con ranking por ventas y presupuesto"""
     
-    st.markdown("""
-    <div class="main-header">
-        <p style='padding:5px 0px; font-size:1.8rem; font-weight:bold;'>
-            🏆 Dashboard Ejecutivo - Ranking de Proveedores
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
+   
     # === SELECTOR DE PERÍODO ===
-    st.markdown("---")
     col1, col2, col3 = st.columns([2, 2, 1])
     
     with col1:
@@ -130,7 +122,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         st.error("❌ No se pudieron cargar los datos necesarios")
         return
     
-    st.success(f"✅ Datos cargados en {load_time:.2f}s | {len(df_ventas):,} artículos con ventas ({dias_periodo} días) | {len(df_presupuesto):,} artículos con presupuesto")
+    # st.success(f"✅ Datos cargados en {load_time:.2f}s | {len(df_ventas):,} artículos con ventas ({dias_periodo} días) | {len(df_presupuesto):,} artículos con presupuesto")
     
     # === MERGE Y AGREGACIÓN ===
     df_merge = df_proveedores[['idarticulo', 'proveedor', 'idproveedor']].merge(
@@ -207,7 +199,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                 <div style="font-size: 1.5rem; font-weight: bold; color: white;">{ranking['Cantidad Vendida'].sum():,.0f}</div>
             </div>
             <div style="color: white; font-size: 0.8rem; margin-top: 0.2rem;">
-                🎯 {ranking['Artículos'].sum():,} artículos totales
+                🎯 {df_ventas['idarticulo'].nunique():,} artículos totales #            
+
             </div>
         </div>
         """, unsafe_allow_html=True)
