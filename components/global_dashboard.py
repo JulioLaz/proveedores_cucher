@@ -60,6 +60,9 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             display: flex;
             flex-direction: column;
             justify-content: center;
+            border-left: 5px solid #2a5298;
+            margin-bottom: .5rem;
+                
         }
         
         .metric-box:hover {
@@ -67,26 +70,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
         
-        .metric-box-green {
-            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
-        }
-        
-        .metric-box-orange {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        }
-        
-        .metric-box-blue {
-            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
-            color: white;
-        }
-        
-        .metric-box-purple {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        }
-        
-        .metric-box-red {
-            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-        }
     </style>
     """, unsafe_allow_html=True)
     
@@ -167,7 +150,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     with col1:
         st.markdown(f"""
-        <div class="metric-box metric-box-green">
+        <div class="metric-box ">
             <div style="text-align: center;">
                 <div style="font-size: 1rem; color: #555;">💰 Ventas Totales</div>
                 <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Venta Total'].sum():,.0f}</div>
@@ -180,7 +163,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     with col2:
         st.markdown(f"""
-        <div class="metric-box metric-box-orange">
+        <div class="metric-box ">
             <div style="text-align: center;">
                 <div style="font-size: 1rem; color: #555;">💵 Presupuesto Total</div>
                 <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Presupuesto'].sum():,.0f}</div>
@@ -193,7 +176,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     with col3:
         st.markdown(f"""
-        <div class="metric-box metric-box-blue">
+        <div class="metric-box ">
             <div style="text-align: center;">
                 <div style="font-size: 1rem; color: white;">📦 Cantidad Vendida</div>
                 <div style="font-size: 1.5rem; font-weight: bold; color: white;">{ranking['Cantidad Vendida'].sum():,.0f}</div>
@@ -206,7 +189,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     with col4:
         st.markdown(f"""
-        <div class="metric-box metric-box-purple">
+        <div class="metric-box ">
             <div style="text-align: center;">
                 <div style="font-size: 1rem; color: #555;">⚠️ Exceso de Stock</div>
                 <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Costo Exceso'].sum():,.0f}</div>
@@ -219,7 +202,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     with col5:
         st.markdown(f"""
-        <div class="metric-box metric-box-red">
+        <div class="metric-box ">
             <div style="text-align: center;">
                 <div style="font-size: 1rem; color: #555;">❌ Sin Stock</div>
                 <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{ranking['Art. Sin Stock'].sum():,}</div>
