@@ -746,14 +746,14 @@ class ProveedorDashboard:
         proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())
         proveedor_actual = st.session_state.get("selected_proveedor")
         df_proveedor_ids = self.df_proveedores[['idproveedor', 'proveedor']]
-        if not proveedor_actual:
-            st.sidebar.markdown('<div >🔎 Elegir proveedor</div>', unsafe_allow_html=True)
-            # st.sidebar.markdown('<div class="animated-title">🔎 Elegir proveedor</div>', unsafe_allow_html=True)
-        else:
-            st.sidebar.markdown("#### 🏪 Selección de Proveedor")
+        # if not proveedor_actual:
+        #     st.sidebar.markdown('<div >🔎 Elegir proveedor</div>', unsafe_allow_html=True)
+        #     # st.sidebar.markdown('<div class="animated-title">🔎 Elegir proveedor</div>', unsafe_allow_html=True)
+        # else:
+        #     st.sidebar.markdown("#### 🏪 Selección de Proveedor")
 
         proveedor = st.sidebar.selectbox(
-            "",
+            "🔎 Elegir proveedor",
             options=proveedores,
             index=proveedores.index(proveedor_actual) if proveedor_actual in proveedores else None,
             placeholder="Seleccionar proveedor..."
