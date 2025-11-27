@@ -174,11 +174,11 @@ class InventoryDashboard:
                 names=resumen_urgencia.index,
                 title="Productos por Nivel de Urgencia"
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         
         with col2:
             st.markdown("#### 💰 Resumen Financiero por Grupo")
-            st.dataframe(resumen_urgencia, use_container_width=True)
+            st.dataframe(resumen_urgencia, width="stretch")
         
         # Productos críticos
         st.markdown("#### 🚨 Productos que Requieren Atención Inmediata")
@@ -188,7 +188,7 @@ class InventoryDashboard:
         ].head(15)
         
         if not criticos.empty:
-            st.dataframe(criticos, use_container_width=True)
+            st.dataframe(criticos, width="stretch")
         else:
             st.success("✅ No hay productos en estado crítico")
         
@@ -233,7 +233,7 @@ class InventoryDashboard:
                     title="Distribución de Stock",
                     color='Stock Total'
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             
             with col2:
                 st.markdown("#### 🎯 Eficiencia por Sucursal")
@@ -245,10 +245,10 @@ class InventoryDashboard:
                     color='Eficiencia %',
                     color_continuous_scale='RdYlGn'
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             
             st.markdown("#### 📋 Resumen Detallado")
-            st.dataframe(df_sucursales, use_container_width=True)
+            st.dataframe(df_sucursales, width="stretch")
         
         exec_time = time.time() - start_time
         st.info(f"⏱️ Análisis completado en {exec_time:.2f} segundos")
@@ -270,7 +270,7 @@ class InventoryDashboard:
                     names=rotacion_counts.index,
                     title="Productos por Velocidad de Rotación"
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
         
         with col2:
             st.markdown("#### 📊 TOP 10 - Mayor Presupuesto")
@@ -286,7 +286,7 @@ class InventoryDashboard:
                     title="Productos con Mayor Inversión Requerida",
                     orientation='h'
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
         
         # Análisis de cobertura
         st.markdown("#### 🛡️ Análisis de Días de Cobertura")
@@ -336,7 +336,7 @@ class InventoryDashboard:
                     title="Inversión Requerida por Familia"
                 )
                 fig.update_xaxes(tickangle=45)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             
             with col2:
                 st.markdown("#### 📦 Distribución de Productos")
@@ -345,10 +345,10 @@ class InventoryDashboard:
                     names=familia_stats.index,
                     title="% de Productos por Familia"
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             
             st.markdown("#### 📋 Resumen Detallado por Familia")
-            st.dataframe(familia_stats, use_container_width=True)
+            st.dataframe(familia_stats, width="stretch")
         
         exec_time = time.time() - start_time
         st.info(f"⏱️ Análisis completado en {exec_time:.2f} segundos")
@@ -386,7 +386,7 @@ class InventoryDashboard:
         top_acciones['Acción Recomendada'] = top_acciones.apply(determinar_accion, axis=1)
         
         st.markdown("#### 🎯 TOP 20 - Acciones Prioritarias")
-        st.dataframe(top_acciones.drop(['score_prioridad'], axis=1, errors='ignore'), use_container_width=True)
+        st.dataframe(top_acciones.drop(['score_prioridad'], axis=1, errors='ignore'), width="stretch")
         
         # Resumen de acciones
         col1, col2 = st.columns(2)
@@ -399,7 +399,7 @@ class InventoryDashboard:
                 names=resumen_acciones.index,
                 title="Distribución de Acciones Recomendadas"
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         
         with col2:
             st.markdown("#### 💰 Inversión Requerida")
@@ -468,7 +468,7 @@ def show_idarticulo_analysis_01(self, df_presu):
         with tabs[5]:
             # Mantener la vista de datos original como referencia
             st.markdown("### 📋 DataFrame Completo")
-            st.dataframe(df_processed, use_container_width=True)
+            st.dataframe(df_processed, width="stretch")
         
         # Botones de acción
         st.markdown("---")

@@ -205,7 +205,7 @@ def render_top_products_chart(productos_top, orden_por):
     fig.update_traces(hovertemplate=hover)
 
     # Mostrar gráfico en Streamlit
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 # def render_top_products_chart(productos_top, orden_por):
 #     """
@@ -278,7 +278,7 @@ def render_top_products_chart(productos_top, orden_por):
 #     fig.update_traces(marker_color='#8966c6')
    
 #    # Mostrar gráfico en Streamlit
-#     st.plotly_chart(fig, use_container_width=True)
+#     st.plotly_chart(fig, width="stretch")
 
     # Advertencia si hay pocos productos
     if len(productos_top) < 5:
@@ -399,7 +399,7 @@ def render_top_products_by_branch(df, orden_por):
                 textposition="outside"
             )
 
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     except Exception as e:
         st.error(f"❌ Error al generar la gráfica Top 5 por sucursal: {e}")
@@ -441,7 +441,7 @@ def render_sales_margin_scatter(productos_stats):
         margin=dict(t=60, b=20, l=10, r=10)
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 # ============================================
@@ -519,7 +519,7 @@ def render_pareto_analysis(productos_stats):
     fig.update_yaxes(title_text="Participación Individual (%)", secondary_y=False)
     fig.update_yaxes(title_text="Participación Acumulada (%)", secondary_y=True)
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
     
     return productos_pareto
 

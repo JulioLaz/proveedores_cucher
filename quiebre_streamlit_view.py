@@ -53,7 +53,7 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
             )
         fig.update_xaxes(showticklabels=False)
         fig.update_yaxes(showticklabels=True)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     with col2:
         st.markdown(
@@ -116,7 +116,7 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
     # )
     # fig.update_xaxes(showticklabels=False)
     # fig.update_yaxes(showticklabels=True)
-    # st.plotly_chart(fig, use_container_width=True)
+    # st.plotly_chart(fig, width="stretch")
 
 
     # Mostrar tabla de detalle por artículo y sucursal
@@ -132,7 +132,7 @@ def mostrar_analisis_quiebre_detallado(df_quiebre):
     df_mostrar["valor_perdido"] = df_mostrar["valor_perdido"].map("${:,.0f}".format)
     df_mostrar["unidades_perdidas"] = df_mostrar["unidades_perdidas"].astype(int)
 
-    st.dataframe(df_mostrar.head(300), use_container_width=True, hide_index=True)
+    st.dataframe(df_mostrar.head(300), width="stretch", hide_index=True)
 
     # Opción de descarga
     csv = df_mostrar.to_csv(index=False).encode("utf-8")

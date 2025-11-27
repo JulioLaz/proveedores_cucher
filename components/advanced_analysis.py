@@ -128,7 +128,7 @@ def render_pie_chart(stats_df, columna, metrica_nombre, titulo_emoji, categoria)
         margin=dict(t=60, b=30, l=10, r=10)
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def render_bar_chart(stats_df, columna, texto_etiqueta, metrica_nombre, categoria):
@@ -169,7 +169,7 @@ def render_bar_chart(stats_df, columna, texto_etiqueta, metrica_nombre, categori
     )
     
     fig.update_yaxes(showticklabels=False)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 # ============================================
@@ -295,7 +295,7 @@ def render_abc_charts(abc_counts, abc_ventas):
             height=400,
             margin=dict(t=60, b=40, l=30, r=20)
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     
     with col2:
         fig = px.pie(
@@ -321,7 +321,7 @@ def render_abc_charts(abc_counts, abc_ventas):
             height=400,
             margin=dict(t=60, b=30, l=10, r=10)
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
 
 def inject_insights_css():
@@ -609,7 +609,7 @@ def show_advanced_analysis(df, metrics,
     tabla_abc['Utilidad'] = tabla_abc['Utilidad'].round(0).astype(int)
     tabla_abc['Participación Acum. (%)'] = tabla_abc['Participación Acum. (%)'].round(1)
     
-    st.dataframe(tabla_abc, use_container_width=True)
+    st.dataframe(tabla_abc, width="stretch")
     
     # Botón de descarga
     archivo_excel = generate_abc_excel(tabla_abc)

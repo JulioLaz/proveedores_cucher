@@ -120,7 +120,7 @@ def render_monthly_sales_chart(mensual):
     )
     
     fig.update_yaxes(showticklabels=False)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def render_monthly_margin_chart(mensual):
@@ -158,7 +158,7 @@ def render_monthly_margin_chart(mensual):
     )
     
     fig.update_yaxes(showticklabels=False)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 # ============================================
@@ -199,7 +199,7 @@ def render_weekly_sales_chart(semanal):
     )
 
     fig.update_yaxes(showticklabels=False)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def render_weekly_margin_chart(semanal):
@@ -241,7 +241,7 @@ def render_weekly_margin_chart(semanal):
         showticklabels=False
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 # ============================================

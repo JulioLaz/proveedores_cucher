@@ -249,7 +249,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             paper_bgcolor='white'
         )
         
-        st.plotly_chart(fig_ventas, use_container_width=True)
+        st.plotly_chart(fig_ventas, width="stretch")
     
     with col2:
         # TOP PRESUPUESTO con slider
@@ -280,7 +280,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             paper_bgcolor='white'
         )
         
-        st.plotly_chart(fig_presu, use_container_width=True)
+        st.plotly_chart(fig_presu, width="stretch")
     
     # === TABLA RANKING DETALLADA ===
     st.markdown("---")
@@ -302,7 +302,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             'Presupuesto', 'Artículos', 'Art. con Exceso', 
             'Costo Exceso', 'Art. Sin Stock'
         ]],
-        use_container_width=True,
+        width="stretch",
         hide_index=True
     )
     
@@ -364,7 +364,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
    #      csv,
    #      f"ranking_proveedores_{datetime.now().strftime('%Y%m%d')}.csv",
    #      "text/csv",
-   #      use_container_width=True
+   #      width="stretch"
    #  )
 
    # Preparar DataFrame con datos sin formato
@@ -386,5 +386,5 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
       data=output,
       file_name=f"ranking_proveedores_{datetime.now().strftime('%Y%m%d')}.xlsx",
       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      use_container_width=True
+      width="stretch"
    )

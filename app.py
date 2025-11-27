@@ -263,11 +263,11 @@ class InventoryDashboard:
                 names=resumen_urgencia.index,
                 title="Productos por Nivel de Urgencia"
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         
         with col2:
             st.markdown("#### 💰 Resumen Financiero por Grupo")
-            st.dataframe(resumen_urgencia, use_container_width=True)
+            st.dataframe(resumen_urgencia, width="stretch")
         
         # Productos críticos
         st.markdown("#### 🚨 Productos que Requieren Atención Inmediata")
@@ -277,7 +277,7 @@ class InventoryDashboard:
         ].head(15)
         
         if not criticos.empty:
-            st.dataframe(criticos, use_container_width=True)
+            st.dataframe(criticos, width="stretch")
         else:
             st.success("✅ No hay productos en estado crítico")
         
@@ -322,7 +322,7 @@ class InventoryDashboard:
                     title="Distribución de Stock",
                     color='Stock Total'
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             
             with col2:
                 st.markdown("#### 🎯 Eficiencia por Sucursal")
@@ -334,10 +334,10 @@ class InventoryDashboard:
                     color='Eficiencia %',
                     color_continuous_scale='RdYlGn'
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             
             st.markdown("#### 📋 Resumen Detallado")
-            st.dataframe(df_sucursales, use_container_width=True)
+            st.dataframe(df_sucursales, width="stretch")
         
         exec_time = time.time() - start_time
         st.info(f"⏱️ Análisis completado en {exec_time:.2f} segundos")
@@ -359,7 +359,7 @@ class InventoryDashboard:
                     names=rotacion_counts.index,
                     title="Productos por Velocidad de Rotación"
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
         
         with col2:
             st.markdown("#### 📊 TOP 10 - Mayor Presupuesto")
@@ -375,7 +375,7 @@ class InventoryDashboard:
                     title="Productos con Mayor Inversión Requerida",
                     orientation='h'
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
         
         # Análisis de cobertura
         st.markdown("#### 🛡️ Análisis de Días de Cobertura")
@@ -425,7 +425,7 @@ class InventoryDashboard:
                     title="Inversión Requerida por Familia"
                 )
                 fig.update_xaxes(tickangle=45)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             
             with col2:
                 st.markdown("#### 📦 Distribución de Productos")
@@ -434,10 +434,10 @@ class InventoryDashboard:
                     names=familia_stats.index,
                     title="% de Productos por Familia"
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             
             st.markdown("#### 📋 Resumen Detallado por Familia")
-            st.dataframe(familia_stats, use_container_width=True)
+            st.dataframe(familia_stats, width="stretch")
         
         exec_time = time.time() - start_time
         st.info(f"⏱️ Análisis completado en {exec_time:.2f} segundos")
@@ -475,7 +475,7 @@ class InventoryDashboard:
         top_acciones['Acción Recomendada'] = top_acciones.apply(determinar_accion, axis=1)
         
         st.markdown("#### 🎯 TOP 20 - Acciones Prioritarias")
-        st.dataframe(top_acciones.drop(['score_prioridad'], axis=1, errors='ignore'), use_container_width=True)
+        st.dataframe(top_acciones.drop(['score_prioridad'], axis=1, errors='ignore'), width="stretch")
         
         # Resumen de acciones
         col1, col2 = st.columns(2)
@@ -488,7 +488,7 @@ class InventoryDashboard:
                 names=resumen_acciones.index,
                 title="Distribución de Acciones Recomendadas"
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         
         with col2:
             st.markdown("#### 💰 Inversión Requerida")
@@ -839,7 +839,7 @@ class ProveedorDashboard:
             return proveedor, fecha_inicio, fecha_fin, None
 
    
-        if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
+        if st.sidebar.button("Realizar Análisis", type="primary", width="stretch"):
             if not proveedor:
                 st.sidebar.error("❌ Selecciona un proveedor")
             else:
@@ -921,7 +921,7 @@ class ProveedorDashboard:
         # === BOTÓN VOLVER ===
         col1, col2 = st.columns([1, 5])
         with col1:
-            if st.button("← Dashboard Global", type="secondary", use_container_width=True):
+            if st.button("← Dashboard Global", type="secondary", width="stretch"):
                 st.session_state.analysis_data = None
                 st.session_state.selected_proveedor = None
                 st.session_state.resultados_data = None
@@ -1486,7 +1486,7 @@ class ProveedorDashboard:
         }
         
         df_resumen = pd.DataFrame(resumen_data)
-        st.dataframe(df_resumen, use_container_width=True, hide_index=True)
+        st.dataframe(df_resumen, width="stretch", hide_index=True)
 
         st.markdown("### Vista Previa de Datos")
         df['fecha_fmt'] = df['fecha'].apply(lambda x: format_date(x, format="d MMMM y", locale=locale))
@@ -1509,7 +1509,7 @@ class ProveedorDashboard:
             # Mostrar muestra de datos
         st.dataframe(
                 data.head(10),
-                use_container_width=True,
+                width="stretch",
                 column_config={
                     "fecha_fmt": st.column_config.DateColumn("Fecha"),
                     "precio_total": st.column_config.NumberColumn("Precio Total", format="$%.0f"),
@@ -1574,7 +1574,7 @@ class ProveedorDashboard:
             with tabs[5]:
                 # Mantener la vista de datos original como referencia
                 st.markdown("### 📋 DataFrame Completo")
-                st.dataframe(df_processed, use_container_width=True)
+                st.dataframe(df_processed, width="stretch")
             
             # Botones de acción
             st.markdown("---")
@@ -1675,7 +1675,7 @@ class ProveedorDashboard:
     def tab_df(self, df):
         st.markdown("### 📋 DataFrame Detallado")
         try:
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width="stretch")
         except Exception as e:
             st.error(f"❌ Error al mostrar el DataFrame: {e}")
     def tab_stock_y_cobertura(self, df):
@@ -1809,7 +1809,7 @@ class ProveedorDashboard:
         columnas = ["idarticulo", "descripcion", "cantidad_optima", "PRESUPUESTO",
                     "stk_corrientes", "stk_express", "stk_formosa", "stk_hiper", "stk_TIROL", "stk_central", "STK_TOTAL",
                     "cor_abastecer", "exp_abastecer", "for_abastecer", "hip_abastecer", "total_abastecer"]
-        st.dataframe(df_reponer[columnas], use_container_width=True)
+        st.dataframe(df_reponer[columnas], width="stretch")
 
     def analisis_presupuesto_sucursal(self, df):
         st.subheader("🏬 Presupuesto Estimado y Cobertura por Sucursal")
@@ -1876,7 +1876,7 @@ class ProveedorDashboard:
             fig1.update_layout(title_font=dict(size=16, color="#333"), title_x=0.08, showlegend=False, coloraxis_showscale=False, xaxis_title=None,
             yaxis_title=None, margin=dict(t=60, b=40, l=30, r=20))
             fig1.update_yaxes(showticklabels=False)
-            st.plotly_chart(fig1, use_container_width=True)
+            st.plotly_chart(fig1, width="stretch")
 
         with col2:
             fig2 = px.bar(
@@ -1892,7 +1892,7 @@ class ProveedorDashboard:
             fig2.update_layout(title_font=dict(size=16, color="#333"), title_x=0.08, showlegend=False,xaxis_title=None,
             yaxis_title=None, coloraxis_showscale=False, margin=dict(t=60, b=40, l=30, r=20))
             fig2.update_yaxes(showticklabels=False)
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2, width="stretch")
 
     def analisis_riesgo_quiebre(self, df):
 
@@ -1997,7 +1997,7 @@ class ProveedorDashboard:
 
         with col1:
             st.markdown("📊 Distribución del riesgo de quiebre")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
         with col2:
             # ✅ Formatear columnas
@@ -2011,7 +2011,7 @@ class ProveedorDashboard:
 
             columnas = ["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima"]
             st.caption(f"🔍 {len(df_riesgo)} artículos en riesgo de quiebre")
-            st.dataframe(df_riesgo[columnas].head(300), use_container_width=True, hide_index=True)
+            st.dataframe(df_riesgo[columnas].head(300), width="stretch", hide_index=True)
 
         # 📥 Exportación opcional
         csv = df_riesgo[columnas].to_csv(index=False).encode('utf-8')
@@ -2077,7 +2077,7 @@ class ProveedorDashboard:
 
         with col1:
             st.markdown("📊 Distribución del exceso de stock por días de cobertura")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
         with col2:
             # Formatear columnas
@@ -2090,7 +2090,7 @@ class ProveedorDashboard:
 
             columnas = ["idarticulo", "descripcion", "exceso_STK_format", "costo_exceso_STK_format", "dias_cobertura_format"]
             st.markdown(f"📦 {len(df_exceso)} artículos con exceso de stock detectado")
-            st.dataframe(df_exceso[columnas].head(300), use_container_width=True, hide_index=True)
+            st.dataframe(df_exceso[columnas].head(300), width="stretch", hide_index=True)
 
         with st.expander("🔎 Visualizar Exceso por Impacto", expanded=True):
                 col1, col2 = st.columns(2)
@@ -2146,7 +2146,7 @@ class ProveedorDashboard:
                         legend_title_text="Cobertura", xaxis_type='log'
                     )
 
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
 #################################################################
                     # === INSIGHTS AUTOMÁTICOS ===
                     st.markdown("### 📌 Insights Clave del Exceso de Stock")
@@ -2218,7 +2218,7 @@ class ProveedorDashboard:
                                     })
                                     df_vista = df_vista.sort_values("💰 Costo Exceso", ascending=False)
                                     df_vista["💰 Costo Exceso"] = df_vista["💰 Costo Exceso"].apply(lambda x: f"${x:,.0f}")
-                                    st.dataframe(df_vista, use_container_width=True, hide_index=True)
+                                    st.dataframe(df_vista, width="stretch", hide_index=True)
 
                                     # Descargar CSV
                                     csv_data = df_seg[cols_mostrar].to_csv(index=False).encode("utf-8")
@@ -2313,7 +2313,7 @@ class ProveedorDashboard:
             fig.update_yaxes(title_text="Participación Individual (%)", secondary_y=False)
             fig.update_yaxes(title_text="Participación Acumulada (%)", secondary_y=True)
 
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
             # === Insight automático del Pareto ===
             top_pareto = pareto_exceso[pareto_exceso["acumulado"] <= 80]
@@ -2403,7 +2403,7 @@ class ProveedorDashboard:
         col1, col2 = st.columns([1, 2])
 
         with col1:
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
         with col2:
             df_estacional['cantidad_optima'] = df_estacional['cantidad_optima'].astype(int).map(lambda x: f"{x:,}")
@@ -2411,7 +2411,7 @@ class ProveedorDashboard:
             columnas = ["idarticulo", "descripcion", "mes_pico", "mes_bajo", "ranking_mes", "Etiqueta Estacional", "cantidad_optima"]
 
             # st.caption(f"📋 {len(df_estacional)} artículos con análisis estacional")
-            st.dataframe(df_estacional[columnas], use_container_width=True, hide_index=True)
+            st.dataframe(df_estacional[columnas], width="stretch", hide_index=True)
 
         # === Paso 6: Descargar CSV con columnas visibles
         csv = df_estacional[columnas].to_csv(index=False).encode('utf-8')
@@ -2420,7 +2420,7 @@ class ProveedorDashboard:
     def analisis_oportunidad_perdida(self,df):
         st.subheader("📉 Valor Perdido por Falta de Stock")
         df_perdido = df[df['costo_exceso_STK'] > 0].copy()
-        # st.dataframe(df_perdido[["idarticulo", "descripcion", "valor_perdido_TOTAL", "unidades_perdidas_TOTAL", "cnt_reabastecer"]], use_container_width=True)
+        # st.dataframe(df_perdido[["idarticulo", "descripcion", "valor_perdido_TOTAL", "unidades_perdidas_TOTAL", "cnt_reabastecer"]], width="stretch")
 
     def analisis_ajuste_precios(self, df=None):
         st.subheader("💲 Propuesta de Ajuste de Precios")
@@ -2470,7 +2470,7 @@ class ProveedorDashboard:
 
         with col1:
             st.caption("📊 Distribución del análisis de variación de precios")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
         with col2:
             df_final = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])].copy()
@@ -2483,7 +2483,7 @@ class ProveedorDashboard:
             df_final["venta para hoy"] = df_final["venta para hoy"].astype(int)
 
             st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
-            st.dataframe(df_final, use_container_width=True, hide_index=True)
+            st.dataframe(df_final, width="stretch", hide_index=True)
 
 
         # Descargar versión sin formato

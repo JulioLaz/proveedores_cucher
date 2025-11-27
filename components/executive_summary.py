@@ -350,7 +350,7 @@ def render_sales_evolution_chart(df):
         hovermode='x unified'
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def render_top_products_chart(df):
@@ -409,7 +409,7 @@ def render_top_products_chart(df):
         )
     )
     
-    st.plotly_chart(fig, use_container_width=True, key="top_productos_executive")
+    st.plotly_chart(fig, width="stretch", key="top_productos_executive")
 
 
 # ============================================

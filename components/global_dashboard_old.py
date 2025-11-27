@@ -142,7 +142,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             title_x=0.05
         )
         
-        st.plotly_chart(fig_tree, use_container_width=True)
+        st.plotly_chart(fig_tree, width="stretch")
     
     with col2:
         # TOP 10 BARRAS
@@ -173,7 +173,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             paper_bgcolor='white'
         )
         
-        st.plotly_chart(fig_bar, use_container_width=True)
+        st.plotly_chart(fig_bar, width="stretch")
     
     # === TABLA RANKING DETALLADA ===
     st.markdown("---")
@@ -194,7 +194,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             'Alertas Críticas', 'Días Cobertura Prom', 
             'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
         ]],
-        use_container_width=True,
+        width="stretch",
         hide_index=True
     )
     
@@ -213,7 +213,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         )
     
     with col2:
-        if st.button("🚀 Analizar Proveedor", type="primary", use_container_width=True):
+        if st.button("🚀 Analizar Proveedor", type="primary", width="stretch"):
             # Guardar en session_state para que el sidebar lo detecte
             st.session_state.selected_proveedor = proveedor_seleccionado
             st.info(f"✅ Selecciona **{proveedor_seleccionado}** en el sidebar y presiona 'Realizar Análisis'")
@@ -268,5 +268,5 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         csv,
         f"ranking_proveedores_{datetime.now().strftime('%Y%m%d')}.csv",
         "text/csv",
-        use_container_width=True
+        width="stretch"
     )

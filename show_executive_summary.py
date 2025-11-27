@@ -58,7 +58,7 @@ def show_executive_summary(self, df, proveedor, metrics):
         )
         fig.update_traces(line_color='#2a5298', line_width=2)
         fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     with col2:
         top_productos = (
@@ -87,4 +87,4 @@ def show_executive_summary(self, df, proveedor, metrics):
             cliponaxis=False
         )
         fig.update_layout(height=400, margin=dict(l=10, r=10, t=40, b=20))
-        st.plotly_chart(fig, use_container_width=True, key="top_productos")
+        st.plotly_chart(fig, width="stretch", key="top_productos")

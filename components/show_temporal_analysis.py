@@ -117,7 +117,7 @@ def show_products_analysis(self, df):
                 )
 
             fig.update_traces(marker_color='#8966c6')
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
             if len(productos_top) < 5:
                 st.warning(f"⚠️ Solo hay {len(productos_top)} productos disponibles con datos en '{orden_por}'.")
@@ -244,7 +244,7 @@ def show_products_analysis(self, df):
 
 
                     # Mostrar
-                    st.plotly_chart(fig2, use_container_width=True)
+                    st.plotly_chart(fig2, width="stretch")
 
                 else:
                     st.info("⚠️ No se encontraron columnas 'idarticulo' o 'sucursal' en el DataFrame.")
@@ -285,7 +285,7 @@ def show_products_analysis(self, df):
                     coloraxis_colorbar=dict(title='Cantidad'),
                     margin=dict(t=60, b=20, l=10, r=10)
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
             with col2:
                 # === Análisis de Pareto con etiquetas y tooltips optimizados ===
@@ -349,7 +349,7 @@ def show_products_analysis(self, df):
 
                 fig.update_yaxes(title_text="Participación Individual (%)", secondary_y=False)
                 fig.update_yaxes(title_text="Participación Acumulada (%)", secondary_y=True)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             
             st.markdown(generar_insight_pareto(productos_pareto), unsafe_allow_html=True)
 
