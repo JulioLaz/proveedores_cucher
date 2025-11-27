@@ -430,6 +430,12 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 #    )
 
     # === Preparar DataFrame para exportar ===
+    from datetime import datetime
+    from io import BytesIO
+    import pandas as pd
+    import numpy as np
+
+    # === Preparar DataFrame para exportar ===
     df_export = ranking[[
         'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total',
         'Utilidad', 'Rentabilidad %', '% Participación Presupuesto', 'Presupuesto',
@@ -501,6 +507,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         worksheet.freeze_panes(1, 0)
         
         # === AJUSTAR ANCHO Y APLICAR FORMATOS POR COLUMNA ===
+        columnas_porcentaje = ['% Participación Ventas', 'Rentabilidad %', '% Participación Presupuesto']
+        
         for i, col in enumerate(df_export.columns):
             # Calcular ancho necesario para el nombre de la columna
             col_width = len(col) + 2
@@ -514,12 +522,17 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                 # Formato de número entero para cantidades
                 worksheet.set_column(i, i, max(col_width, 12), formato_entero)
                 
-            elif col in ['% Participación Ventas', 'Rentabilidad %', '% Participación Presupuesto']:
+            elif col in columnas_porcentaje:
                 # Formato de porcentaje
                 worksheet.set_column(i, i, max(col_width, 14), formato_porcentaje)
-                # Convertir valores a formato decimal para Excel
+                # Escribir valores de porcentaje fila por fila (convertir a decimal)
                 for row_num in range(1, len(df_export) + 1):
-                    worksheet.write(row_num, i, df_export.iloc[row_num-1][col] / 100, formato_porcentaje)
+                    valor = df_export.iloc[row_num-1][col]
+                    # Validar que el valor sea numérico
+                    if pd.notna(valor) and np.isfinite(valor):
+                        worksheet.write(row_num, i, float(valor) / 100, formato_porcentaje)
+                    else:
+                        worksheet.write(row_num, i, 0, formato_porcentaje)
                     
             elif col == 'Proveedor':
                 # Formato texto para proveedor (más ancho)
