@@ -143,10 +143,10 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     ]
     
     
-    ranking['Utilidad'] = (ranking['Venta Total'] - ranking['Costo Total']).atype(int)
+    ranking['Utilidad'] = (ranking['Venta Total'] - ranking['Costo Total']).round(0).astype(int)
     ranking['Rentabilidad %'] = ((ranking['Utilidad'] / ranking['Venta Total']) * 100).round(2)
-    ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(2)
     ranking['% Participación Presupuesto'] = (ranking['PRESUPUESTO'] / ranking['PRESUPUESTO'].sum() * 100).round(2)
+    ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(2)
     ranking = ranking.sort_values('Venta Total', ascending=False).reset_index(drop=True)
     ranking['Ranking'] = range(1, len(ranking) + 1)
     
@@ -296,10 +296,14 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # Formatear columnas para display
     df_display = ranking.copy()
     df_display['Venta Total'] = df_display['Venta Total'].apply(lambda x: f"${x:,.0f}")
+    df_display['Costo Total'] = df_display['Costo Total'].apply(lambda x: f"${x:,.0f}")
+    df_display['Utilidad'] = df_display['Utilidad'].apply(lambda x: f"${x:,.0f}")
     df_display['Presupuesto'] = df_display['Presupuesto'].apply(lambda x: f"${x:,.0f}")
     df_display['Costo Exceso'] = df_display['Costo Exceso'].apply(lambda x: f"${x:,.0f}")
+    df_display['% Rentabilidad %'] = df_display['Rentabilidad %'].apply(lambda x: f"{x:.2f}%")
+    df_display['% Participación Presupuesto'] = df_display['% Participación Presupuesto'].apply(lambda x: f"{x:.2f}%")
     df_display['% Participación Ventas'] = df_display['% Participación Ventas'].apply(lambda x: f"{x:.2f}%")
-    
+
     # Slider para cantidad de proveedores en tabla
     num_mostrar = st.slider("Cantidad de proveedores a mostrar:", 10, len(df_display), 20, step=5, key='slider_tabla')
     
@@ -358,23 +362,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # === EXPORTAR RANKING ===
     st.markdown("---")
     
-   #  # Preparar CSV con datos sin formato
-   #  df_export = ranking[[
-   #      'Ranking', 'Proveedor', 'Venta Total', '% Participación Ventas',
-   #      'Presupuesto', 'Artículos', 'Cantidad Vendida',
-   #      'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
-   #  ]].copy()
-    
-   #  csv = df_export.to_csv(index=False).encode('utf-8')
-   #  st.download_button(
-   #      "📥 Descargar Ranking Completo (CSV)",
-   #      csv,
-   #      f"ranking_proveedores_{datetime.now().strftime('%Y%m%d')}.csv",
-   #      "text/csv",
-   #      width="stretch"
-   #  )
-
-   # Preparar DataFrame con datos sin formato
+    # Preparar DataFrame con datos sin formato
     df_export = ranking[[
       'Ranking', 'Proveedor', 'Venta Total', '% Participación Ventas',
       'Presupuesto', 'Artículos', 'Cantidad Vendida',
