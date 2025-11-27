@@ -903,7 +903,7 @@ class ProveedorDashboard:
                     left: 3rem !important;
                     padding: 5px 0px;
                     font-size: 1.8rem;
-                    color: black;'>📈 Dashboard: Análisis de Proveedores</p>
+                    color: black;'>📈 Ranking de Proveedores</p>
             </div>
             """, unsafe_allow_html=True)
 
