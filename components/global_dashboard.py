@@ -2,11 +2,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import pandas as pd
 from io import BytesIO
-from datetime import datetime
 
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
     """Dashboard Global de Proveedores - Vista inicial con ranking por ventas y presupuesto"""
@@ -33,14 +32,13 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     with col2:
         if periodo_seleccionado == "Personalizado":
-            from datetime import datetime, timedelta
+            
             col_a, col_b = st.columns(2)
             fecha_desde = col_a.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
             fecha_hasta = col_b.date_input("Hasta:", value=datetime.now().date())
             dias_periodo = (fecha_hasta - fecha_desde).days
         else:
             dias_periodo = periodo_opciones[periodo_seleccionado]
-            from datetime import datetime, timedelta
             fecha_hasta = datetime.now().date()
             fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
     
@@ -401,32 +399,94 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     st.markdown("---")
     
     # Preparar DataFrame con datos sin formato
+#     df_export = ranking[[
+#                     'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total', 'Utilidad', 'Rentabilidad %',
+#             '% Participación Presupuesto', 'Presupuesto', 'Artículos', 'Art. con Exceso', 
+#             'Costo Exceso', 'Art. Sin Stock'
+#    ]].copy()
+#     df_export['Venta Total'] = df_export['Venta Total'].astype(int)
+#     df_export['Costo Total'] = df_export['Costo Total'].astype(int)
+#     df_export['Utilidad'] = df_export['Utilidad'].astype(int)
+#     df_export['Presupuesto'] = df_export['Presupuesto'].astype(int)
+#     df_export['Costo Exceso'] = df_export['Costo Exceso'].astype(int)
+#     # redondear en 2 decimales
+#     df_export['Rentabilidad %'] = df_export['Rentabilidad %'].round(2)
+#     df_export['% Participación Presupuesto'] = df_export['% Participación Presupuesto'].round(2)
+#     df_export['% Participación Ventas'] = df_export['% Participación Ventas'].round(2)
+
+#    # Crear buffer en memoria para el archivo Excel
+#     output = BytesIO()
+#     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+#       df_export.to_excel(writer, index=False, sheet_name='Ranking')
+#     output.seek(0)  # volver al inicio del buffer
+
+#    # Botón de descarga en formato XLSX
+#     st.download_button(
+#       label="📥 Descargar Ranking Completo (Excel)",
+#       data=output,
+#       file_name=f"ranking_proveedores_{datetime.now().strftime('%Y%m%d')}.xlsx",
+#       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+#       width="stretch"
+#    )
+
+    # === Preparar DataFrame para exportar ===
     df_export = ranking[[
-                    'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total', 'Utilidad', 'Rentabilidad %',
-            '% Participación Presupuesto', 'Presupuesto', 'Artículos', 'Art. con Exceso', 
-            'Costo Exceso', 'Art. Sin Stock'
-   ]].copy()
+        'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total',
+        'Utilidad', 'Rentabilidad %', '% Participación Presupuesto', 'Presupuesto',
+        'Artículos', 'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
+    ]].copy()
+
+    # Ajustes de tipos y redondeos
     df_export['Venta Total'] = df_export['Venta Total'].astype(int)
     df_export['Costo Total'] = df_export['Costo Total'].astype(int)
     df_export['Utilidad'] = df_export['Utilidad'].astype(int)
     df_export['Presupuesto'] = df_export['Presupuesto'].astype(int)
     df_export['Costo Exceso'] = df_export['Costo Exceso'].astype(int)
-    # redondear en 2 decimales
     df_export['Rentabilidad %'] = df_export['Rentabilidad %'].round(2)
     df_export['% Participación Presupuesto'] = df_export['% Participación Presupuesto'].round(2)
     df_export['% Participación Ventas'] = df_export['% Participación Ventas'].round(2)
 
-   # Crear buffer en memoria para el archivo Excel
+    # === Exportar con formato ===
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-      df_export.to_excel(writer, index=False, sheet_name='Ranking')
-    output.seek(0)  # volver al inicio del buffer
+        df_export.to_excel(writer, index=False, sheet_name='Ranking')
+        
+        workbook  = writer.book
+        worksheet = writer.sheets['Ranking']
+        
+        # Formatos
+        formato_miles = workbook.add_format({'num_format': '#,##0'})
+        formato_porcentaje = workbook.add_format({'num_format': '0.00%'})
+        formato_header = workbook.add_format({
+            'bold': True,
+            'bg_color': '#4a90e2',   # azul agradable
+            'font_color': 'white',
+            'align': 'center',
+            'valign': 'vcenter'
+        })
+        
+        # Ajustar ancho de columnas según contenido
+        for i, col in enumerate(df_export.columns):
+            # calcular ancho máximo entre encabezado y datos
+            max_len = max(
+                df_export[col].astype(str).map(len).max(),
+                len(col)
+            ) + 2  # un poco de aire
+            worksheet.set_column(i, i, max_len)
+        
+        # Aplicar formato a encabezados y altura de fila
+        worksheet.set_row(0, 25, formato_header)
+        
+        # Inmovilizar primera fila
+        worksheet.freeze_panes(1, 0)
 
-   # Botón de descarga en formato XLSX
+    output.seek(0)
+
+    # === Botón de descarga ===
     st.download_button(
-      label="📥 Descargar Ranking Completo (Excel)",
-      data=output,
-      file_name=f"ranking_proveedores_{datetime.now().strftime('%Y%m%d')}.xlsx",
-      mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      width="stretch"
-   )
+        label="📥 Descargar Ranking Completo (Excel)",
+        data=output,
+        file_name=f"ranking_proveedores_{datetime.now().strftime('%Y%m%d')}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True
+    )
