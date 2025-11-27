@@ -88,60 +88,21 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # """, unsafe_allow_html=True)
 
     # === SELECTOR DE PERÍODO ===
-    st.markdown(
-        """
-        <div style="
+    from datetime import datetime, timedelta
+
+    # === ESTILOS CSS MEJORADOS ===
+    st.markdown("""
+    <style>
+        /* Contenedor del selector de período */
+        .periodo-container {
             border: 1px solid #888;
             border-radius: 8px;
             background: linear-gradient(135deg, #e8eaf0 0%, #d4d7e0 100%);
             padding: 15px;
             margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        ">
-        """,
-        unsafe_allow_html=True
-    )
-
-    col1, col2, col3 = st.columns([2, 2, 1])
-
-    with col1:
-        periodo_opciones = {
-            "Últimos 30 días": 30,
-            "Últimos 60 días": 60,
-            "Últimos 90 días": 90,
-            "Últimos 6 meses": 180,
-            "Último año": 365,
-            "Personalizado": None
         }
         
-        periodo_seleccionado = st.selectbox(
-            "📅 Período de análisis de ventas:",
-            options=list(periodo_opciones.keys()),
-            index=0
-        )
-
-    with col2:
-        if periodo_seleccionado == "Personalizado":
-            from datetime import datetime, timedelta
-            col_a, col_b = st.columns(2)
-            fecha_desde = col_a.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
-            fecha_hasta = col_b.date_input("Hasta:", value=datetime.now().date())
-            dias_periodo = (fecha_hasta - fecha_desde).days
-        else:
-            dias_periodo = periodo_opciones[periodo_seleccionado]
-            from datetime import datetime, timedelta
-            fecha_hasta = datetime.now().date()
-            fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
-
-    with col3:
-        st.metric("📆 Días", f"{dias_periodo}")
-
-    # Cerrar el contenedor
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # === ESTILOS CSS MEJORADOS ===
-    st.markdown("""
-    <style>
         .metric-box {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             border-radius: 12px;
@@ -160,13 +121,47 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
-        
-        /* Estilos adicionales para mejorar la apariencia del contenedor */
-        div[data-testid="column"] {
-            padding: 5px;
-        }
     </style>
     """, unsafe_allow_html=True)
+
+    # === SELECTOR DE PERÍODO ===
+    # Usar st.container() con CSS personalizado
+    with st.container():
+        st.markdown('<div class="periodo-container">', unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns([2, 2, 1])
+        
+        with col1:
+            periodo_opciones = {
+                "Últimos 30 días": 30,
+                "Últimos 60 días": 60,
+                "Últimos 90 días": 90,
+                "Últimos 6 meses": 180,
+                "Último año": 365,
+                "Personalizado": None
+            }
+            
+            periodo_seleccionado = st.selectbox(
+                "📅 Período de análisis de ventas:",
+                options=list(periodo_opciones.keys()),
+                index=0
+            )
+        
+        with col2:
+            if periodo_seleccionado == "Personalizado":
+                col_a, col_b = st.columns(2)
+                fecha_desde = col_a.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
+                fecha_hasta = col_b.date_input("Hasta:", value=datetime.now().date())
+                dias_periodo = (fecha_hasta - fecha_desde).days
+            else:
+                dias_periodo = periodo_opciones[periodo_seleccionado]
+                fecha_hasta = datetime.now().date()
+                fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
+        
+        with col3:
+            st.metric("📆 Días", f"{dias_periodo}")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
     
     # === CARGA DE DATOS DE VENTAS CON FILTRO DE FECHA ===
     with st.spinner(f"🔄 Cargando ventas de los últimos {dias_periodo} días y presupuesto..."):
