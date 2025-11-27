@@ -148,13 +148,14 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     ranking['Rentabilidad %'] = ((ranking['Utilidad'] / ranking['Venta Total']) * 100).round(2)
     ranking['% Participación Presupuesto'] = (ranking['Presupuesto'] / ranking['Presupuesto'].sum() * 100).round(2)
     ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(2)
+    ranking['% Participación Utilidad'] = (ranking['Utilidad'] / ranking['Utilidad'].sum() * 100).round(2)
     ranking = ranking.sort_values('Venta Total', ascending=False).reset_index(drop=True)
     ranking['Ranking'] = range(1, len(ranking) + 1)
     
     # === KPIs PRINCIPALES CON ESTILO MEJORADO ===
     # st.markdown("---")
     
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col11, col2, col3, col4, col5 = st.columns(6)
     
     with col1:
         st.markdown(f"""
@@ -169,11 +170,24 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         </div>
         """, unsafe_allow_html=True)
     
+    with col11:
+        st.markdown(f"""
+        <div class="metric-box ">
+            <div style="text-align: center;">
+                <div style="font-size: 1rem; color: #555;">💰 Utilidad Total</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Utilidad'].sum():,.0f}</div>
+            </div>
+            <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
+                ⬆️ {len(ranking)} proveedores
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
     with col2:
         st.markdown(f"""
         <div class="metric-box ">
             <div style="text-align: center;">
-                <div style="font-size: 1rem; color: #555;">💵 Presupuesto Total</div>
+                <div style="font-size: 1rem; color: #555;">💵 Presupuesto a 30 días</div>
                 <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Presupuesto'].sum():,.0f}</div>
             </div>
             <div style="color: #d35400; font-size: 0.8rem; margin-top: 0.2rem;">
@@ -249,7 +263,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         
         fig_ventas.update_layout(
             height=max(400, top_ventas_num * 25),
-            margin=dict(t=10, b=10, l=10, r=20),
+            margin=dict(t=10, b=10, l=10, r=40),
             xaxis=dict(visible=False),
             yaxis=dict(visible=True, tickfont=dict(size=10)),
             showlegend=False,
@@ -280,7 +294,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         
         fig_presu.update_layout(
             height=max(400, top_presu_num * 25),
-            margin=dict(t=10, b=10, l=10, r=20),
+            margin=dict(t=10, b=10, l=10, r=40),
             xaxis=dict(visible=False),
             yaxis=dict(visible=True, tickfont=dict(size=10)),
             showlegend=False,
@@ -301,7 +315,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     df_display['Utilidad'] = df_display['Utilidad'].apply(lambda x: f"${x:,.0f}")
     df_display['Presupuesto'] = df_display['Presupuesto'].apply(lambda x: f"${x:,.0f}")
     df_display['Costo Exceso'] = df_display['Costo Exceso'].apply(lambda x: f"${x:,.0f}")
-    df_display['% Rentabilidad %'] = df_display['Rentabilidad %'].apply(lambda x: f"{x:.2f}%")
+    df_display['Rentabilidad %'] = df_display['Rentabilidad %'].apply(lambda x: f"{x:.2f}%")
     df_display['% Participación Presupuesto'] = df_display['% Participación Presupuesto'].apply(lambda x: f"{x:.2f}%")
     df_display['% Participación Ventas'] = df_display['% Participación Ventas'].apply(lambda x: f"{x:.2f}%")
 
@@ -343,8 +357,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         <b>💰 Mayor Presupuesto Requerido</b><br>
         <b>{top_presupuesto['Proveedor']}</b><br>
         💵 ${top_presupuesto['Presupuesto']:,.0f}<br>
+        📊 ${top_presupuesto['% Participación Presupuesto']:,.1f}% del total<br>
         📦 {top_presupuesto['Artículos']} artículos<br>
-        🎯 Inversión prioritaria
         </div>
         """, unsafe_allow_html=True)
     
@@ -388,10 +402,19 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     # Preparar DataFrame con datos sin formato
     df_export = ranking[[
-      'Ranking', 'Proveedor', 'Venta Total', '% Participación Ventas',
-      'Presupuesto', 'Artículos', 'Cantidad Vendida',
-      'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
+                    'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total', 'Utilidad', 'Rentabilidad %',
+            '% Participación Presupuesto', 'Presupuesto', 'Artículos', 'Art. con Exceso', 
+            'Costo Exceso', 'Art. Sin Stock'
    ]].copy()
+    df_export['Venta Total'] = df_export['Venta Total'].astype(int)
+    df_export['Costo Total'] = df_export['Costo Total'].astype(int)
+    df_export['Utilidad'] = df_export['Utilidad'].astype(int)
+    df_export['Presupuesto'] = df_export['Presupuesto'].astype(int)
+    df_export['Costo Exceso'] = df_export['Costo Exceso'].astype(int)
+    # redondear en 2 decimales
+    df_export['Rentabilidad %'] = df_export['Rentabilidad %'].round(2)
+    df_export['% Participación Presupuesto'] = df_export['% Participación Presupuesto'].round(2)
+    df_export['% Participación Ventas'] = df_export['% Participación Ventas'].round(2)
 
    # Crear buffer en memoria para el archivo Excel
     output = BytesIO()
