@@ -803,7 +803,7 @@ class ProveedorDashboard:
         rango_seleccionado = st.sidebar.selectbox(
             "📅 Período de Análisis:",
             options=list(rango_opciones.keys()),
-            index=2
+            index=0
         )
 
         # Crear instancia de locale español
@@ -812,7 +812,7 @@ class ProveedorDashboard:
         # Selección de fechas
         if rango_seleccionado == "Personalizado":
             col1, col2 = st.sidebar.columns(2)
-            fecha_inicio = col1.date_input("Desde:", value=datetime.now().date() - timedelta(days=180))
+            fecha_inicio = col1.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
             fecha_fin = col2.date_input("Hasta:", value=datetime.now().date())
         else:
             dias = rango_opciones[rango_seleccionado]
