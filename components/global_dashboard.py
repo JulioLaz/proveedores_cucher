@@ -496,7 +496,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     #     use_container_width=True
     # )
 
-
     from datetime import datetime
     from io import BytesIO
     import pandas as pd
@@ -509,7 +508,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     ]].copy()
 
     # === ELIMINAR COLUMNAS VACÍAS ANTES DE EXPORTAR ===
-    # Identificar columnas que tienen todos los valores nulos o cero
     columnas_vacias = []
     for col in df_export.columns:
         if df_export[col].isna().all() or (df_export[col] == 0).all():
@@ -562,22 +560,27 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         
         formato_header = workbook.add_format({
             'bold': True,
-            'bg_color': "#FDD25E",
+            'bg_color': '#2E5090',
             'font_color': 'white',
             'align': 'center',
             'valign': 'vcenter',
             'border': 1
         })
         
-        # === APLICAR FORMATO A ENCABEZADOS ===
-        worksheet.set_row(0, 25, formato_header)
+        # === APLICAR FORMATO A ENCABEZADOS SOLO EN COLUMNAS CON DATOS ===
+        num_columnas = len(df_export.columns)
+        
+        # Establecer altura de la primera fila SIN formato para toda la fila
+        worksheet.set_row(0, 25)
+        
+        # Aplicar formato de header SOLO a las celdas con datos
+        for i in range(num_columnas):
+            worksheet.write(0, i, df_export.columns[i], formato_header)
         
         # === INMOVILIZAR PRIMERA FILA ===
         worksheet.freeze_panes(1, 0)
         
         # === AJUSTAR ANCHO Y APLICAR FORMATOS SOLO A COLUMNAS CON DATOS ===
-        num_columnas = len(df_export.columns)
-        
         for i, col in enumerate(df_export.columns):
             # Calcular ancho necesario (mínimo el nombre de la columna)
             max_len = max(len(col), 12) + 2
@@ -598,13 +601,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             else:
                 # Resto de columnas (porcentajes ya vienen formateados desde pandas)
                 worksheet.set_column(i, i, max_len)
-        
-        # === OCULTAR COLUMNAS VACÍAS DESDE num_columnas EN ADELANTE ===
-        # Solo si hay columnas adicionales más allá de las que tienen datos
-        max_columnas_excel = 16384  # Límite de Excel
-        if num_columnas < 26:  # Si hay menos de 26 columnas con datos
-            # Ocultar desde la siguiente columna hasta la Z (o más si es necesario)
-            worksheet.set_column(num_columnas, 25, None, None, {'hidden': True})
 
     output.seek(0)
 
@@ -614,7 +610,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     st.download_button(
         label="📥 Descargar Ranking Completo (Excel)",
         data=output,
-        file_name=f"ranking_proveedores_{datetime.now().strftime('%d_%B_%Y')}.xlsx",
+        file_name=f"ranking_proveedores_{datetime.now().strftime('%d%B%Y')}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True
     )
