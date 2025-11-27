@@ -899,11 +899,12 @@ class ProveedorDashboard:
             <div class="main-header">
                 <p style='
                     position: absolute;
-                    top: -1.3rem;
-                    left: 3rem !important;
+                    top: -2.5rem;
+                    left: 2.5rem;
                     padding: 5px 0px;
-                    font-size: 1.8rem;
-                    color: black;'>📈 Ranking de Proveedores</p>
+                    font-size: 2.2rem;
+                    color: #646060;
+                    font-weight: 500;'>📈 Ranking de Proveedores</p>
             </div>
             """, unsafe_allow_html=True)
 
