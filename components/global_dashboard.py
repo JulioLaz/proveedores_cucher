@@ -11,11 +11,25 @@ from datetime import datetime
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
     """Dashboard Global de Proveedores - Vista inicial con ranking por ventas y presupuesto"""
     
-   
+    st.markdown(
+        """
+        <div style="
+            border: 1px solid gray;
+            border-radius: 5px;
+            background: #b2b3c2;
+            padding: 10px;
+            margin-bottom: 15px;
+        ">
+        """,
+        unsafe_allow_html=True
+    )
+
     # === SELECTOR DE PERÍODO ===
     col1, col2, col3 = st.columns([2, 2, 1])
     
     with col1:
+        st.markdown("""<div style="margin-left: 1rem;">""",unsafe_allow_html=True )
+        
         periodo_opciones = {
             "Últimos 30 días": 30,
             "Últimos 60 días": 60,
@@ -221,7 +235,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         """, unsafe_allow_html=True)
     
     # === VISUALIZACIONES ===
-    st.markdown("---")
+    # st.markdown("---")
    #  st.markdown("### 📊 Análisis Visual de Proveedores")
     
     col1, col2 = st.columns(2)
@@ -290,7 +304,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         st.plotly_chart(fig_presu, width="stretch")
     
     # === TABLA RANKING DETALLADA ===
-    st.markdown("---")
+    # st.markdown("---")
     st.markdown("### 📋 Ranking Detallado de Proveedores")
     
     # Formatear columnas para display
@@ -310,7 +324,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     st.dataframe(
         df_display.head(num_mostrar)[[
             'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total', 'Utilidad', 'Rentabilidad %',
-            'Presupuesto', '% Participación Presupuesto', 'Artículos', 'Art. con Exceso', 
+            '% Participación Presupuesto', 'Presupuesto', 'Artículos', 'Art. con Exceso', 
             'Costo Exceso', 'Art. Sin Stock'
         ]],
         width="stretch",
@@ -318,7 +332,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     )
     
     # === INSIGHTS AUTOMÁTICOS ===
-    st.markdown("---")
+    # st.markdown("---")
     st.markdown("### 💡 Insights Clave")
     
     col1, col2, col3 = st.columns(3)
