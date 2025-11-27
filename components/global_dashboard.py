@@ -145,7 +145,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     ranking['Utilidad'] = (ranking['Venta Total'] - ranking['Costo Total']).round(0).astype(int)
     ranking['Rentabilidad %'] = ((ranking['Utilidad'] / ranking['Venta Total']) * 100).round(2)
-    ranking['% Participación Presupuesto'] = (ranking['PRESUPUESTO'] / ranking['PRESUPUESTO'].sum() * 100).round(2)
+    ranking['% Participación Presupuesto'] = (ranking['Presupuesto'] / ranking['Presupuesto'].sum() * 100).round(2)
     ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(2)
     ranking = ranking.sort_values('Venta Total', ascending=False).reset_index(drop=True)
     ranking['Ranking'] = range(1, len(ranking) + 1)
