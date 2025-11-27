@@ -322,7 +322,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # st.markdown("---")
     st.markdown("### 💡 Insights Clave")
     
-    col1, col2, col3, col4, col5 = st.columns(3)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         top_proveedor = ranking.iloc[0]
