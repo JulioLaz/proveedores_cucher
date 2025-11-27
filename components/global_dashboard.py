@@ -508,18 +508,36 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         'Artículos', 'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
     ]].copy()
 
-    # Eliminar columnas completamente vacías
-    df_export = df_export.dropna(axis=1, how='all')
+    # === ELIMINAR COLUMNAS VACÍAS ANTES DE EXPORTAR ===
+    # Identificar columnas que tienen todos los valores nulos o cero
+    columnas_vacias = []
+    for col in df_export.columns:
+        if df_export[col].isna().all() or (df_export[col] == 0).all():
+            columnas_vacias.append(col)
+
+    # Eliminar las columnas vacías
+    df_export = df_export.drop(columns=columnas_vacias)
+
+    print(f"📊 Columnas exportadas: {list(df_export.columns)}")
+    print(f"🗑️ Columnas eliminadas por estar vacías: {columnas_vacias}")
 
     # Ajustes de tipos y redondeos
-    df_export['Venta Total'] = df_export['Venta Total'].astype(int)
-    df_export['Costo Total'] = df_export['Costo Total'].astype(int)
-    df_export['Utilidad'] = df_export['Utilidad'].astype(int)
-    df_export['Presupuesto'] = df_export['Presupuesto'].astype(int)
-    df_export['Costo Exceso'] = df_export['Costo Exceso'].astype(int)
-    df_export['Rentabilidad %'] = df_export['Rentabilidad %'].round(2)
-    df_export['% Participación Presupuesto'] = df_export['% Participación Presupuesto'].round(2)
-    df_export['% Participación Ventas'] = df_export['% Participación Ventas'].round(2)
+    if 'Venta Total' in df_export.columns:
+        df_export['Venta Total'] = df_export['Venta Total'].astype(int)
+    if 'Costo Total' in df_export.columns:
+        df_export['Costo Total'] = df_export['Costo Total'].astype(int)
+    if 'Utilidad' in df_export.columns:
+        df_export['Utilidad'] = df_export['Utilidad'].astype(int)
+    if 'Presupuesto' in df_export.columns:
+        df_export['Presupuesto'] = df_export['Presupuesto'].astype(int)
+    if 'Costo Exceso' in df_export.columns:
+        df_export['Costo Exceso'] = df_export['Costo Exceso'].astype(int)
+    if 'Rentabilidad %' in df_export.columns:
+        df_export['Rentabilidad %'] = df_export['Rentabilidad %'].round(2)
+    if '% Participación Presupuesto' in df_export.columns:
+        df_export['% Participación Presupuesto'] = df_export['% Participación Presupuesto'].round(2)
+    if '% Participación Ventas' in df_export.columns:
+        df_export['% Participación Ventas'] = df_export['% Participación Ventas'].round(2)
 
     print("📊 Generando archivo Excel con formato profesional...")
 
@@ -544,7 +562,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         
         formato_header = workbook.add_format({
             'bold': True,
-            'bg_color': '#2E5090',
+            'bg_color': "#FDD25E",
             'font_color': 'white',
             'align': 'center',
             'valign': 'vcenter',
@@ -557,7 +575,9 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         # === INMOVILIZAR PRIMERA FILA ===
         worksheet.freeze_panes(1, 0)
         
-        # === AJUSTAR ANCHO Y APLICAR FORMATOS POR COLUMNA ===
+        # === AJUSTAR ANCHO Y APLICAR FORMATOS SOLO A COLUMNAS CON DATOS ===
+        num_columnas = len(df_export.columns)
+        
         for i, col in enumerate(df_export.columns):
             # Calcular ancho necesario (mínimo el nombre de la columna)
             max_len = max(len(col), 12) + 2
@@ -578,10 +598,17 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             else:
                 # Resto de columnas (porcentajes ya vienen formateados desde pandas)
                 worksheet.set_column(i, i, max_len)
+        
+        # === OCULTAR COLUMNAS VACÍAS DESDE num_columnas EN ADELANTE ===
+        # Solo si hay columnas adicionales más allá de las que tienen datos
+        max_columnas_excel = 16384  # Límite de Excel
+        if num_columnas < 26:  # Si hay menos de 26 columnas con datos
+            # Ocultar desde la siguiente columna hasta la Z (o más si es necesario)
+            worksheet.set_column(num_columnas, 25, None, None, {'hidden': True})
 
     output.seek(0)
 
-    print("✅ Archivo Excel generado exitosamente")
+    print(f"✅ Archivo Excel generado exitosamente con {num_columnas} columnas")
 
     # === Botón de descarga ===
     st.download_button(
