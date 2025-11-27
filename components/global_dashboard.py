@@ -322,7 +322,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # st.markdown("---")
     st.markdown("### 💡 Insights Clave")
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4, col5 = st.columns(3)
     
     with col1:
         top_proveedor = ranking.iloc[0]
@@ -339,7 +339,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col2:
         top_presupuesto = ranking.nlargest(1, 'Presupuesto').iloc[0]
         st.markdown(f"""
-        <div style='background-color:#fff3e0;padding:1rem;border-radius:10px;border-left:5px solid #ff9800'>
+        <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #ff9800'>
         <b>💰 Mayor Presupuesto Requerido</b><br>
         <b>{top_presupuesto['Proveedor']}</b><br>
         💵 ${top_presupuesto['Presupuesto']:,.0f}<br>
@@ -349,6 +349,29 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         """, unsafe_allow_html=True)
     
     with col3:
+        mas_util = ranking.nlargest(1, 'Utilidad').iloc[0]
+        st.markdown(f"""
+        <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #4caf50'>
+        <b>🏆 Proveedor Líder en Utilidad</b><br>
+        <b>{mas_util['Proveedor']}</b><br>
+        💸 ${mas_util['Utilidad']:,.0f}<br>
+        📦 {mas_util['Artículos']} artículos<br>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        # Menor utilidad
+        peor_util = ranking.nsmallest(1, 'Utilidad').iloc[0]
+        st.markdown(f"""
+        <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid #f44336'>
+            <b>⚠️ Proveedor con Menor Utilidad</b><br>
+            <b>{peor_util['Proveedor']}</b><br>
+            💸 ${peor_util['Utilidad']:,.0f}<br>
+            📦 {peor_util['Artículos']} artículos<br>
+        </div>
+        """, unsafe_allow_html=True)
+                
+    with col5:
         mas_exceso = ranking.nlargest(1, 'Costo Exceso').iloc[0]
         st.markdown(f"""
         <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid #f44336'>
