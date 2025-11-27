@@ -771,15 +771,9 @@ class ProveedorDashboard:
             with st.spinner("Cargando proveedores..."):
                 self.df_proveedores = self.load_proveedores()
         
-        # proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())  # ✅ Esto sí elimina duplicados solo para el selector
         proveedores = sorted(self.df_proveedores['proveedor'].dropna().unique())
         proveedor_actual = st.session_state.get("selected_proveedor")
         df_proveedor_ids = self.df_proveedores[['idproveedor', 'proveedor']]
-        # if not proveedor_actual:
-        #     st.sidebar.markdown('<div >🔎 Elegir proveedor</div>', unsafe_allow_html=True)
-        #     # st.sidebar.markdown('<div class="animated-title">🔎 Elegir proveedor</div>', unsafe_allow_html=True)
-        # else:
-        #     st.sidebar.markdown("#### 🏪 Selección de Proveedor")
 
         proveedor = st.sidebar.selectbox(
             "🔎 Elegir proveedor",
@@ -790,10 +784,11 @@ class ProveedorDashboard:
 
         # --- Rango de fechas ---
         rango_opciones = {
-            "Último mes": 30,
-            "Últimos 3 meses": 90,
-            "Últimos 6 meses": 180,
-            "Último año": 365,
+            "Últimos 30 días": 30,
+            "Últimos 60 días": 60,
+            "Últimos 90 días": 90,
+            "Últimos 180 días": 180,
+            "Últimos 356 días": 365,
             "Personalizado": None
         }
 
@@ -835,9 +830,7 @@ class ProveedorDashboard:
             fila = int(filtro['idproveedor'].iloc[0])
         else:
             st.sidebar.error("Selecciona un proveedor y analiza.")
-            # st.sidebar.error("❌ No se encontró el ID del proveedor seleccionado.")
             return proveedor, fecha_inicio, fecha_fin, None
-
    
         if st.sidebar.button("Realizar Análisis", type="primary", width="stretch"):
             if not proveedor:

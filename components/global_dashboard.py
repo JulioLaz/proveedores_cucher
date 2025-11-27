@@ -84,6 +84,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         SELECT 
             idarticulo,
             SUM(precio_total) as venta_total,
+            SUM(costo_total) as costo_total,
             SUM(cantidad_total) as cantidad_vendida
         FROM `{project_id}.{bigquery_table}`
         WHERE DATE(fecha_comprobante) BETWEEN '{fecha_desde}' AND '{fecha_hasta}'
@@ -117,6 +118,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     )
     
     df_merge['venta_total'] = df_merge['venta_total'].fillna(0)
+    df_merge['costo_total'] = df_merge['costo_total'].fillna(0)
     df_merge['cantidad_vendida'] = df_merge['cantidad_vendida'].fillna(0)
     df_merge['PRESUPUESTO'] = df_merge['PRESUPUESTO'].fillna(0)
     df_merge['exceso_STK'] = df_merge['exceso_STK'].fillna(0)
@@ -125,6 +127,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     ranking = df_merge.groupby(['proveedor', 'idproveedor']).agg({
         'venta_total': 'sum',
+        'costo_total': 'sum',
         'cantidad_vendida': 'sum',
         'idarticulo': 'count',
         'PRESUPUESTO': 'sum',
@@ -134,12 +137,16 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     }).reset_index()
     
     ranking.columns = [
-        'Proveedor', 'ID', 'Venta Total', 'Cantidad Vendida', 
+        'Proveedor', 'ID', 'Venta Total', 'Costo Total', 'Cantidad Vendida', 
         'Artículos', 'Presupuesto', 'Art. con Exceso', 
         'Costo Exceso', 'Art. Sin Stock'
     ]
     
+    
+    ranking['Utilidad'] = (ranking['Venta Total'] - ranking['Costo Total']).atype(int)
+    ranking['Rentabilidad %'] = ((ranking['Utilidad'] / ranking['Venta Total']) * 100).round(2)
     ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(2)
+    ranking['% Participación Presupuesto'] = (ranking['PRESUPUESTO'] / ranking['PRESUPUESTO'].sum() * 100).round(2)
     ranking = ranking.sort_values('Venta Total', ascending=False).reset_index(drop=True)
     ranking['Ranking'] = range(1, len(ranking) + 1)
     
@@ -241,7 +248,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         
         fig_ventas.update_layout(
             height=max(400, top_ventas_num * 25),
-            margin=dict(t=10, b=10, l=10, r=10),
+            margin=dict(t=10, b=10, l=10, r=20),
             xaxis=dict(visible=False),
             yaxis=dict(visible=True, tickfont=dict(size=10)),
             showlegend=False,
@@ -272,7 +279,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         
         fig_presu.update_layout(
             height=max(400, top_presu_num * 25),
-            margin=dict(t=10, b=10, l=10, r=10),
+            margin=dict(t=10, b=10, l=10, r=20),
             xaxis=dict(visible=False),
             yaxis=dict(visible=True, tickfont=dict(size=10)),
             showlegend=False,
@@ -298,8 +305,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     st.dataframe(
         df_display.head(num_mostrar)[[
-            'Ranking', 'Proveedor', 'Venta Total', '% Participación Ventas',
-            'Presupuesto', 'Artículos', 'Art. con Exceso', 
+            'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total', 'Utilidad', 'Rentabilidad %',
+            'Presupuesto', '% Participación Presupuesto', 'Artículos', 'Art. con Exceso', 
             'Costo Exceso', 'Art. Sin Stock'
         ]],
         width="stretch",
