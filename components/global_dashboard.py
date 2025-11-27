@@ -435,11 +435,81 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # from datetime import datetime
 
     # === Preparar DataFrame para exportar ===
+    # df_export = ranking[[
+    #     'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total',
+    #     'Utilidad', 'Rentabilidad %', '% Participación Presupuesto', 'Presupuesto',
+    #     'Artículos', 'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
+    # ]].copy()
+
+    # # Ajustes de tipos y redondeos
+    # df_export['Venta Total'] = df_export['Venta Total'].astype(int)
+    # df_export['Costo Total'] = df_export['Costo Total'].astype(int)
+    # df_export['Utilidad'] = df_export['Utilidad'].astype(int)
+    # df_export['Presupuesto'] = df_export['Presupuesto'].astype(int)
+    # df_export['Costo Exceso'] = df_export['Costo Exceso'].astype(int)
+    # df_export['Rentabilidad %'] = df_export['Rentabilidad %'].round(2)
+    # df_export['% Participación Presupuesto'] = df_export['% Participación Presupuesto'].round(2)
+    # df_export['% Participación Ventas'] = df_export['% Participación Ventas'].round(2)
+
+    # # === Exportar con formato ===
+    # output = BytesIO()
+    # with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+    #     df_export.to_excel(writer, index=False, sheet_name='Ranking')
+        
+    #     workbook  = writer.book
+    #     worksheet = writer.sheets['Ranking']
+        
+    #     # Formatos
+    #     formato_miles = workbook.add_format({'num_format': '#,##0'})
+    #     formato_porcentaje = workbook.add_format({'num_format': '0.00%'})
+    #     formato_header = workbook.add_format({
+    #         'bold': True,
+    #         'bg_color': '#4a90e2',   # azul agradable
+    #         'font_color': 'white',
+    #         'align': 'center',
+    #         'valign': 'vcenter'
+    #     })
+        
+    #     # Ajustar ancho de columnas según contenido
+    #     for i, col in enumerate(df_export.columns):
+    #         # calcular ancho máximo entre encabezado y datos
+    #         max_len = max(
+    #             df_export[col].astype(str).map(len).max(),
+    #             len(col)
+    #         ) + 2  # un poco de aire
+    #         worksheet.set_column(i, i, max_len)
+        
+    #     # Aplicar formato a encabezados y altura de fila
+    #     worksheet.set_row(0, 25, formato_header)
+        
+    #     # Inmovilizar primera fila
+    #     worksheet.freeze_panes(1, 0)
+
+    # output.seek(0)
+
+    # # === Botón de descarga ===
+    # st.download_button(
+    #     label="📥 Descargar Ranking Completo (Excel)",
+    #     data=output,
+    #     file_name=f"ranking_proveedores_{datetime.now().strftime('%d%B%Y')}.xlsx",
+    #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    #     use_container_width=True
+    # )
+
+
+    from datetime import datetime
+    from io import BytesIO
+    import pandas as pd
+
+    # === Preparar DataFrame para exportar ===
     df_export = ranking[[
         'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total',
         'Utilidad', 'Rentabilidad %', '% Participación Presupuesto', 'Presupuesto',
         'Artículos', 'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
     ]].copy()
+
+    # Eliminar columnas completamente vacías
+    df_export = df_export.dropna(axis=1, how='all')
 
     # Ajustes de tipos y redondeos
     df_export['Venta Total'] = df_export['Venta Total'].astype(int)
@@ -451,47 +521,73 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     df_export['% Participación Presupuesto'] = df_export['% Participación Presupuesto'].round(2)
     df_export['% Participación Ventas'] = df_export['% Participación Ventas'].round(2)
 
+    print("📊 Generando archivo Excel con formato profesional...")
+
     # === Exportar con formato ===
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         df_export.to_excel(writer, index=False, sheet_name='Ranking')
         
-        workbook  = writer.book
+        workbook = writer.book
         worksheet = writer.sheets['Ranking']
         
-        # Formatos
-        formato_miles = workbook.add_format({'num_format': '#,##0'})
-        formato_porcentaje = workbook.add_format({'num_format': '0.00%'})
-        formato_header = workbook.add_format({
-            'bold': True,
-            'bg_color': '#4a90e2',   # azul agradable
-            'font_color': 'white',
-            'align': 'center',
-            'valign': 'vcenter'
+        # === FORMATOS ===
+        formato_moneda = workbook.add_format({
+            'num_format': '$#,##0',
+            'align': 'right'
         })
         
-        # Ajustar ancho de columnas según contenido
-        for i, col in enumerate(df_export.columns):
-            # calcular ancho máximo entre encabezado y datos
-            max_len = max(
-                df_export[col].astype(str).map(len).max(),
-                len(col)
-            ) + 2  # un poco de aire
-            worksheet.set_column(i, i, max_len)
+        formato_entero = workbook.add_format({
+            'num_format': '#,##0',
+            'align': 'center'
+        })
         
-        # Aplicar formato a encabezados y altura de fila
+        formato_header = workbook.add_format({
+            'bold': True,
+            'bg_color': '#2E5090',
+            'font_color': 'white',
+            'align': 'center',
+            'valign': 'vcenter',
+            'border': 1
+        })
+        
+        # === APLICAR FORMATO A ENCABEZADOS ===
         worksheet.set_row(0, 25, formato_header)
         
-        # Inmovilizar primera fila
+        # === INMOVILIZAR PRIMERA FILA ===
         worksheet.freeze_panes(1, 0)
+        
+        # === AJUSTAR ANCHO Y APLICAR FORMATOS POR COLUMNA ===
+        for i, col in enumerate(df_export.columns):
+            # Calcular ancho necesario (mínimo el nombre de la columna)
+            max_len = max(len(col), 12) + 2
+            
+            # Aplicar formato según el tipo de columna
+            if col in ['Venta Total', 'Costo Total', 'Utilidad', 'Presupuesto', 'Costo Exceso']:
+                # Formato de moneda con separador de miles
+                worksheet.set_column(i, i, max(max_len, 15), formato_moneda)
+                
+            elif col in ['Artículos', 'Art. con Exceso', 'Art. Sin Stock', 'Ranking']:
+                # Formato de número entero con separador de miles
+                worksheet.set_column(i, i, max_len, formato_entero)
+                
+            elif col == 'Proveedor':
+                # Texto sin formato especial, más ancho
+                worksheet.set_column(i, i, 30)
+                
+            else:
+                # Resto de columnas (porcentajes ya vienen formateados desde pandas)
+                worksheet.set_column(i, i, max_len)
 
     output.seek(0)
+
+    print("✅ Archivo Excel generado exitosamente")
 
     # === Botón de descarga ===
     st.download_button(
         label="📥 Descargar Ranking Completo (Excel)",
         data=output,
-        file_name=f"ranking_proveedores_{datetime.now().strftime('%Y%m%d')}.xlsx",
+        file_name=f"ranking_proveedores_{datetime.now().strftime('%d_%B_%Y')}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True
     )
