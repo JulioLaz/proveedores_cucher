@@ -237,10 +237,11 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     def format_millones(valor):
         """
-        Formatea valores monetarios a millones con formato: 10.434 mll
+        Formatea valores monetarios a millones con formato: 10.536 mll
         """
         if valor >= 1_000_000:
-            return f"{valor/1_000_000:,.3f} mll".replace(',', '.')
+            millones = valor / 1_000_000
+            return f"{millones:,.3f} mll".replace(',', 'X').replace('.', ',').replace('X', '.')
         elif valor >= 1_000:
             return f"{valor/1_000:,.1f} mil".replace(',', '.')
         else:
