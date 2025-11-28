@@ -11,8 +11,22 @@ from datetime import datetime
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
     """Dashboard Global de Proveedores - Vista inicial con ranking por ventas y presupuesto"""
 
+    # Definir el estilo CSS para periodo y contenedor
+    st.markdown("""
+    <style>
+    .stContainer {
+        background-color: #f8f9fa;
+    }
+    /* O si quieres ser más específico */
+    div[data-testid="stContainer"] {
+        background-color: #f8f9fa;
+        border-radius: 15px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     container = st.container(border=True)
+    
     with container:
         # === SELECTOR DE PERÍODO ===
         col1, col2, col3 = st.columns([2, 2, 1])
