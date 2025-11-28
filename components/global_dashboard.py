@@ -32,7 +32,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         )
     
     with col2:
-        if periodo_seleccionado == "Personalizado" or periodo_seleccionado is None:
+        if periodo_seleccionado == "Personalizado" or periodo_opciones.keys() != []:
             from datetime import datetime, timedelta
             col_a, col_b = st.columns(2)
             fecha_desde = col_a.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
