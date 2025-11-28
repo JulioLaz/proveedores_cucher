@@ -241,9 +241,9 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         """
         if valor >= 1_000_000:
             millones = valor / 1_000_000
-            return f"{millones:,.3f} mll".replace(',', 'X').replace('.', ',').replace('X', '.')
+            return f"{millones:,.0f} mll".replace(',', 'X').replace('.', ',').replace('X', '.')
         elif valor >= 1_000:
-            return f"{valor/1_000:,.1f} mil".replace(',', '.')
+            return f"{valor/1_000:,.0f} mil".replace(',', '.')
         else:
             return f"{valor:,.0f}"
 
