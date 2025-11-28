@@ -18,7 +18,6 @@ from utils import (
     generate_insights
 )
 
-# Agregar estos imports al inicio del archivo
 # Imports de componentes
 from components.sidebar_filters import show_sidebar_filters
 from components.executive_summary import show_executive_summary as render_executive_summary
@@ -26,6 +25,8 @@ from components.products_analysis import show_products_analysis as render_produc
 from components.temporal_analysis import show_temporal_analysis as render_temporal_analysis
 from components.advanced_analysis import show_advanced_analysis as render_advanced_analysis
 from components.global_dashboard import show_global_dashboard
+
+# 🔥 NUEVOS IMPORTS
 from components.article_analysis import show_idarticulo_analysis
 from components.executive_summary_detailed import show_executive_summary_best
 from components.budget_analysis import show_presupuesto_estrategico
@@ -209,33 +210,15 @@ class ProveedorDashboard:
                 render_advanced_analysis(df, metrics)
         
         with tab5:
-            self.show_executive_summary_best(df, proveedor, metrics)
+            # 🔥 AQUÍ ESTÁ EL CAMBIO
+            show_executive_summary_best(df, proveedor, metrics)
         
         with tab6:
+            # 🔥 AQUÍ ESTÁ EL CAMBIO
             if df_presu is not None:
-               show_presupuesto_estrategico(df_presu)
+                show_presupuesto_estrategico(df_presu)
             else:
                 st.info("📊 No hay datos de presupuesto disponibles")
-    
-    def show_executive_summary_best(self, df, proveedor, metrics):
-        """Síntesis ejecutiva completa"""
-        # Importar el componente de síntesis si existe
-        # Por ahora, mostrar mensaje simple
-        st.info("🚧 Componente de síntesis en desarrollo")
-        
-        # Preview de datos
-        st.markdown("### Vista Previa de Datos")
-        df['fecha_fmt'] = df['fecha'].apply(
-            lambda x: format_date(x, format="d MMMM y", locale=locale)
-        )
-        
-        data = df[[
-            'fecha_fmt', 'idarticulo', 'descripcion', 
-            'precio_total', 'costo_total', 'utilidad', 
-            'margen_porcentual', 'cantidad_total'
-        ]].copy()
-        
-        st.dataframe(data.head(10), use_container_width=True)
     
     def run(self):
         """Ejecutar dashboard"""
