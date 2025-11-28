@@ -155,86 +155,167 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # === KPIs PRINCIPALES CON ESTILO MEJORADO ===
     # st.markdown("---")
     
-    col1, col11, col2, col3, col4, col5 = st.columns(6)
+    # col1, col11, col2, col3, col4, col5 = st.columns(6)
     
+    # with col1:
+    #     st.markdown(f"""
+    #     <div class="metric-box ">
+    #         <div style="text-align: center;">
+    #             <div style="font-size: 1rem; color: #555;">💰 Ventas Totales</div>
+    #             <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Venta Total'].sum():,.0f}</div>
+    #         </div>
+    #         <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
+    #             ⬆️ {len(ranking)} proveedores
+    #         </div>
+    #     </div>
+    #     """, unsafe_allow_html=True)
+    
+    # with col11:
+    #     st.markdown(f"""
+    #     <div class="metric-box ">
+    #         <div style="text-align: center;">
+    #             <div style="font-size: 1rem; color: #555;">💰 Utilidad Total</div>
+    #             <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Utilidad'].sum():,.0f}</div>
+    #         </div>
+    #         <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
+    #             ⬆️ {len(ranking)} proveedores
+    #         </div>
+    #     </div>
+    #     """, unsafe_allow_html=True)
+    
+    # with col2:
+    #     st.markdown(f"""
+    #     <div class="metric-box ">
+    #         <div style="text-align: center;">
+    #             <div style="font-size: 1rem; color: #555;">💵 Presupuesto a 30 días</div>
+    #             <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Presupuesto'].sum():,.0f}</div>
+    #         </div>
+    #         <div style="color: #d35400; font-size: 0.8rem; margin-top: 0.2rem;">
+    #             📊 Inversión requerida
+    #         </div>
+    #     </div>
+    #     """, unsafe_allow_html=True)
+    
+    # with col3:
+    #     st.markdown(f"""
+    #     <div class="metric-box ">
+    #         <div style="text-align: center;">
+    #             <div style="font-size: 1rem; color: #555;">📦 Cantidad Vendida</div>
+    #             <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{ranking['Cantidad Vendida'].sum():,.0f}</div>
+    #         </div>
+    #         <div style="color: #555; font-size: 0.8rem; margin-top: 0.2rem;">
+    #             🎯 {df_ventas['idarticulo'].nunique():,} art únicos
+    #         </div>
+    #     </div>
+    #     """, unsafe_allow_html=True)
+    
+    # with col4:
+    #     st.markdown(f"""
+    #     <div class="metric-box ">
+    #         <div style="text-align: center;">
+    #             <div style="font-size: 1rem; color: #555;">⚠️ Exceso de Stock</div>
+    #             <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Costo Exceso'].sum():,.0f}</div>
+    #         </div>
+    #         <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
+    #             📊 {ranking['Art. con Exceso'].sum():,} artículos
+    #         </div>
+    #     </div>
+    #     """, unsafe_allow_html=True)
+    
+    # with col5:
+    #     st.markdown(f"""
+    #     <div class="metric-box ">
+    #         <div style="text-align: center;">
+    #             <div style="font-size: 1rem; color: #555;">❌ Sin Stock</div>
+    #             <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{ranking['Art. Sin Stock'].sum():,}</div>
+    #         </div>
+    #         <div style="color: #c0392b; font-size: 0.8rem; margin-top: 0.2rem;">
+    #             🔴 Artículos críticos
+    #         </div>
+    #     </div>
+    #     """, unsafe_allow_html=True)
+    
+    col1, col11, col2, col3, col4, col5 = st.columns(6)
+        
     with col1:
         st.markdown(f"""
-        <div class="metric-box ">
-            <div style="text-align: center;">
-                <div style="font-size: 1rem; color: #555;">💰 Ventas Totales</div>
-                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Venta Total'].sum():,.0f}</div>
+        <div class="metric-box">
+            <div style="text-align: center; padding: 0.5rem;">
+                <div style="font-size: 0.85rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">💰 Ventas Totales</div>
+                <div style="font-size: 1.3rem; font-weight: bold; color: #1e3c72; word-break: break-word;">${ranking['Venta Total'].sum():,.0f}</div>
             </div>
-            <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
+            <div style="color: green; font-size: 0.75rem; margin-top: 0.2rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 ⬆️ {len(ranking)} proveedores
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col11:
         st.markdown(f"""
-        <div class="metric-box ">
-            <div style="text-align: center;">
-                <div style="font-size: 1rem; color: #555;">💰 Utilidad Total</div>
-                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Utilidad'].sum():,.0f}</div>
+        <div class="metric-box">
+            <div style="text-align: center; padding: 0.5rem;">
+                <div style="font-size: 0.85rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">💰 Utilidad Total</div>
+                <div style="font-size: 1.3rem; font-weight: bold; color: #1e3c72; word-break: break-word;">${ranking['Utilidad'].sum():,.0f}</div>
             </div>
-            <div style="color: green; font-size: 0.8rem; margin-top: 0.2rem;">
+            <div style="color: green; font-size: 0.75rem; margin-top: 0.2rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 ⬆️ {len(ranking)} proveedores
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col2:
         st.markdown(f"""
-        <div class="metric-box ">
-            <div style="text-align: center;">
-                <div style="font-size: 1rem; color: #555;">💵 Presupuesto a 30 días</div>
-                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Presupuesto'].sum():,.0f}</div>
+        <div class="metric-box">
+            <div style="text-align: center; padding: 0.5rem;">
+                <div style="font-size: 0.85rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">💵 Presupuesto a 30 días</div>
+                <div style="font-size: 1.3rem; font-weight: bold; color: #1e3c72; word-break: break-word;">${ranking['Presupuesto'].sum():,.0f}</div>
             </div>
-            <div style="color: #d35400; font-size: 0.8rem; margin-top: 0.2rem;">
+            <div style="color: #d35400; font-size: 0.75rem; margin-top: 0.2rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 📊 Inversión requerida
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col3:
         st.markdown(f"""
-        <div class="metric-box ">
-            <div style="text-align: center;">
-                <div style="font-size: 1rem; color: #555;">📦 Cantidad Vendida</div>
-                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{ranking['Cantidad Vendida'].sum():,.0f}</div>
+        <div class="metric-box">
+            <div style="text-align: center; padding: 0.5rem;">
+                <div style="font-size: 0.85rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📦 Cantidad Vendida</div>
+                <div style="font-size: 1.3rem; font-weight: bold; color: #1e3c72; word-break: break-word;">{ranking['Cantidad Vendida'].sum():,.0f}</div>
             </div>
-            <div style="color: #555; font-size: 0.8rem; margin-top: 0.2rem;">
+            <div style="color: #555; font-size: 0.75rem; margin-top: 0.2rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 🎯 {df_ventas['idarticulo'].nunique():,} art únicos
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col4:
         st.markdown(f"""
-        <div class="metric-box ">
-            <div style="text-align: center;">
-                <div style="font-size: 1rem; color: #555;">⚠️ Exceso de Stock</div>
-                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">${ranking['Costo Exceso'].sum():,.0f}</div>
+        <div class="metric-box">
+            <div style="text-align: center; padding: 0.5rem;">
+                <div style="font-size: 0.85rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚠️ Exceso de Stock</div>
+                <div style="font-size: 1.3rem; font-weight: bold; color: #1e3c72; word-break: break-word;">${ranking['Costo Exceso'].sum():,.0f}</div>
             </div>
-            <div style="color: #888; font-size: 0.8rem; margin-top: 0.2rem;">
+            <div style="color: #888; font-size: 0.75rem; margin-top: 0.2rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 📊 {ranking['Art. con Exceso'].sum():,} artículos
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col5:
         st.markdown(f"""
-        <div class="metric-box ">
-            <div style="text-align: center;">
-                <div style="font-size: 1rem; color: #555;">❌ Sin Stock</div>
-                <div style="font-size: 1.5rem; font-weight: bold; color: #1e3c72;">{ranking['Art. Sin Stock'].sum():,}</div>
+        <div class="metric-box">
+            <div style="text-align: center; padding: 0.5rem;">
+                <div style="font-size: 0.85rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">❌ Sin Stock</div>
+                <div style="font-size: 1.3rem; font-weight: bold; color: #1e3c72; word-break: break-word;">{ranking['Art. Sin Stock'].sum():,}</div>
             </div>
-            <div style="color: #c0392b; font-size: 0.8rem; margin-top: 0.2rem;">
+            <div style="color: #c0392b; font-size: 0.75rem; margin-top: 0.2rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 🔴 Artículos críticos
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
+
     # === VISUALIZACIONES ===
     # st.markdown("---")
    #  st.markdown("### 📊 Análisis Visual de Proveedores")
