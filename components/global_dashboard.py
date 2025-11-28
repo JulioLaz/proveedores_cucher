@@ -10,62 +10,55 @@ from datetime import datetime
 
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
     """Dashboard Global de Proveedores - Vista inicial con ranking por ventas y presupuesto"""
-  
-    st.markdown("""
-    <style>
-    .rounded-container {
-        background-color: #f0f2f6;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
-    st.markdown('<div class="rounded-container">', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([2, 2, 1])
-
-
-    # === SELECTOR DE PERÍODO ===
-    # col1, col2, col3 = st.columns([2, 2, 1])
-    
-    with col1:
-
-        periodo_opciones = {
-            "Últimos 30 días": 30,
-            "Últimos 60 días": 60,
-            "Últimos 90 días": 90,
-            "Últimos 6 meses": 180,
-            "Último año": 365,
-            "Personalizado": None
+    with st.container():
+        st.markdown("""
+        <style>
+        .stContainer > div {
+            background-color: #f0f2f6;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        </style>
+        """, unsafe_allow_html=True)
+
+        # === SELECTOR DE PERÍODO ===
+        col1, col2, col3 = st.columns([2, 2, 1])
         
-        periodo_seleccionado = st.selectbox(
-            "📅 Período de análisis de ventas:",
-            options=list(periodo_opciones.keys()),
-            index=0
-        )
-    
-    with col2:
-        if periodo_seleccionado == "Personalizado" or periodo_opciones.keys() != []:
-            from datetime import datetime, timedelta
-            col_a, col_b = st.columns(2)
-            fecha_desde = col_a.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
-            fecha_hasta = col_b.date_input("Hasta:", value=datetime.now().date())
-            dias_periodo = (fecha_hasta - fecha_desde).days
-        else:
-            dias_periodo = periodo_opciones[periodo_seleccionado]
-            from datetime import datetime, timedelta
-            fecha_hasta = datetime.now().date()
-            fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
-    
-    with col3:
-        st.metric("📆 Días", f"{dias_periodo}")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+        with col1:
 
-
-
+            periodo_opciones = {
+                "Últimos 30 días": 30,
+                "Últimos 60 días": 60,
+                "Últimos 90 días": 90,
+                "Últimos 6 meses": 180,
+                "Último año": 365,
+                "Personalizado": None
+            }
+            
+            periodo_seleccionado = st.selectbox(
+                "📅 Período de análisis de ventas:",
+                options=list(periodo_opciones.keys()),
+                index=0
+            )
+        
+        with col2:
+            if periodo_seleccionado == "Personalizado" or periodo_opciones.keys() != []:
+                from datetime import datetime, timedelta
+                col_a, col_b = st.columns(2)
+                fecha_desde = col_a.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
+                fecha_hasta = col_b.date_input("Hasta:", value=datetime.now().date())
+                dias_periodo = (fecha_hasta - fecha_desde).days
+            else:
+                dias_periodo = periodo_opciones[periodo_seleccionado]
+                from datetime import datetime, timedelta
+                fecha_hasta = datetime.now().date()
+                fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
+        
+        with col3:
+            st.metric("📆 Días", f"{dias_periodo}")
+    
     # === ESTILOS CSS MEJORADOS ===
     st.markdown("""
     <style>
