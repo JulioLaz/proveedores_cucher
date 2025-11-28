@@ -14,19 +14,17 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # Definir el estilo CSS para periodo y contenedor
     st.markdown("""
     <style>
-    .stContainer {
-        background-color: #f8f9fa;
-    }
-    /* O si quieres ser más específico */
-    div[data-testid="stContainer"] {
-        background-color: #f8f9fa;
-        border-radius: 15px;
+    /* Estilar TODOS los containers con border */
+    div[data-testid="stVerticalBlock"] > div:has(> div.stContainer) {
+        background-color: #f8f9fa !important;
+        border-radius: 15px !important;
+        padding: 10px !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
     container = st.container(border=True)
-    
+
     with container:
         # === SELECTOR DE PERÍODO ===
         col1, col2, col3 = st.columns([2, 2, 1])
