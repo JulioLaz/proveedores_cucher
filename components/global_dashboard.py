@@ -53,10 +53,10 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         .metric-box {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             border-radius: 12px;
-            padding: 1rem;
+            padding: 0.8rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
-            height: 120px;
+            # height: 120px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -155,86 +155,178 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # === KPIs PRINCIPALES CON ESTILO MEJORADO ===
     # st.markdown("---")
     
-    col1, col11, col2, col3, col4, col5 = st.columns(6)
+    # col1, col11, col2, col3, col4, col5 = st.columns(6)
     
+    # with col1:
+    #     st.markdown(f"""
+    #     <div class="metric-box ">
+    #         <div style="text-align: center;">
+    #             <div style="font-size: 14px; color: #555;">💰 Ventas Totales</div>
+    #             <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${ranking['Venta Total'].sum():,.0f}</div>
+    #         </div>
+    #         <div style="color: green; font-size: 12px; margin-top: 0.2rem;">
+    #             ⬆️ {len(ranking)} proveedores
+    #         </div>
+    #     </div>
+    #     """, unsafe_allow_html=True)
+    
+    # with col11:
+    #     st.markdown(f"""
+    #     <div class="metric-box ">
+    #         <div style="text-align: center;">
+    #             <div style="font-size: 14px; color: #555;">💰 Utilidad Total</div>
+    #             <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${ranking['Utilidad'].sum():,.0f}</div>
+    #         </div>
+    #         <div style="color: green; font-size: 12px; margin-top: 0.2rem;">
+    #             ⬆️ {len(ranking)} proveedores
+    #         </div>
+    #     </div>
+    #     """, unsafe_allow_html=True)
+    
+    # with col2:
+    #     st.markdown(f"""
+    #     <div class="metric-box ">
+    #         <div style="text-align: center;">
+    #             <div style="font-size: 14px; color: #555;">💵 Presupuesto a 30 días</div>
+    #             <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${ranking['Presupuesto'].sum():,.0f}</div>
+    #         </div>
+    #         <div style="color: #d35400; font-size: 12px; margin-top: 0.2rem;">
+    #             📊 Inversión requerida
+    #         </div>
+    #     </div>
+    #     """, unsafe_allow_html=True)
+    
+    # with col3:
+    #     st.markdown(f"""
+    #     <div class="metric-box ">
+    #         <div style="text-align: center;">
+    #             <div style="font-size: 14px; color: #555;">📦 Cantidad Vendida</div>
+    #             <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{ranking['Cantidad Vendida'].sum():,.0f}</div>
+    #         </div>
+    #         <div style="color: #555; font-size: 12px; margin-top: 0.2rem;">
+    #             🎯 {df_ventas['idarticulo'].nunique():,} art únicos
+    #         </div>
+    #     </div>
+    #     """, unsafe_allow_html=True)
+    
+    # with col4:
+    #     st.markdown(f"""
+    #     <div class="metric-box ">
+    #         <div style="text-align: center;">
+    #             <div style="font-size: 14px; color: #555;">⚠️ Exceso de Stock</div>
+    #             <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${ranking['Costo Exceso'].sum():,.0f}</div>
+    #         </div>
+    #         <div style="color: #888; font-size: 12px; margin-top: 0.2rem;">
+    #             📊 {ranking['Art. con Exceso'].sum():,} artículos
+    #         </div>
+    #     </div>
+    #     """, unsafe_allow_html=True)
+    
+    # with col5:
+    #     st.markdown(f"""
+    #     <div class="metric-box ">
+    #         <div style="text-align: center;">
+    #             <div style="font-size: 14px; color: #555;">❌ Sin Stock</div>
+    #             <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{ranking['Art. Sin Stock'].sum():,}</div>
+    #         </div>
+    #         <div style="color: #c0392b; font-size: 12px; margin-top: 0.2rem;">
+    #             🔴 Artículos críticos
+    #         </div>
+    #     </div>
+    #     """, unsafe_allow_html=True)
+    
+    def format_millones(valor):
+        """
+        Formatea valores monetarios a millones con formato: 10.434 mll
+        """
+        if valor >= 1_000_000:
+            return f"{valor/1_000_000:,.3f} mll".replace(',', '.')
+        elif valor >= 1_000:
+            return f"{valor/1_000:,.1f} mil".replace(',', '.')
+        else:
+            return f"{valor:,.0f}"
+
+    # Luego en tus KPIs:
+    col1, col11, col2, col3, col4, col5 = st.columns(6)
+        
     with col1:
         st.markdown(f"""
-        <div class="metric-box ">
+        <div class="metric-box">
             <div style="text-align: center;">
-                <div style="font-size: 12px; color: #555;">💰 Ventas Totales</div>
-                <div style="font-size: 16px; font-weight: bold; color: #1e3c72;">${ranking['Venta Total'].sum():,.0f}</div>
+                <div style="font-size: 14px; color: #555;">💰 Ventas Totales</div>
+                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${format_millones(ranking['Venta Total'].sum())}</div>
             </div>
-            <div style="color: green; font-size: 10px; margin-top: 0.2rem;">
+            <div style="color: green; font-size: 12px; margin-top: 0.2rem;">
                 ⬆️ {len(ranking)} proveedores
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col11:
         st.markdown(f"""
-        <div class="metric-box ">
+        <div class="metric-box">
             <div style="text-align: center;">
-                <div style="font-size: 12px; color: #555;">💰 Utilidad Total</div>
-                <div style="font-size: 16px; font-weight: bold; color: #1e3c72;">${ranking['Utilidad'].sum():,.0f}</div>
+                <div style="font-size: 14px; color: #555;">💰 Utilidad Total</div>
+                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${format_millones(ranking['Utilidad'].sum())}</div>
             </div>
-            <div style="color: green; font-size: 10px; margin-top: 0.2rem;">
+            <div style="color: green; font-size: 12px; margin-top: 0.2rem;">
                 ⬆️ {len(ranking)} proveedores
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col2:
         st.markdown(f"""
-        <div class="metric-box ">
+        <div class="metric-box">
             <div style="text-align: center;">
-                <div style="font-size: 12px; color: #555;">💵 Presupuesto a 30 días</div>
-                <div style="font-size: 16px; font-weight: bold; color: #1e3c72;">${ranking['Presupuesto'].sum():,.0f}</div>
+                <div style="font-size: 14px; color: #555;">💵 Presupuesto a 30 días</div>
+                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${format_millones(ranking['Presupuesto'].sum())}</div>
             </div>
-            <div style="color: #d35400; font-size: 10px; margin-top: 0.2rem;">
+            <div style="color: #d35400; font-size: 12px; margin-top: 0.2rem;">
                 📊 Inversión requerida
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col3:
         st.markdown(f"""
-        <div class="metric-box ">
+        <div class="metric-box">
             <div style="text-align: center;">
-                <div style="font-size: 12px; color: #555;">📦 Cantidad Vendida</div>
-                <div style="font-size: 16px; font-weight: bold; color: #1e3c72;">{ranking['Cantidad Vendida'].sum():,.0f}</div>
+                <div style="font-size: 14px; color: #555;">📦 Cantidad Vendida</div>
+                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{ranking['Cantidad Vendida'].sum():,.0f}</div>
             </div>
-            <div style="color: #555; font-size: 10px; margin-top: 0.2rem;">
+            <div style="color: #555; font-size: 12px; margin-top: 0.2rem;">
                 🎯 {df_ventas['idarticulo'].nunique():,} art únicos
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col4:
         st.markdown(f"""
-        <div class="metric-box ">
+        <div class="metric-box">
             <div style="text-align: center;">
-                <div style="font-size: 12px; color: #555;">⚠️ Exceso de Stock</div>
-                <div style="font-size: 16px; font-weight: bold; color: #1e3c72;">${ranking['Costo Exceso'].sum():,.0f}</div>
+                <div style="font-size: 14px; color: #555;">⚠️ Exceso de Stock</div>
+                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${format_millones(ranking['Costo Exceso'].sum())}</div>
             </div>
-            <div style="color: #888; font-size: 10px; margin-top: 0.2rem;">
+            <div style="color: #888; font-size: 12px; margin-top: 0.2rem;">
                 📊 {ranking['Art. con Exceso'].sum():,} artículos
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col5:
         st.markdown(f"""
-        <div class="metric-box ">
+        <div class="metric-box">
             <div style="text-align: center;">
-                <div style="font-size: 12px; color: #555;">❌ Sin Stock</div>
-                <div style="font-size: 16px; font-weight: bold; color: #1e3c72;">{ranking['Art. Sin Stock'].sum():,}</div>
+                <div style="font-size: 14px; color: #555;">❌ Sin Stock</div>
+                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{ranking['Art. Sin Stock'].sum():,}</div>
             </div>
-            <div style="color: #c0392b; font-size: 10px; margin-top: 0.2rem;">
+            <div style="color: #c0392b; font-size: 12px; margin-top: 0.2rem;">
                 🔴 Artículos críticos
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     # === VISUALIZACIONES ===
     # st.markdown("---")
    #  st.markdown("### 📊 Análisis Visual de Proveedores")
