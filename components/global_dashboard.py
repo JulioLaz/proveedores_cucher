@@ -11,6 +11,20 @@ from datetime import datetime
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
     """Dashboard Global de Proveedores - Vista inicial con ranking por ventas y presupuesto"""
   
+
+    # Opción 3: La más profesional y reutilizable
+    st.markdown("""
+    <style>
+    div[data-testid="column"] {
+        background-color: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
     # === SELECTOR DE PERÍODO ===
     col1, col2, col3 = st.columns([2, 2, 1])
     
