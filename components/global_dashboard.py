@@ -11,18 +11,6 @@ from datetime import datetime
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
     """Dashboard Global de Proveedores - Vista inicial con ranking por ventas y presupuesto"""
 
-    # Definir el estilo CSS para periodo y contenedor
-    st.markdown("""
-    <style>
-    /* Estilar TODOS los containers con border */
-    div[data-testid="stVerticalBlock"] > div:has(> div.stContainer) {
-        background-color: #f8f9fa !important;
-        border-radius: 15px !important;
-        padding: 10px !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
     container = st.container(border=True)
 
     with container:

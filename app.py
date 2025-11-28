@@ -48,17 +48,6 @@ st.set_page_config(page_title="Proveedores", page_icon="📊", layout="wide", in
 # === CARGAR CSS PERSONALIZADO ===
 st.markdown(custom_css(), unsafe_allow_html=True)
 
-### OCULTAR TOOLBAR COMPLETA
-
-# st.markdown("""
-#     <style>
-#     div[data-testid="stToolbar"] {
-#         pointer-events: none !important;
-#         opacity: 0 !important;
-#     }
-#     </style>
-# """, unsafe_allow_html=True)
-
 st.markdown("""
     <style>
     /* Ocultar y desactivar el botón Share */
@@ -74,8 +63,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
-
 
 # === DETECTAR ENTORNO ===
 IS_CLOUD = "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
@@ -557,16 +544,6 @@ class ProveedorDashboard:
             self.project_id = "youtube-analysis-24"
             self.bigquery_table = "tickets.tickets_all"
     
-    # @st.cache_data(ttl=3600)
-    # def load_proveedores(_self):
-    #     """Cargar datos de proveedores desde Google Sheet público"""
-    #     url = f"https://docs.google.com/spreadsheets/d/{_self.sheet_id}/gviz/tq?tqx=out:csv&sheet={_self.sheet_name}"
-    #     df = pd.read_csv(url)
-    #     df = df.dropna(subset=['idproveedor'])  # elimina filas sin idproveedor
-    #     df['idproveedor'] = df['idproveedor'].astype(int)
-    #     df['proveedor'] = df['proveedor'].astype(str).str.strip().str.upper()
-    #     return df
-    
     @st.cache_data(ttl=3600)
     def load_proveedores(_self):
         """Cargar datos de proveedores desde Google Sheet público"""
@@ -586,13 +563,6 @@ class ProveedorDashboard:
         return df
 
     def query_bigquery_data(self, proveedor, fecha_inicio, fecha_fin):
-        """Consultar datos de BigQuery"""
-        # try:
-        #     # Obtener IDs de artículos
-        #     ids = self.df_proveedores[self.df_proveedores['proveedor'] == proveedor ]['idarticulo'].dropna().astype(int).astype(str).unique()
-            
-        #     if len(ids) == 0: return None
-
         try:
             # 🔥 Obtener todos los IDs de artículos del proveedor (incluye unificados)
             ids = self.df_proveedores[
@@ -669,11 +639,6 @@ class ProveedorDashboard:
 
             if df.empty:
                 st.warning(f"⚠️ No se encontraron datos para el proveedor con ID: {idproveedor}")
-            # else:
-            #     placeholder = st.empty()
-            #     st.success(f"✅ Se encontraron {len(df)} registros para idproveedor {idproveedor}")
-            #     time.sleep(3)   # espera 3 segundos
-            #     placeholder.empty()  # borra el mensaje
             return df
 
         except Exception as e:
@@ -689,7 +654,6 @@ class ProveedorDashboard:
             sucursales_unicas = df['sucursal'].dropna().unique()
             num_sucursales = len(sucursales_unicas)
             sucursales_str = ", ".join(sorted(s[:4].upper() for s in sucursales_unicas))
-            # sucursales_str = ", ".join(sorted(map(str, sucursales_unicas)))
         else:
             num_sucursales = 0
             sucursales_str = "N/A"
@@ -820,8 +784,6 @@ class ProveedorDashboard:
 
         # Mostrar resumen en el sidebar
         st.sidebar.info(f"📅 **{rango_seleccionado}**\n\n{fecha_inicio_fmt} / {fecha_fin_fmt}")
-
-        # --- Botón ---
 
         df_presu = None  # ✅ Inicializar para evitar UnboundLocalError
 
@@ -969,12 +931,8 @@ class ProveedorDashboard:
         with tab5:
             self.show_executive_summary_best(df, proveedor, metrics)
 
-        # with tab6:
-        #     self.show_idarticulo_analysis_01(df_presu)
-
         with tab7:
             self.show_presupuesto_estrategico(df_presu)
-
 
     def show_executive_summary(self, df, proveedor, metrics):
         """Wrapper para el componente de resumen ejecutivo"""
@@ -2041,8 +1999,6 @@ class ProveedorDashboard:
         # Conteo por rango
         orden = ["🟡 31-60 días", "🟠 61-90 días", "🔴 90+ días"]
         colores = [ "#f1c40f", "#e67e22", "#e74c3c"]
-        # orden = ["🟢 0-30 días", "🟡 31-60 días", "🟠 61-90 días", "🔴 90+ días"]
-        # colores = ["#2ecc71", "#f1c40f", "#e67e22", "#e74c3c"]
         conteo = df_exceso["rango_cobertura"].value_counts().reindex(orden).fillna(0).astype(int)
 
         # Crear gráfico
@@ -2141,7 +2097,7 @@ class ProveedorDashboard:
                     )
 
                     st.plotly_chart(fig, width="stretch")
-#################################################################
+
                     # === INSIGHTS AUTOMÁTICOS ===
                     st.markdown("### 📌 Insights Clave del Exceso de Stock")
 
@@ -2178,7 +2134,7 @@ class ProveedorDashboard:
                     - 🧼 Revisar precios y promociones para liquidar los productos con mayor inmovilizado.
                     - 🔍 Evaluar estrategias de compra para evitar reincidencia de estos excesos.
                     """)
-##########################################################################
+
                     # === INSIGHTS POR SEGMENTO DE COBERTURA ===
                     st.markdown("### 🔍 Análisis por Segmento de Cobertura")
 
@@ -2322,9 +2278,6 @@ class ProveedorDashboard:
             </div>
             """, unsafe_allow_html=True)
 
-
-
-#################################################################
         # Exportar versión sin formato
         columnas_old = ["idarticulo", "descripcion", "exceso_STK", "costo_exceso_STK", "dias_cobertura"]
         df_export = df[df['exceso_STK'] > 0][columnas_old]
@@ -2493,11 +2446,6 @@ class ProveedorDashboard:
         # Mostrar análisis principal
         self.show_main_dashboard()
 
-        # Análisis detallado por artículo
-        # st.markdown("---")
-        # st.markdown("## 🔍 Análisis Detallado por Artículo")
-        # self.show_idarticulo_analysis_01(df_presu)
-
         # === Extraer datos de análisis por idarticulo ===
         self.df_resultados = query_resultados_idarticulo(
             credentials_path=self.credentials_path,
@@ -2506,13 +2454,7 @@ class ProveedorDashboard:
             table='result_final_alert_all'
         )
 
-        # Análisis detallado por artículo
-        # st.markdown("---")
-        # st.markdown("## 🔍 Análisis Detallado por Artículo")
-        # self.show_idarticulo_analysis()
-
         # Footer
-        # st.markdown("---")
         st.markdown("""
         <hr style="margin: 0; border: none; border-top: 2px solid #ccc;" />
         <div style="text-align: center; color: #666; font-size: 0.8em;margin-top: 20px;">
