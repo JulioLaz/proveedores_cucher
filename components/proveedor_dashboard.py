@@ -111,10 +111,16 @@ class ProveedorDashboard:
         
         # Header
         if proveedor:
+                        # Botón volver con posicionamiento absoluto
+                st.markdown("""
+                <div style="position: absolute; top: -4rem; left: 2.5rem; z-index: 1000;">
+                </div>
+                """, unsafe_allow_html=True)
+                
                 # Botón volver
                 col1, col2 = st.columns([1, 5])
                 with col1:
-                    if st.button("← Dashboard Global", type="secondary", width='stretch'):
+                    if st.button("← Inicio", type="secondary", width='stretch'):
                         st.session_state.analysis_data = None
                         st.session_state.selected_proveedor = None
                         st.session_state.resultados_data = None

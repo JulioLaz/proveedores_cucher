@@ -62,6 +62,9 @@ authenticator = stauth.Authenticate(
     st.secrets['cookie']['expiry_days']
 )
 
+# AGREGAR ESTA LÍNEA:
+st.session_state['authenticator'] = authenticator
+
 # Widget de login
 authenticator.login()
 
