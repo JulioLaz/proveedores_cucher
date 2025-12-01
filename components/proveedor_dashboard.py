@@ -111,19 +111,38 @@ class ProveedorDashboard:
         
         # Header
         if proveedor:
-            st.markdown(f"""
-            <div class="main-header">
-                <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>
-                    Proveedor: {proveedor}
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+                # Botón volver
+                col1, col2 = st.columns([1, 5])
+                with col1:
+                    if st.button("← Dashboard Global", type="secondary", width='stretch'):
+                        st.session_state.analysis_data = None
+                        st.session_state.selected_proveedor = None
+                        st.session_state.resultados_data = None
+                        st.rerun()
+                
+                with col2:
+                    proveedor = st.session_state.selected_proveedor
+                    st.markdown(f"""
+                    <div class="main-header">
+                        <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>
+                            📊 Análisis Detallado: {proveedor}
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+            # st.markdown(f"""
+            # <div class="main-header">
+            #     <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>
+            #         Proveedor: {proveedor}
+            #     </p>
+            # </div>
+            # """, unsafe_allow_html=True)
         else:
             st.markdown("""
             <div class="main-header">
                 <p style='
                     position: absolute;
-                    top: -2.5rem;
+                    top: -4rem;
                     left: 2.5rem;
                     padding: 5px 0px;
                     font-size: 2.2rem;
@@ -143,24 +162,24 @@ class ProveedorDashboard:
             )
             return
         
-        # Botón volver
-        col1, col2 = st.columns([1, 5])
-        with col1:
-            if st.button("← Dashboard Global", type="secondary", width='stretch'):
-                st.session_state.analysis_data = None
-                st.session_state.selected_proveedor = None
-                st.session_state.resultados_data = None
-                st.rerun()
+        # # Botón volver
+        # col1, col2 = st.columns([1, 5])
+        # with col1:
+        #     if st.button("← Dashboard Global", type="secondary", width='stretch'):
+        #         st.session_state.analysis_data = None
+        #         st.session_state.selected_proveedor = None
+        #         st.session_state.resultados_data = None
+        #         st.rerun()
         
-        with col2:
-            proveedor = st.session_state.selected_proveedor
-            st.markdown(f"""
-            <div class="main-header">
-                <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>
-                    📊 Análisis Detallado: {proveedor}
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+        # with col2:
+        #     proveedor = st.session_state.selected_proveedor
+        #     st.markdown(f"""
+        #     <div class="main-header">
+        #         <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>
+        #             📊 Análisis Detallado: {proveedor}
+        #         </p>
+        #     </div>
+        #     """, unsafe_allow_html=True)
         
         # Datos y métricas
         df = st.session_state.analysis_data
