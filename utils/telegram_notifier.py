@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime
 import streamlit as st
+import pytz
 
 def send_telegram_notification(username, name, email, success=True):
     """
@@ -21,8 +22,9 @@ def send_telegram_notification(username, name, email, success=True):
             print("⚠️  [TELEGRAM] Credenciales no configuradas - Notificación omitida")
             return False
         
-        # Preparar mensaje
-        timestamp = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        # ✅ HORA DE ARGENTINA (GMT-3)
+        tz_argentina = pytz.timezone('America/Argentina/Cordoba')
+        timestamp = datetime.now(tz_argentina).strftime('%d/%m/%Y %H:%M:%S')
         
         if success:
             emoji = "✅"
@@ -37,7 +39,7 @@ def send_telegram_notification(username, name, email, success=True):
 👤 <b>Usuario:</b> {username}
 📝 <b>Nombre:</b> {name}
 📧 <b>Email:</b> {email}
-🕒 <b>Fecha/Hora:</b> {timestamp}
+🕒 <b>Fecha/Hora:</b> {timestamp} (ARG)
 🖥️ <b>App:</b> Análisis de Proveedores Cucher
 """
         
@@ -51,7 +53,7 @@ def send_telegram_notification(username, name, email, success=True):
         
         print(f"\n📤 [TELEGRAM] Enviando notificación de acceso...")
         print(f"   👤 Usuario: {username} ({name})")
-        print(f"   🕒 Timestamp: {timestamp}")
+        print(f"   🕒 Timestamp: {timestamp} (ARG)")
         
         response = requests.post(url, data=payload, timeout=5)
         
@@ -92,14 +94,17 @@ def send_telegram_alert(mensaje, tipo="INFO"):
         }
         
         emoji = emojis.get(tipo, 'ℹ️')
-        timestamp = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        
+        # ✅ HORA DE ARGENTINA
+        tz_argentina = pytz.timezone('America/Argentina/Cordoba')
+        timestamp = datetime.now(tz_argentina).strftime('%d/%m/%Y %H:%M:%S')
         
         mensaje_formatted = f"""
 {emoji} <b>{tipo}</b>
 
 {mensaje}
 
-🕒 {timestamp}
+🕒 {timestamp} (ARG)
 """
         
         url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"

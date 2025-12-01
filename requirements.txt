@@ -33,3 +33,7 @@ captcha==0.7.1
 cffi==2.0.0
 cryptography==46.0.3
 extra-streamlit-components==0.1.81
+
+xlsxwriter
+requests
+pytz
