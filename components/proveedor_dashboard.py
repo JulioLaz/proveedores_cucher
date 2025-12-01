@@ -196,49 +196,28 @@ class ProveedorDashboard:
         if st.session_state.analysis_data is not None:
             # HAY DATOS - Mostrar botón volver
             st.markdown("""
-            <div style="position: absolute; top: -4rem; left: 5rem; z-index: 1000;">📊 Análisis Detallado
+            <div style="position: absolute; top: -2.5rem; left: 2rem; z-index: 1000;font-size:2rem">📊 Análisis Detallado
             </div>
             """, unsafe_allow_html=True)
-
-            # Botón en Python
-            if st.button("← Inicio", type="secondary", use_container_width=True):
-                st.session_state.analysis_data = None
-                st.session_state.selected_proveedor = None
-                st.session_state.resultados_data = None
-                st.session_state.selectbox_key += 1
-                st.rerun()
-
-            # Estilo para posicionar el botón
-            st.markdown("""
-            <style>
-            div[data-testid="stButton"] {
-                position: absolute;
-                top: -4rem;
-                left: 0.1rem;
-                z-index: 1000;
-            }
-            </style>
-            """, unsafe_allow_html=True)
-
             
-            # col1, col2 = st.columns([1, 5])
-            # with col1:
-            #     if st.button("← Inicio", type="secondary", use_container_width=True):
-            #         st.session_state.analysis_data = None
-            #         st.session_state.selected_proveedor = None
-            #         st.session_state.resultados_data = None
-            #         st.session_state.selectbox_key += 1
-            #         st.rerun()
+            col1, col2 = st.columns([1, 5])
+            with col1:
+                if st.button("← Inicio", type="secondary", use_container_width=True):
+                    st.session_state.analysis_data = None
+                    st.session_state.selected_proveedor = None
+                    st.session_state.resultados_data = None
+                    st.session_state.selectbox_key += 1
+                    st.rerun()
             
-            # with col2:
-            #     proveedor = st.session_state.selected_proveedor
-            #     st.markdown(f"""
-            #     <div class="main-header">
-            #         <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>
-            #             📊 Análisis Detallado: {proveedor}
-            #         </p>
-            #     </div>
-            #     """, unsafe_allow_html=True)
+            with col2:
+                proveedor = st.session_state.selected_proveedor
+                st.markdown(f"""
+                <div class="main-header">
+                    <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>
+                        📊 Análisis Detallado: {proveedor}
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
         else:
             # NO HAY DATOS - Solo mostrar título (SIN BOTÓN REFRESCAR)
             st.markdown("""
