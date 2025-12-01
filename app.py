@@ -45,8 +45,14 @@ st.markdown("""
 # SISTEMA DE AUTENTICACIÓN
 # ═══════════════════════════════════════════════════════════
 
+# Convertir secrets a dict (necesario para streamlit-authenticator 0.4.2)
+credentials = {
+    'usernames': dict(st.secrets['credentials']['usernames'])
+}
+
+# Crear autenticador
 authenticator = stauth.Authenticate(
-    st.secrets['credentials'],
+    credentials,
     st.secrets['cookie']['name'],
     st.secrets['cookie']['key'],
     st.secrets['cookie']['expiry_days']
