@@ -45,10 +45,18 @@ st.markdown("""
 # SISTEMA DE AUTENTICACIÓN
 # ═══════════════════════════════════════════════════════════
 
-# Convertir secrets a dict (necesario para streamlit-authenticator 0.4.2)
+# Convertir secrets a dict con copia profunda (necesario para streamlit-authenticator 0.4.2)
 credentials = {
-    'usernames': dict(st.secrets['credentials']['usernames'])
+    'usernames': {}
 }
+
+# Hacer copia profunda de cada usuario
+for username, user_data in st.secrets['credentials']['usernames'].items():
+    credentials['usernames'][username] = {
+        'name': user_data['name'],
+        'password': user_data['password'],
+        'email': user_data['email']
+    }
 
 # Crear autenticador
 authenticator = stauth.Authenticate(
