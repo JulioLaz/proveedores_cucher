@@ -18,7 +18,7 @@ from components.global_dashboard_cache import (
 )
 
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
-    """Dashboard Global - Usa funciones cacheadas para máxima velocidad"""
+    """Dashboard Global de Proveedores"""
     
     print("\n" + "="*80)
     print("🚀 DASHBOARD GLOBAL DE PROVEEDORES")
@@ -80,11 +80,37 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
+        .stSlider > div > div > label {
+            margin-bottom: 10px;
+        }
     </style>
     """, unsafe_allow_html=True)
 
-    # ✅ USAR FUNCIONES CACHEADAS
-    with st.spinner(f"🔄 Cargando datos ({dias_periodo} días)..."):
+    # ✅ CARGAR DATOS CON CACHÉ (sin spinner duplicado)
+    # Verificar si datos están en caché
+    cache_key = f"cache_check_{fecha_desde}_{fecha_hasta}"
+    
+    # Mostrar spinner SOLO si es la primera carga
+    if cache_key not in st.session_state:
+        print(f"\n🔄 Primera carga - Mostrando spinner")
+        with st.spinner(f"🔄 Cargando datos ({dias_periodo} días)..."):
+            df_ventas = get_ventas_data(
+                credentials_path, 
+                project_id, 
+                bigquery_table,
+                str(fecha_desde),
+                str(fecha_hasta)
+            )
+            
+            df_presupuesto = get_presupuesto_data(credentials_path, project_id)
+            
+            ranking = process_ranking_data(df_proveedores, df_ventas, df_presupuesto)
+        
+        # Marcar como cargado
+        st.session_state[cache_key] = True
+    else:
+        print(f"\n⚡ Carga desde caché - Sin spinner")
+        # Cargar sin spinner (será instantáneo desde caché)
         df_ventas = get_ventas_data(
             credentials_path, 
             project_id, 
@@ -192,14 +218,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         """, unsafe_allow_html=True)
 
     # === VISUALIZACIONES ===
-    st.markdown("""
-        <style>
-        .stSlider > div > div > label {
-            margin-bottom: 10px;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
     col1, col2 = st.columns(2)
 
     with col1:
@@ -263,7 +281,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         
         st.plotly_chart(fig_presu, use_container_width=True)
     
-    # === TABLA RANKING DETALLADA ===
+    # === TABLA RANKING ===
     st.markdown("### 📋 Ranking Detallado de Proveedores")
     
     df_display = ranking.copy()
@@ -288,7 +306,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         hide_index=True
     )
     
-    # === INSIGHTS AUTOMÁTICOS ===
+    # === INSIGHTS ===
     st.markdown("### 💡 Insights Clave")
     
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -312,7 +330,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         <b>💰 Mayor Presupuesto Requerido</b><br>
         <b>{top_presupuesto['Proveedor']}</b><br>
         💵 ${top_presupuesto['Presupuesto']:,.0f}<br>
-        📊 ${top_presupuesto['% Participación Presupuesto']:,.1f}% del total<br>
+        📊 {top_presupuesto['% Participación Presupuesto']:.1f}% del total<br>
         📦 {top_presupuesto['Artículos']} artículos<br>
         </div>
         """, unsafe_allow_html=True)
@@ -332,10 +350,10 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         peor_util = ranking.nsmallest(1, 'Utilidad').iloc[0]
         st.markdown(f"""
         <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid #f44336'>
-            <b>⚠️ Proveedor con Menor Utilidad</b><br>
-            <b>{peor_util['Proveedor']}</b><br>
-            💸 ${peor_util['Utilidad']:,.0f}<br>
-            📦 {peor_util['Artículos']} artículos<br>
+        <b>⚠️ Proveedor con Menor Utilidad</b><br>
+        <b>{peor_util['Proveedor']}</b><br>
+        💸 ${peor_util['Utilidad']:,.0f}<br>
+        📦 {peor_util['Artículos']} artículos<br>
         </div>
         """, unsafe_allow_html=True)
                 
@@ -350,7 +368,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         🔄 Optimizar inventario
         </div>
         """, unsafe_allow_html=True)
-    
+       
     # === EXPORTAR RANKING ===
     st.markdown("---")
     
