@@ -29,15 +29,16 @@ def show_sidebar_filters(df_proveedores, df_proveedor_ids, query_bigquery_functi
     # CSS & LOGO
     st.sidebar.markdown(custom_sidebar(), unsafe_allow_html=True)
     
-    ## Información usuario y logout
-    col1, col2 = st.sidebar.columns([3, 1])
-    with col1:
-        st.markdown(f"<small>👤 {st.session_state.get('name', 'Usuario')}</small>", unsafe_allow_html=True)
-    with col2:
-        # Obtener el authenticator desde session_state
-        if 'authenticator' in st.session_state:
-            st.session_state['authenticator'].logout(button_name='Salir', location='sidebar')
+    ## Información usuario y logout compacto
+    st.sidebar.markdown(f"""
+    <div style='display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;'>
+        <span style='font-size: 0.9rem; color: #555;'>👤 {st.session_state.get('name', 'Usuario')}</span>
+    </div>
+    """, unsafe_allow_html=True)
 
+    # Botón logout justo debajo
+    if 'authenticator' in st.session_state:
+        st.session_state['authenticator'].logout(button_name='Salir', location='sidebar')
 
     # Lista de proveedores
     proveedores = sorted(df_proveedores['proveedor'].dropna().unique())
