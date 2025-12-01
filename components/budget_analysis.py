@@ -60,7 +60,7 @@ def show_presupuesto_estrategico(df):
         analisis_ajuste_precios(df)
 
     with tabs[7]:
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width='stretch')
 
 
 def analisis_reposicion(df):
@@ -76,7 +76,7 @@ def analisis_reposicion(df):
         "cor_abastecer", "exp_abastecer", "for_abastecer", 
         "hip_abastecer", "total_abastecer"
     ]
-    st.dataframe(df_reponer[columnas], use_container_width=True)
+    st.dataframe(df_reponer[columnas], width='stretch')
 
 
 def analisis_presupuesto_sucursal(df):
@@ -142,7 +142,7 @@ def analisis_presupuesto_sucursal(df):
             margin=dict(t=60, b=40, l=30, r=20)
         )
         fig1.update_yaxes(showticklabels=False)
-        st.plotly_chart(fig1, use_container_width=True)
+        st.plotly_chart(fig1, width='stretch')
 
     with col2:
         fig2 = px.bar(
@@ -156,7 +156,7 @@ def analisis_presupuesto_sucursal(df):
             coloraxis_showscale=False, margin=dict(t=60, b=40, l=30, r=20)
         )
         fig2.update_yaxes(showticklabels=False)
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, width='stretch')
 
 
 def analisis_riesgo_quiebre(df):
@@ -246,7 +246,7 @@ def analisis_riesgo_quiebre(df):
 
     with col1:
         st.markdown("📊 Distribución del riesgo de quiebre")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     with col2:
         # Formatear columnas
@@ -260,7 +260,7 @@ def analisis_riesgo_quiebre(df):
 
         columnas = ["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima"]
         st.caption(f"🔍 {len(df_riesgo)} artículos en riesgo de quiebre")
-        st.dataframe(df_riesgo[columnas].head(300), use_container_width=True, hide_index=True)
+        st.dataframe(df_riesgo[columnas].head(300), width='stretch', hide_index=True)
 
     # Exportación
     csv = df_riesgo[columnas].to_csv(index=False).encode('utf-8')
@@ -325,7 +325,7 @@ def analisis_exceso_stock(df):
 
     with col1:
         st.markdown("📊 Distribución del exceso de stock por días de cobertura")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     with col2:
         # Formatear columnas
@@ -338,7 +338,7 @@ def analisis_exceso_stock(df):
 
         columnas = ["idarticulo", "descripcion", "exceso_STK_format", "costo_exceso_STK_format", "dias_cobertura_format"]
         st.markdown(f"📦 {len(df_exceso)} artículos con exceso de stock detectado")
-        st.dataframe(df_exceso[columnas].head(300), use_container_width=True, hide_index=True)
+        st.dataframe(df_exceso[columnas].head(300), width='stretch', hide_index=True)
 
     # Análisis detallado con scatter plot
     with st.expander("🔎 Visualizar Exceso por Impacto", expanded=True):
@@ -410,7 +410,7 @@ def _mostrar_analisis_exceso_detallado(df_exceso):
         xaxis_type='log'
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     # Insights automáticos
     _generar_insights_exceso(df_top)
@@ -523,7 +523,7 @@ def _mostrar_pareto_exceso(df_top):
     fig.update_yaxes(title_text="Participación Individual (%)", secondary_y=False)
     fig.update_yaxes(title_text="Participación Acumulada (%)", secondary_y=True)
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     # Insight del Pareto
     top_pareto = pareto_exceso[pareto_exceso["acumulado"] <= 80]
@@ -598,13 +598,13 @@ def analisis_estacionalidad(df):
     col1, col2 = st.columns([1, 2])
 
     with col1:
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     with col2:
         df_estacional['cantidad_optima'] = df_estacional['cantidad_optima'].astype(int).map(lambda x: f"{x:,}")
         df_estacional = df_estacional.sort_values(by="ranking_mes", ascending=False)
         columnas = ["idarticulo", "descripcion", "mes_pico", "mes_bajo", "ranking_mes", "Etiqueta Estacional", "cantidad_optima"]
-        st.dataframe(df_estacional[columnas], use_container_width=True, hide_index=True)
+        st.dataframe(df_estacional[columnas], width='stretch', hide_index=True)
 
     # Descargar CSV
     csv = df_estacional[columnas].to_csv(index=False).encode('utf-8')
@@ -667,7 +667,7 @@ def analisis_ajuste_precios(df=None):
 
     with col1:
         st.caption("📊 Distribución del análisis de variación de precios")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     with col2:
         df_final = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])].copy()
@@ -680,7 +680,7 @@ def analisis_ajuste_precios(df=None):
         df_final["venta para hoy"] = df_final["venta para hoy"].astype(int)
 
         st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
-        st.dataframe(df_final, use_container_width=True, hide_index=True)
+        st.dataframe(df_final, width='stretch', hide_index=True)
 
     # Descargar CSV
     df_export = df_reducido[df_reducido['decision_precio'].isin(['🔻 rebaja', '🔺 alza'])]

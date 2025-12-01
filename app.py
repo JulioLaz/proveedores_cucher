@@ -80,10 +80,10 @@ if st.session_state["authentication_status"]:
     
     # Sidebar con información de usuario
     with st.sidebar:
-        st.markdown("---")
-        st.markdown(f"### 👤 {st.session_state['name']}")
+      #   st.markdown("---")
+        st.markdown(f"### ✨ {st.session_state['name']}")
         authenticator.logout(location='sidebar')
-        st.markdown("---")
+      #   st.markdown("---")
     
     # Función principal de la aplicación
     def main():
@@ -116,10 +116,12 @@ elif st.session_state["authentication_status"] is None:
     with st.expander("ℹ️ Información de acceso"):
         st.markdown("""
         **Usuario:** La parte de tu email antes del @  
-        Ejemplo: `julioalbertolazarte00` para julioalbertolazarte00@gmail.com
+        Ejemplo: `cucher_mercados` para cucher_mercados@gmail.com
         
         **Contraseña temporal:** Primeras 3 letras de tu nombre + 2025  
-        Ejemplo: `jal2025` para Julio Alberto Lazarte
+        Ejemplo: `cucher2025` para Cucher Mercados
         
-        **Nota:** En tu primer acceso, contacta al administrador para cambiar tu contraseña.
+        **⚠️ Nota:** En tu primer acceso, contacta al administrador para cambiar tu contraseña si tienes dudas.
+        **⚠️ Nota:** Guarda los datos en google.
+                    
         """)

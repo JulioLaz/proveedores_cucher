@@ -516,7 +516,7 @@ def _show_executive_table(df, proveedor, metrics, periodo_analisado):
     }
     
     df_resumen = pd.DataFrame(resumen_data)
-    st.dataframe(df_resumen, use_container_width=True, hide_index=True)
+    st.dataframe(df_resumen, width='stretch', hide_index=True)
 
 
 def _show_data_preview(df, proveedor, periodo_analisado):
@@ -544,7 +544,7 @@ def _show_data_preview(df, proveedor, periodo_analisado):
     # Mostrar muestra
     st.dataframe(
         data.head(10),
-        use_container_width=True,
+        width='stretch',
         column_config={
             "fecha_fmt": st.column_config.TextColumn("Fecha"),
             "precio_total": st.column_config.NumberColumn("Precio Total", format="$%.0f"),

@@ -146,7 +146,7 @@ class ProveedorDashboard:
         # Botón volver
         col1, col2 = st.columns([1, 5])
         with col1:
-            if st.button("← Dashboard Global", type="secondary", use_container_width=True):
+            if st.button("← Dashboard Global", type="secondary", width='stretch'):
                 st.session_state.analysis_data = None
                 st.session_state.selected_proveedor = None
                 st.session_state.resultados_data = None

@@ -515,7 +515,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     #     data=output,
     #     file_name=f"ranking_proveedores_{datetime.now().strftime('%d%B%Y')}.xlsx",
     #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    #     use_container_width=True
+    #     width='stretch'
     # )
 
     from datetime import datetime
@@ -634,5 +634,5 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         data=output,
         file_name=f"ranking_proveedores_{datetime.now().strftime('%d%B%Y')}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True
+        width='stretch'
     )
