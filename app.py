@@ -77,12 +77,12 @@ if st.session_state["authentication_status"]:
     # USUARIO AUTENTICADO - DASHBOARD PRINCIPAL
     # ═══════════════════════════════════════════════════════
     
-    # Sidebar con información de usuario
-    with st.sidebar:
-      #   st.markdown("---")
-        st.markdown(f"### ✨ {st.session_state['name']}")
-        authenticator.logout(location='sidebar')
-      #   st.markdown("---")
+   #  # Sidebar con información de usuario
+   #  with st.sidebar:
+   #    #   st.markdown("---")
+   #      st.markdown(f"### ✨ {st.session_state['name']}")
+   #      authenticator.logout(location='sidebar')
+   #    #   st.markdown("---")
     
     # Función principal de la aplicación
     def main():
