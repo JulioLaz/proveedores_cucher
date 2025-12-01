@@ -31,7 +31,7 @@ def show_sidebar_filters(df_proveedores, df_proveedor_ids, query_bigquery_functi
     
     ## Información usuario y logout compacto
     st.sidebar.markdown(f"""
-    <div style='display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;'>
+    <div style='display: flex; justify-content: flex-end; gap: 0.5rem; margin-bottom: 1rem;'>
         <span style='font-size: 0.9rem; color: #555;'>👤 {st.session_state.get('name', 'Usuario')}</span>
     </div>
     """, unsafe_allow_html=True)

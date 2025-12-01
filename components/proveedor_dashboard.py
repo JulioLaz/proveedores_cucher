@@ -196,7 +196,7 @@ class ProveedorDashboard:
         if st.session_state.analysis_data is not None:
             # HAY DATOS - Mostrar botón volver
             st.markdown("""
-            <div style="position: absolute; top: -4rem; left: 2.5rem; z-index: 1000;">
+            <div style="position: absolute; top: -4rem; left: 2.5rem; z-index: 1000;">📊 Análisis Detallado
             </div>
             """, unsafe_allow_html=True)
             
