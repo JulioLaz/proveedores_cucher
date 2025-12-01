@@ -45,13 +45,27 @@ def show_sidebar_filters(df_proveedores, df_proveedor_ids, query_bigquery_functi
     proveedor_actual = st.session_state.get("selected_proveedor")
     
     # Selector de proveedor
+    # proveedor = st.sidebar.selectbox(
+    #     "🔎 Elegir proveedor",
+    #     options=proveedores,
+    #     index=proveedores.index(proveedor_actual) if proveedor_actual in proveedores else None,
+    #     placeholder="Seleccionar proveedor..."
+    # )
+    
+    # Inicializar key si no existe
+    if 'selectbox_key' not in st.session_state:
+        st.session_state.selectbox_key = 0
+
+    # Selector de proveedor con key dinámica
     proveedor = st.sidebar.selectbox(
         "🔎 Elegir proveedor",
         options=proveedores,
-        index=proveedores.index(proveedor_actual) if proveedor_actual in proveedores else None,
-        placeholder="Seleccionar proveedor..."
+        index=proveedores.index(proveedor_actual) if proveedor_actual and proveedor_actual in proveedores else 0,
+        placeholder="Seleccionar proveedor...",
+        key=f"proveedor_selector_{st.session_state.selectbox_key}"
     )
-    
+
+
     # Rango de fechas
     rango_opciones = {
         "Últimos 30 días": 30,
