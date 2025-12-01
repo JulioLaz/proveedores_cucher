@@ -2,17 +2,14 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
+from datetime import datetime
 import time
+import pandas as pd
 from io import BytesIO
+from datetime import datetime
 
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
     """Dashboard Global de Proveedores - Vista inicial con ranking por ventas y presupuesto"""
-    
-    print("\n" + "="*80)
-    print("🚀 INICIANDO DASHBOARD GLOBAL DE PROVEEDORES")
-    print("="*80)
-    inicio_total = time.time()
 
     container = st.container(border=True)
 
@@ -21,6 +18,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         col1, col2, col3 = st.columns([2, 2, 1])
         
         with col1:
+
             periodo_opciones = {
                 "Últimos 30 días": 30,
                 "Últimos 60 días": 60,
@@ -37,13 +35,15 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             )
         
         with col2:
-            if periodo_seleccionado == "Personalizado":
+            if periodo_seleccionado == "Personalizado" or periodo_opciones.keys() != []:
+                from datetime import datetime, timedelta
                 col_a, col_b = st.columns(2)
                 fecha_desde = col_a.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
                 fecha_hasta = col_b.date_input("Hasta:", value=datetime.now().date())
                 dias_periodo = (fecha_hasta - fecha_desde).days
             else:
                 dias_periodo = periodo_opciones[periodo_seleccionado]
+                from datetime import datetime, timedelta
                 fecha_hasta = datetime.now().date()
                 fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
         
@@ -59,89 +59,60 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             padding: 0.8rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
+            # height: 120px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             border-left: 5px solid #2a5298;
             margin-bottom: .5rem;
+                
         }
         
         .metric-box:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
+        
     </style>
     """, unsafe_allow_html=True)
 
-    # ✅ CACHEAR DATOS EN SESSION STATE
-    cache_key = f"global_data_{fecha_desde}_{fecha_hasta}"
     
-    # Verificar si los datos ya están en caché
-    if cache_key not in st.session_state:
-        print(f"\n🔄 CARGANDO DATOS DESDE BIGQUERY ({dias_periodo} días)...")
-        inicio_carga = time.time()
+    # === CARGA DE DATOS DE VENTAS CON FILTRO DE FECHA ===
+    with st.spinner(f"🔄 Cargando ventas de los últimos {dias_periodo} días y presupuesto..."):
+        # start_time = time.time()
         
-        with st.spinner(f"🔄 Cargando ventas de los últimos {dias_periodo} días y presupuesto..."):
-            from google.cloud import bigquery
-            client = bigquery.Client.from_service_account_json(credentials_path)
-            
-            # QUERY DE VENTAS
-            query_ventas = f"""
-            SELECT 
-                idarticulo,
-                SUM(precio_total) as venta_total,
-                SUM(costo_total) as costo_total,
-                SUM(cantidad_total) as cantidad_vendida
-            FROM `{project_id}.{bigquery_table}`
-            WHERE DATE(fecha_comprobante) BETWEEN '{fecha_desde}' AND '{fecha_hasta}'
-            GROUP BY idarticulo
-            """
-            
-            print(f"📊 Ejecutando query de ventas...")
-            inicio_query_ventas = time.time()
-            df_ventas = client.query(query_ventas).to_dataframe()
-            tiempo_query_ventas = time.time() - inicio_query_ventas
-            print(f"✅ Query ventas completada en {tiempo_query_ventas:.2f}s | {len(df_ventas):,} artículos")
-            
-            # QUERY DE PRESUPUESTO
-            print(f"📊 Ejecutando query de presupuesto...")
-            inicio_query_presu = time.time()
-            df_presupuesto = query_function(
-                credentials_path=credentials_path,
-                project_id=project_id,
-                dataset='presupuesto',
-                table='result_final_alert_all'
-            )
-            tiempo_query_presu = time.time() - inicio_query_presu
-            print(f"✅ Query presupuesto completada en {tiempo_query_presu:.2f}s | {len(df_presupuesto):,} artículos")
-            
-            # GUARDAR EN CACHÉ
-            st.session_state[cache_key] = {
-                'df_ventas': df_ventas,
-                'df_presupuesto': df_presupuesto,
-                'timestamp': datetime.now()
-            }
-            
-            tiempo_carga = time.time() - inicio_carga
-            print(f"\n✅ DATOS CARGADOS Y CACHEADOS EN {tiempo_carga:.2f}s")
-            print(f"   📈 Ventas: {len(df_ventas):,} artículos en {tiempo_query_ventas:.2f}s")
-            print(f"   💰 Presupuesto: {len(df_presupuesto):,} artículos en {tiempo_query_presu:.2f}s")
-    else:
-        print(f"\n⚡ USANDO DATOS DESDE CACHÉ (Período: {dias_periodo} días)")
-        print(f"   🕒 Datos cargados: {st.session_state[cache_key]['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    # RECUPERAR DATOS DESDE CACHÉ
-    df_ventas = st.session_state[cache_key]['df_ventas']
-    df_presupuesto = st.session_state[cache_key]['df_presupuesto']
+        from google.cloud import bigquery
+        client = bigquery.Client.from_service_account_json(credentials_path)
+        
+        query_ventas = f"""
+        SELECT 
+            idarticulo,
+            SUM(precio_total) as venta_total,
+            SUM(costo_total) as costo_total,
+            SUM(cantidad_total) as cantidad_vendida
+        FROM `{project_id}.{bigquery_table}`
+        WHERE DATE(fecha_comprobante) BETWEEN '{fecha_desde}' AND '{fecha_hasta}'
+        GROUP BY idarticulo
+        """
+        
+        df_ventas = client.query(query_ventas).to_dataframe()
+        
+        df_presupuesto = query_function(
+            credentials_path=credentials_path,
+            project_id=project_id,
+            dataset='presupuesto',
+            table='result_final_alert_all'
+        )
+        
+        # load_time = time.time() - start_time
     
     if df_ventas is None or df_ventas.empty or df_presupuesto is None or df_presupuesto.empty:
         st.error("❌ No se pudieron cargar los datos necesarios")
         return
     
-    # === MERGE Y AGREGACIÓN ===
-    print(f"\n🔧 PROCESANDO Y AGREGANDO DATOS...")
-    inicio_procesamiento = time.time()
+    # st.success(f"✅ Datos cargados en {load_time:.2f}s | {len(df_ventas):,} artículos con ventas ({dias_periodo} días) | {len(df_presupuesto):,} artículos con presupuesto")
     
+    # === MERGE Y AGREGACIÓN ===
     df_merge = df_proveedores[['idarticulo', 'proveedor', 'idproveedor']].merge(
         df_ventas, on='idarticulo', how='left'
     ).merge(
@@ -175,6 +146,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         'Costo Exceso', 'Art. Sin Stock'
     ]
     
+    
     ranking['Utilidad'] = (ranking['Venta Total'] - ranking['Costo Total']).round(0).astype(int)
     ranking['Rentabilidad %'] = ((ranking['Utilidad'] / ranking['Venta Total']) * 100).round(2)
     ranking['% Participación Presupuesto'] = (ranking['Presupuesto'] / ranking['Presupuesto'].sum() * 100).round(2)
@@ -183,13 +155,11 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     ranking = ranking.sort_values('Venta Total', ascending=False).reset_index(drop=True)
     ranking['Ranking'] = range(1, len(ranking) + 1)
     
-    tiempo_procesamiento = time.time() - inicio_procesamiento
-    print(f"✅ Procesamiento completado en {tiempo_procesamiento:.2f}s")
-    print(f"   📊 {len(ranking)} proveedores en ranking")
-    
-    # === KPIs PRINCIPALES ===
+    # === KPIs PRINCIPALES EN LA PARTE SUPERIOR ===    
     def format_millones(valor):
-        """Formatea valores monetarios a millones"""
+        """
+        Formatea valores monetarios a millones con formato: 10.536 mll
+        """
         if valor >= 1_000_000:
             millones = valor / 1_000_000
             return f"{millones:,.0f} mll".replace(',', 'X').replace('.', ',').replace('X', '.')
@@ -198,6 +168,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         else:
             return f"{valor:,.0f}"
 
+    # Luego en tus KPIs:
     col1, col11, col2, col3, col4, col5 = st.columns(6)
         
     with col1:
@@ -279,17 +250,21 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         """, unsafe_allow_html=True)
 
     # === VISUALIZACIONES ===
+    # st.markdown("---")
+   #  st.markdown("### 📊 Análisis Visual de Proveedores")
+    
+    col1, col2 = st.columns(2)
+    # Inyectar CSS para agregar espacio entre la etiqueta y la barra del slider
     st.markdown("""
         <style>
         .stSlider > div > div > label {
-            margin-bottom: 10px;
+            margin-bottom: 10px;  /* Ajusta este valor para más o menos espacio */
         }
         </style>
         """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
-
     with col1:
+        # TOP VENTAS con slider
         st.markdown("#### 🏆 Ranking por Venta Total")
         top_ventas_num = st.slider("Cantidad de proveedores (Ventas):", 5, 80, 20, step=5, key='slider_ventas')
         
@@ -318,9 +293,10 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             paper_bgcolor='white'
         )
         
-        st.plotly_chart(fig_ventas, use_container_width=True)
+        st.plotly_chart(fig_ventas, width="stretch")
     
     with col2:
+        # TOP PRESUPUESTO con slider
         st.markdown("#### 💰 Ranking por Presupuesto")
         top_presu_num = st.slider("Cantidad de proveedores (Presupuesto):", 5, 80, 20, step=5, key='slider_presu')
         
@@ -348,11 +324,13 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             paper_bgcolor='white'
         )
         
-        st.plotly_chart(fig_presu, use_container_width=True)
+        st.plotly_chart(fig_presu, width="stretch")
     
     # === TABLA RANKING DETALLADA ===
+    # st.markdown("---")
     st.markdown("### 📋 Ranking Detallado de Proveedores")
     
+    # Formatear columnas para display
     df_display = ranking.copy()
     df_display['Venta Total'] = df_display['Venta Total'].apply(lambda x: f"${x:,.0f}")
     df_display['Costo Total'] = df_display['Costo Total'].apply(lambda x: f"${x:,.0f}")
@@ -363,6 +341,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     df_display['% Participación Presupuesto'] = df_display['% Participación Presupuesto'].apply(lambda x: f"{x:.2f}%")
     df_display['% Participación Ventas'] = df_display['% Participación Ventas'].apply(lambda x: f"{x:.2f}%")
 
+    # Slider para cantidad de proveedores en tabla
     num_mostrar = st.slider("Cantidad de proveedores a mostrar:", 10, len(df_display), 20, step=5, key='slider_tabla')
     
     st.dataframe(
@@ -371,11 +350,12 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             '% Participación Presupuesto', 'Presupuesto', 'Artículos', 'Art. con Exceso', 
             'Costo Exceso', 'Art. Sin Stock'
         ]],
-        use_container_width=True,
+        width="stretch",
         hide_index=True
     )
     
     # === INSIGHTS AUTOMÁTICOS ===
+    # st.markdown("---")
     st.markdown("### 💡 Insights Clave")
     
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -416,6 +396,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         """, unsafe_allow_html=True)
     
     with col4:
+        # Menor utilidad
         peor_util = ranking.nsmallest(1, 'Utilidad').iloc[0]
         st.markdown(f"""
         <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid #f44336'>
@@ -441,19 +422,126 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # === EXPORTAR RANKING ===
     st.markdown("---")
     
+    # Preparar DataFrame con datos sin formato
+#     df_export = ranking[[
+#                     'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total', 'Utilidad', 'Rentabilidad %',
+#             '% Participación Presupuesto', 'Presupuesto', 'Artículos', 'Art. con Exceso', 
+#             'Costo Exceso', 'Art. Sin Stock'
+#    ]].copy()
+#     df_export['Venta Total'] = df_export['Venta Total'].astype(int)
+#     df_export['Costo Total'] = df_export['Costo Total'].astype(int)
+#     df_export['Utilidad'] = df_export['Utilidad'].astype(int)
+#     df_export['Presupuesto'] = df_export['Presupuesto'].astype(int)
+#     df_export['Costo Exceso'] = df_export['Costo Exceso'].astype(int)
+#     # redondear en 2 decimales
+#     df_export['Rentabilidad %'] = df_export['Rentabilidad %'].round(2)
+#     df_export['% Participación Presupuesto'] = df_export['% Participación Presupuesto'].round(2)
+#     df_export['% Participación Ventas'] = df_export['% Participación Ventas'].round(2)
+
+#    # Crear buffer en memoria para el archivo Excel
+#     output = BytesIO()
+#     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+#       df_export.to_excel(writer, index=False, sheet_name='Ranking')
+#     output.seek(0)  # volver al inicio del buffer
+
+#    # Botón de descarga en formato XLSX
+#     st.download_button(
+#       label="📥 Descargar Ranking Completo (Excel)",
+#       data=output,
+#       file_name=f"ranking_proveedores_{datetime.now().strftime('%Y%m%d')}.xlsx",
+#       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+#       width="stretch"
+#    )
+    # from io import BytesIO
+    # import pandas as pd
+    # from datetime import datetime
+
+    # === Preparar DataFrame para exportar ===
+    # df_export = ranking[[
+    #     'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total',
+    #     'Utilidad', 'Rentabilidad %', '% Participación Presupuesto', 'Presupuesto',
+    #     'Artículos', 'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
+    # ]].copy()
+
+    # # Ajustes de tipos y redondeos
+    # df_export['Venta Total'] = df_export['Venta Total'].astype(int)
+    # df_export['Costo Total'] = df_export['Costo Total'].astype(int)
+    # df_export['Utilidad'] = df_export['Utilidad'].astype(int)
+    # df_export['Presupuesto'] = df_export['Presupuesto'].astype(int)
+    # df_export['Costo Exceso'] = df_export['Costo Exceso'].astype(int)
+    # df_export['Rentabilidad %'] = df_export['Rentabilidad %'].round(2)
+    # df_export['% Participación Presupuesto'] = df_export['% Participación Presupuesto'].round(2)
+    # df_export['% Participación Ventas'] = df_export['% Participación Ventas'].round(2)
+
+    # # === Exportar con formato ===
+    # output = BytesIO()
+    # with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+    #     df_export.to_excel(writer, index=False, sheet_name='Ranking')
+        
+    #     workbook  = writer.book
+    #     worksheet = writer.sheets['Ranking']
+        
+    #     # Formatos
+    #     formato_miles = workbook.add_format({'num_format': '#,##0'})
+    #     formato_porcentaje = workbook.add_format({'num_format': '0.00%'})
+    #     formato_header = workbook.add_format({
+    #         'bold': True,
+    #         'bg_color': '#4a90e2',   # azul agradable
+    #         'font_color': 'white',
+    #         'align': 'center',
+    #         'valign': 'vcenter'
+    #     })
+        
+    #     # Ajustar ancho de columnas según contenido
+    #     for i, col in enumerate(df_export.columns):
+    #         # calcular ancho máximo entre encabezado y datos
+    #         max_len = max(
+    #             df_export[col].astype(str).map(len).max(),
+    #             len(col)
+    #         ) + 2  # un poco de aire
+    #         worksheet.set_column(i, i, max_len)
+        
+    #     # Aplicar formato a encabezados y altura de fila
+    #     worksheet.set_row(0, 25, formato_header)
+        
+    #     # Inmovilizar primera fila
+    #     worksheet.freeze_panes(1, 0)
+
+    # output.seek(0)
+
+    # # === Botón de descarga ===
+    # st.download_button(
+    #     label="📥 Descargar Ranking Completo (Excel)",
+    #     data=output,
+    #     file_name=f"ranking_proveedores_{datetime.now().strftime('%d%B%Y')}.xlsx",
+    #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    #     width='stretch'
+    # )
+
+    from datetime import datetime
+    from io import BytesIO
+    import pandas as pd
+
+    # === Preparar DataFrame para exportar ===
     df_export = ranking[[
         'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total',
         'Utilidad', 'Rentabilidad %', '% Participación Presupuesto', 'Presupuesto',
         'Artículos', 'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
     ]].copy()
 
+    # === ELIMINAR COLUMNAS VACÍAS ANTES DE EXPORTAR ===
     columnas_vacias = []
     for col in df_export.columns:
         if df_export[col].isna().all() or (df_export[col] == 0).all():
             columnas_vacias.append(col)
 
+    # Eliminar las columnas vacías
     df_export = df_export.drop(columns=columnas_vacias)
 
+    print(f"📊 Columnas exportadas: {list(df_export.columns)}")
+    print(f"🗑️ Columnas eliminadas por estar vacías: {columnas_vacias}")
+
+    # Ajustes de tipos y redondeos
     if 'Venta Total' in df_export.columns:
         df_export['Venta Total'] = df_export['Venta Total'].astype(int)
     if 'Costo Total' in df_export.columns:
@@ -471,6 +559,9 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     if '% Participación Ventas' in df_export.columns:
         df_export['% Participación Ventas'] = df_export['% Participación Ventas'].round(2)
 
+    print("📊 Generando archivo Excel con formato profesional...")
+
+    # === Exportar con formato ===
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         df_export.to_excel(writer, index=False, sheet_name='Ranking')
@@ -478,6 +569,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         workbook = writer.book
         worksheet = writer.sheets['Ranking']
         
+        # === FORMATOS ===
         formato_moneda = workbook.add_format({
             'num_format': '$#,##0',
             'align': 'right'
@@ -497,37 +589,50 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             'border': 1
         })
         
+        # === APLICAR FORMATO A ENCABEZADOS SOLO EN COLUMNAS CON DATOS ===
         num_columnas = len(df_export.columns)
+        
+        # Establecer altura de la primera fila SIN formato para toda la fila
         worksheet.set_row(0, 25)
         
+        # Aplicar formato de header SOLO a las celdas con datos
         for i in range(num_columnas):
             worksheet.write(0, i, df_export.columns[i], formato_header)
         
+        # === INMOVILIZAR PRIMERA FILA ===
         worksheet.freeze_panes(1, 0)
         
+        # === AJUSTAR ANCHO Y APLICAR FORMATOS SOLO A COLUMNAS CON DATOS ===
         for i, col in enumerate(df_export.columns):
+            # Calcular ancho necesario (mínimo el nombre de la columna)
             max_len = max(len(col), 12) + 2
             
+            # Aplicar formato según el tipo de columna
             if col in ['Venta Total', 'Costo Total', 'Utilidad', 'Presupuesto', 'Costo Exceso']:
+                # Formato de moneda con separador de miles
                 worksheet.set_column(i, i, max(max_len, 15), formato_moneda)
+                
             elif col in ['Artículos', 'Art. con Exceso', 'Art. Sin Stock', 'Ranking']:
+                # Formato de número entero con separador de miles
                 worksheet.set_column(i, i, max_len, formato_entero)
+                
             elif col == 'Proveedor':
+                # Texto sin formato especial, más ancho
                 worksheet.set_column(i, i, 30)
+                
             else:
+                # Resto de columnas (porcentajes ya vienen formateados desde pandas)
                 worksheet.set_column(i, i, max_len)
 
     output.seek(0)
 
+    print(f"✅ Archivo Excel generado exitosamente con {num_columnas} columnas")
+
+    # === Botón de descarga ===
     st.download_button(
         label="📥 Descargar Ranking Completo (Excel)",
         data=output,
         file_name=f"ranking_proveedores_{datetime.now().strftime('%d%B%Y')}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True
+        width='stretch'
     )
-    
-    tiempo_total = time.time() - inicio_total
-    print(f"\n{'='*80}")
-    print(f"✅ DASHBOARD COMPLETADO EN {tiempo_total:.2f}s")
-    print(f"{'='*80}\n")

@@ -24,7 +24,7 @@ from components.executive_summary import show_executive_summary as render_execut
 from components.products_analysis import show_products_analysis as render_products_analysis
 from components.temporal_analysis import show_temporal_analysis as render_temporal_analysis
 from components.advanced_analysis import show_advanced_analysis as render_advanced_analysis
-from components.global_dashboard import show_global_dashboard
+from components.global_dashboard_00 import show_global_dashboard
 
 # 🔥 NUEVOS IMPORTS
 from components.article_analysis import show_idarticulo_analysis
@@ -152,16 +152,45 @@ class ProveedorDashboard:
             </div>
             """, unsafe_allow_html=True)
         
-        # Si no hay datos, mostrar dashboard global
+        # # Si no hay datos, mostrar dashboard global
+        # if st.session_state.analysis_data is None:
+        #     show_global_dashboard(
+        #         df_proveedores=self.df_proveedores,
+        #         query_function=query_resultados_idarticulo,
+        #         credentials_path=self.config['credentials_path'],
+        #         project_id=self.config['project_id'],
+        #         bigquery_table=self.config['bigquery_table']
+        #     )
+        #     return
+
+
+        # Cachear el RESULTADO completo del dashboard
         if st.session_state.analysis_data is None:
-            show_global_dashboard(
-                df_proveedores=self.df_proveedores,
-                query_function=query_resultados_idarticulo,
-                credentials_path=self.config['credentials_path'],
-                project_id=self.config['project_id'],
-                bigquery_table=self.config['bigquery_table']
-            )
+            # Solo cargar la primera vez
+            if 'global_dashboard_loaded' not in st.session_state:
+                st.session_state.global_dashboard_loaded = False
+            
+            if not st.session_state.global_dashboard_loaded:
+                with st.spinner("📊 Cargando dashboard global..."):
+                    show_global_dashboard(
+                        df_proveedores=self.df_proveedores,
+                        query_function=query_resultados_idarticulo,
+                        credentials_path=self.config['credentials_path'],
+                        project_id=self.config['project_id'],
+                        bigquery_table=self.config['bigquery_table']
+                    )
+                    st.session_state.global_dashboard_loaded = True
+            else:
+                # Mostrar desde caché (instantáneo)
+                show_global_dashboard(
+                    df_proveedores=self.df_proveedores,
+                    query_function=query_resultados_idarticulo,
+                    credentials_path=self.config['credentials_path'],
+                    project_id=self.config['project_id'],
+                    bigquery_table=self.config['bigquery_table']
+                )
             return
+
         
         # Datos y métricas
         df = st.session_state.analysis_data
