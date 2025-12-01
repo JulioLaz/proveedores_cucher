@@ -214,7 +214,7 @@ class ProveedorDashboard:
                 st.markdown(f"""
                 <div class="main-header">
                     <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>
-                        📊 Análisis Detallado: {proveedor}
+                        Proveedor: {proveedor}
                     </p>
                 </div>
                 """, unsafe_allow_html=True)

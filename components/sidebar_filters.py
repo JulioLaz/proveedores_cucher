@@ -36,9 +36,26 @@ def show_sidebar_filters(df_proveedores, df_proveedor_ids, query_bigquery_functi
     </div>
     """, unsafe_allow_html=True)
 
-    # Botón logout justo debajo
+    st.markdown("""
+    <style>
+    div[data-testid="stSidebar"] button {
+        width: 100% !important;
+        background-color: #f0f0f0;
+        color: #333;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        padding: 0.5rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     if 'authenticator' in st.session_state:
         st.session_state['authenticator'].logout(button_name='Salir', location='sidebar')
+
+
+    # # Botón logout justo debajo
+    # if 'authenticator' in st.session_state:
+    #     st.session_state['authenticator'].logout(button_name='Salir', location='sidebar')
 
     # Lista de proveedores
     proveedores = sorted(df_proveedores['proveedor'].dropna().unique())
