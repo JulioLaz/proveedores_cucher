@@ -254,7 +254,15 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
    #  st.markdown("### 📊 Análisis Visual de Proveedores")
     
     col1, col2 = st.columns(2)
-    
+    # Inyectar CSS para agregar espacio entre la etiqueta y la barra del slider
+    st.markdown("""
+        <style>
+        .stSlider > div > div > label {
+            margin-bottom: 10px;  /* Ajusta este valor para más o menos espacio */
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
     with col1:
         # TOP VENTAS con slider
         st.markdown("#### 🏆 Ranking por Venta Total")
