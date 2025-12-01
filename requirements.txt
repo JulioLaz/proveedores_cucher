@@ -7,7 +7,6 @@ google-api-python-client
 db-dtypes
 streamlit
 
-streamlit>=1.28.0
 pandas>=2.0.0
 numpy>=1.24.0
 plotly>=5.15.0
@@ -24,3 +23,13 @@ seaborn
 xlsxwriter
 babel
 pandas-gbq
+
+
+streamlit==1.51.0
+streamlit-authenticator==0.4.2
+PyJWT==2.10.1
+bcrypt==5.0.0
+captcha==0.7.1
+cffi==2.0.0
+cryptography==46.0.3
+extra-streamlit-components==0.1.81

@@ -1,8 +1,10 @@
 """
 Dashboard de Análisis de Proveedores
 Versión Modularizada - Cucher Mercados
+Sistema de autenticación integrado
 """
 import streamlit as st
+import streamlit_authenticator as stauth
 import warnings
 from components.proveedor_dashboard import ProveedorDashboard
 from custom_css import custom_css
@@ -40,25 +42,70 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════
-# FUNCIÓN PRINCIPAL
+# SISTEMA DE AUTENTICACIÓN
 # ═══════════════════════════════════════════════════════════
 
-def main():
-    """Función principal de la aplicación"""
-    dashboard = ProveedorDashboard()
-    dashboard.run()
+authenticator = stauth.Authenticate(
+    st.secrets['credentials'],
+    st.secrets['cookie']['name'],
+    st.secrets['cookie']['key'],
+    st.secrets['cookie']['expiry_days']
+)
+
+# Widget de login
+authenticator.login()
+
+# ═══════════════════════════════════════════════════════════
+# VERIFICACIÓN DE AUTENTICACIÓN
+# ═══════════════════════════════════════════════════════════
+
+if st.session_state["authentication_status"]:
+    # ═══════════════════════════════════════════════════════
+    # USUARIO AUTENTICADO - DASHBOARD PRINCIPAL
+    # ═══════════════════════════════════════════════════════
     
-    # Footer
-    st.markdown("""
-    <hr style="margin: 0; border: none; border-top: 2px solid #ccc;" />
-    <div style="text-align: center; color: #666; font-size: 0.8em; margin-top: 20px;">
-        Julio A. Lazarte | Científico de Datos & BI | Cucher Mercados
-    </div>
-    """, unsafe_allow_html=True)
-
-# ═══════════════════════════════════════════════════════════
-# PUNTO DE ENTRADA
-# ═══════════════════════════════════════════════════════════
-
-if __name__ == "__main__":
+    # Sidebar con información de usuario
+    with st.sidebar:
+        st.markdown("---")
+        st.markdown(f"### 👤 {st.session_state['name']}")
+        authenticator.logout('Cerrar Sesión', 'sidebar')
+        st.markdown("---")
+    
+    # Función principal de la aplicación
+    def main():
+        """Función principal de la aplicación"""
+        dashboard = ProveedorDashboard()
+        dashboard.run()
+        
+        # Footer
+        st.markdown("""
+        <hr style="margin: 0; border: none; border-top: 2px solid #ccc;" />
+        <div style="text-align: center; color: #666; font-size: 0.8em; margin-top: 20px;">
+            Julio A. Lazarte | Científico de Datos & BI | Cucher Mercados
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Ejecutar dashboard
     main()
+
+elif st.session_state["authentication_status"] is False:
+    st.error('❌ Usuario o contraseña incorrectos')
+    st.info("""
+    **¿Olvidaste tu contraseña?**  
+    Contacta al administrador del sistema.
+    """)
+    
+elif st.session_state["authentication_status"] is None:
+    st.warning('👋 Por favor ingrese sus credenciales para acceder')
+    
+    # Instrucciones de acceso
+    with st.expander("ℹ️ Información de acceso"):
+        st.markdown("""
+        **Usuario:** La parte de tu email antes del @  
+        Ejemplo: `julioalbertolazarte00` para julioalbertolazarte00@gmail.com
+        
+        **Contraseña temporal:** Primeras 3 letras de tu nombre + 2025  
+        Ejemplo: `jal2025` para Julio Alberto Lazarte
+        
+        **Nota:** En tu primer acceso, contacta al administrador para cambiar tu contraseña.
+        """)

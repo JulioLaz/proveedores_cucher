@@ -5,3 +5,7 @@ temp_credentials.json
 .streamlit/config.toml
 .streamlit/secrets.toml
 components/ver.py
+
+*.txt
+
+*.toml
