@@ -1,16 +1,27 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from datetime import datetime, timedelta
+import time
+from io import BytesIO
+import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import time
 from io import BytesIO
 
+# Importar funciones cacheadas
+from components.global_dashboard_cache import (
+    get_ventas_data,
+    get_presupuesto_data, 
+    process_ranking_data
+)
+
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
-    """Dashboard Global de Proveedores - Vista inicial con ranking por ventas y presupuesto"""
+    """Dashboard Global - Usa funciones cacheadas para máxima velocidad"""
     
     print("\n" + "="*80)
-    print("🚀 INICIANDO DASHBOARD GLOBAL DE PROVEEDORES")
+    print("🚀 DASHBOARD GLOBAL DE PROVEEDORES")
     print("="*80)
     inicio_total = time.time()
 
@@ -50,7 +61,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         with col3:
             st.metric("📆 Días", f"{dias_periodo}")
     
-    # === ESTILOS CSS MEJORADOS ===
+    # === ESTILOS ===
     st.markdown("""
     <style>
         .metric-box {
@@ -65,7 +76,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             border-left: 5px solid #2a5298;
             margin-bottom: .5rem;
         }
-        
         .metric-box:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
@@ -73,123 +83,26 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     </style>
     """, unsafe_allow_html=True)
 
-    # ✅ CACHEAR DATOS EN SESSION STATE
-    cache_key = f"global_data_{fecha_desde}_{fecha_hasta}"
-    
-    # Verificar si los datos ya están en caché
-    if cache_key not in st.session_state:
-        print(f"\n🔄 CARGANDO DATOS DESDE BIGQUERY ({dias_periodo} días)...")
-        inicio_carga = time.time()
+    # ✅ USAR FUNCIONES CACHEADAS
+    with st.spinner(f"🔄 Cargando datos ({dias_periodo} días)..."):
+        df_ventas = get_ventas_data(
+            credentials_path, 
+            project_id, 
+            bigquery_table,
+            str(fecha_desde),
+            str(fecha_hasta)
+        )
         
-        with st.spinner(f"🔄 Cargando ventas de los últimos {dias_periodo} días y presupuesto..."):
-            from google.cloud import bigquery
-            client = bigquery.Client.from_service_account_json(credentials_path)
-            
-            # QUERY DE VENTAS
-            query_ventas = f"""
-            SELECT 
-                idarticulo,
-                SUM(precio_total) as venta_total,
-                SUM(costo_total) as costo_total,
-                SUM(cantidad_total) as cantidad_vendida
-            FROM `{project_id}.{bigquery_table}`
-            WHERE DATE(fecha_comprobante) BETWEEN '{fecha_desde}' AND '{fecha_hasta}'
-            GROUP BY idarticulo
-            """
-            
-            print(f"📊 Ejecutando query de ventas...")
-            inicio_query_ventas = time.time()
-            df_ventas = client.query(query_ventas).to_dataframe()
-            tiempo_query_ventas = time.time() - inicio_query_ventas
-            print(f"✅ Query ventas completada en {tiempo_query_ventas:.2f}s | {len(df_ventas):,} artículos")
-            
-            # QUERY DE PRESUPUESTO
-            print(f"📊 Ejecutando query de presupuesto...")
-            inicio_query_presu = time.time()
-            df_presupuesto = query_function(
-                credentials_path=credentials_path,
-                project_id=project_id,
-                dataset='presupuesto',
-                table='result_final_alert_all'
-            )
-            tiempo_query_presu = time.time() - inicio_query_presu
-            print(f"✅ Query presupuesto completada en {tiempo_query_presu:.2f}s | {len(df_presupuesto):,} artículos")
-            
-            # GUARDAR EN CACHÉ
-            st.session_state[cache_key] = {
-                'df_ventas': df_ventas,
-                'df_presupuesto': df_presupuesto,
-                'timestamp': datetime.now()
-            }
-            
-            tiempo_carga = time.time() - inicio_carga
-            print(f"\n✅ DATOS CARGADOS Y CACHEADOS EN {tiempo_carga:.2f}s")
-            print(f"   📈 Ventas: {len(df_ventas):,} artículos en {tiempo_query_ventas:.2f}s")
-            print(f"   💰 Presupuesto: {len(df_presupuesto):,} artículos en {tiempo_query_presu:.2f}s")
-    else:
-        print(f"\n⚡ USANDO DATOS DESDE CACHÉ (Período: {dias_periodo} días)")
-        print(f"   🕒 Datos cargados: {st.session_state[cache_key]['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
+        df_presupuesto = get_presupuesto_data(credentials_path, project_id)
+        
+        ranking = process_ranking_data(df_proveedores, df_ventas, df_presupuesto)
     
-    # RECUPERAR DATOS DESDE CACHÉ
-    df_ventas = st.session_state[cache_key]['df_ventas']
-    df_presupuesto = st.session_state[cache_key]['df_presupuesto']
-    
-    if df_ventas is None or df_ventas.empty or df_presupuesto is None or df_presupuesto.empty:
-        st.error("❌ No se pudieron cargar los datos necesarios")
+    if ranking is None or ranking.empty:
+        st.error("❌ No se pudieron cargar los datos")
         return
     
-    # === MERGE Y AGREGACIÓN ===
-    print(f"\n🔧 PROCESANDO Y AGREGANDO DATOS...")
-    inicio_procesamiento = time.time()
-    
-    df_merge = df_proveedores[['idarticulo', 'proveedor', 'idproveedor']].merge(
-        df_ventas, on='idarticulo', how='left'
-    ).merge(
-        df_presupuesto[['idarticulo', 'PRESUPUESTO', 'exceso_STK', 'costo_exceso_STK', 'STK_TOTAL']],
-        on='idarticulo',
-        how='left'
-    )
-    
-    df_merge['venta_total'] = df_merge['venta_total'].fillna(0)
-    df_merge['costo_total'] = df_merge['costo_total'].fillna(0)
-    df_merge['cantidad_vendida'] = df_merge['cantidad_vendida'].fillna(0)
-    df_merge['PRESUPUESTO'] = df_merge['PRESUPUESTO'].fillna(0)
-    df_merge['exceso_STK'] = df_merge['exceso_STK'].fillna(0)
-    df_merge['costo_exceso_STK'] = df_merge['costo_exceso_STK'].fillna(0)
-    df_merge['STK_TOTAL'] = df_merge['STK_TOTAL'].fillna(0)
-    
-    ranking = df_merge.groupby(['proveedor', 'idproveedor']).agg({
-        'venta_total': 'sum',
-        'costo_total': 'sum',
-        'cantidad_vendida': 'sum',
-        'idarticulo': 'count',
-        'PRESUPUESTO': 'sum',
-        'exceso_STK': lambda x: (x > 0).sum(),
-        'costo_exceso_STK': 'sum',
-        'STK_TOTAL': lambda x: (x == 0).sum()
-    }).reset_index()
-    
-    ranking.columns = [
-        'Proveedor', 'ID', 'Venta Total', 'Costo Total', 'Cantidad Vendida', 
-        'Artículos', 'Presupuesto', 'Art. con Exceso', 
-        'Costo Exceso', 'Art. Sin Stock'
-    ]
-    
-    ranking['Utilidad'] = (ranking['Venta Total'] - ranking['Costo Total']).round(0).astype(int)
-    ranking['Rentabilidad %'] = ((ranking['Utilidad'] / ranking['Venta Total']) * 100).round(2)
-    ranking['% Participación Presupuesto'] = (ranking['Presupuesto'] / ranking['Presupuesto'].sum() * 100).round(2)
-    ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(2)
-    ranking['% Participación Utilidad'] = (ranking['Utilidad'] / ranking['Utilidad'].sum() * 100).round(2)
-    ranking = ranking.sort_values('Venta Total', ascending=False).reset_index(drop=True)
-    ranking['Ranking'] = range(1, len(ranking) + 1)
-    
-    tiempo_procesamiento = time.time() - inicio_procesamiento
-    print(f"✅ Procesamiento completado en {tiempo_procesamiento:.2f}s")
-    print(f"   📊 {len(ranking)} proveedores en ranking")
-    
-    # === KPIs PRINCIPALES ===
+    # === KPIs ===
     def format_millones(valor):
-        """Formatea valores monetarios a millones"""
         if valor >= 1_000_000:
             millones = valor / 1_000_000
             return f"{millones:,.0f} mll".replace(',', 'X').replace('.', ',').replace('X', '.')
