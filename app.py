@@ -74,7 +74,7 @@ if st.session_state["authentication_status"]:
     with st.sidebar:
         st.markdown("---")
         st.markdown(f"### 👤 {st.session_state['name']}")
-        authenticator.logout('Cerrar Sesión', 'sidebar')
+        authenticator.logout(location='sidebar')
         st.markdown("---")
     
     # Función principal de la aplicación
