@@ -6,6 +6,7 @@ Sistema de autenticación integrado
 import streamlit as st
 import streamlit_authenticator as stauth
 import warnings
+import copy
 from components.proveedor_dashboard import ProveedorDashboard
 from custom_css import custom_css
 
@@ -45,18 +46,13 @@ st.markdown("""
 # SISTEMA DE AUTENTICACIÓN
 # ═══════════════════════════════════════════════════════════
 
-# Convertir secrets a dict con copia profunda (necesario para streamlit-authenticator 0.4.2)
-credentials = {
-    'usernames': {}
-}
-
-# Hacer copia profunda de cada usuario
-for username, user_data in st.secrets['credentials']['usernames'].items():
-    credentials['usernames'][username] = {
-        'name': user_data['name'],
-        'password': user_data['password'],
-        'email': user_data['email']
+# Crear copia profunda completamente independiente de secrets
+credentials = copy.deepcopy({
+    'usernames': {
+        username: dict(user_data)
+        for username, user_data in st.secrets['credentials']['usernames'].items()
     }
+})
 
 # Crear autenticador
 authenticator = stauth.Authenticate(
@@ -109,6 +105,7 @@ elif st.session_state["authentication_status"] is False:
     Contacta al administrador del sistema.
     """)
     
+   
 elif st.session_state["authentication_status"] is None:
     st.warning('👋 Por favor ingrese sus credenciales para acceder')
     
