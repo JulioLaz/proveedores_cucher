@@ -203,6 +203,8 @@ def custom_sidebar():
     return """
             <style>
             .sidebar-logo-box img {
+            position: absolute;
+                top: -4rem;
                 max-width: 100%;
                 border-radius: 8px;
                 margin-bottom: 0.5rem;
