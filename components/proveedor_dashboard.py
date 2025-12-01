@@ -107,6 +107,123 @@ class ProveedorDashboard:
     
     def show_main_dashboard(self):
         """Mostrar dashboard principal"""
+        # Header basado en si hay datos de análisis cargados
+        if st.session_state.analysis_data is not None:
+            # HAY DATOS - Mostrar botón volver y título con proveedor
+            st.markdown("""
+            <div style="position: absolute; top: -4rem; left: 2.5rem; z-index: 1000;">
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Botón volver
+            col1, col2 = st.columns([1, 5])
+            with col1:
+                if st.button("← Inicio", type="secondary", use_container_width=True):
+                    st.session_state.analysis_data = None
+                    st.session_state.selected_proveedor = None
+                    st.session_state.resultados_data = None
+                    
+                    # ✅ RESETEAR EL SELECTBOX
+                    st.session_state.selectbox_key += 1
+                    
+                    st.rerun()
+            
+            with col2:
+                proveedor = st.session_state.selected_proveedor
+                st.markdown(f"""
+                <div class="main-header">
+                    <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>
+                        📊 Análisis Detallado: {proveedor}
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            # NO HAY DATOS - Mostrar título de ranking
+            st.markdown("""
+            <div class="main-header">
+                <p style='
+                    position: absolute;
+                    top: -4rem;
+                    left: 2.5rem;
+                    padding: 5px 0px;
+                    font-size: 2.2rem;
+                    color: #646060;
+                    font-weight: 500;'>📈 Ranking de Proveedores</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Si no hay datos, mostrar dashboard global
+        if st.session_state.analysis_data is None:
+            show_global_dashboard(
+                df_proveedores=self.df_proveedores,
+                query_function=query_resultados_idarticulo,
+                credentials_path=self.config['credentials_path'],
+                project_id=self.config['project_id'],
+                bigquery_table=self.config['bigquery_table']
+            )
+            return
+        
+        # Datos y métricas
+        df = st.session_state.analysis_data
+        df_presu = st.session_state.get('resultados_data')
+        proveedor = st.session_state.selected_proveedor
+        metrics = calculate_metrics(df)
+        
+        # Tabs principales
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+            "📈 Resumen Ejecutivo",
+            "🏆 Análisis de Productos",
+            "📅 Evolución Temporal",
+            "🎯 Análisis Avanzado",
+            "📋 Síntesis Final",
+            "🧮 Presupuesto"
+        ])
+        
+        with tab1:
+            render_executive_summary(df, proveedor, metrics)
+        
+        with tab2:
+            try:
+                from insight_ABC import generar_insight_pareto
+                render_products_analysis(df, generar_insight_pareto)
+            except ImportError:
+                render_products_analysis(df)
+        
+        with tab3:
+            render_temporal_analysis(df)
+        
+        with tab4:
+            try:
+                from insight_ABC import (
+                    generar_insight_margen,
+                    generar_insight_cantidad,
+                    generar_insight_ventas,
+                    generar_insight_abc_completo
+                )
+                render_advanced_analysis(
+                    df, metrics,
+                    generar_insight_margen_func=generar_insight_margen,
+                    generar_insight_cantidad_func=generar_insight_cantidad,
+                    generar_insight_ventas_func=generar_insight_ventas,
+                    generar_insight_abc_completo_func=generar_insight_abc_completo
+                )
+            except ImportError:
+                render_advanced_analysis(df, metrics)
+        
+        with tab5:
+            show_executive_summary_best(df, proveedor, metrics)
+        
+        with tab6:
+            if df_presu is not None:
+                show_presupuesto_estrategico(df_presu)
+            else:
+                st.info("📊 No hay datos de presupuesto disponibles")
+
+
+
+
+    def show_main_dashboard_00(self):
+        """Mostrar dashboard principal"""
         proveedor = self.proveedor if hasattr(self, 'proveedor') else None
         
         # Header
