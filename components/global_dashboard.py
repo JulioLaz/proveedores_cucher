@@ -45,7 +45,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             )
         
         with col2:
-            if periodo_seleccionado == "Personalizado" or periodo_opciones.keys() != []:
+            if periodo_seleccionado == "Personalizado":
+            # if periodo_seleccionado == "Personalizado" or periodo_opciones.keys() != []:
                 from datetime import datetime, timedelta
                 col_a, col_b = st.columns(2)
                 fecha_desde = col_a.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
@@ -80,11 +81,11 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         with col3:
             st.metric("📆 Días", f"{dias_periodo}", border=True)
         
-        with col4:
-            # ✅ BOTÓN MANUAL de actualización
-            if st.button("🔄 Actualizar", use_container_width=True, type="primary"):
-                st.cache_data.clear()
-                st.rerun()
+      #   with col4:
+      #       # ✅ BOTÓN MANUAL de actualización
+      #       if st.button("🔄 Actualizar", use_container_width=True, type="primary"):
+      #           st.cache_data.clear()
+      #           st.rerun()
     
     # 📊 DEBUG: Mostrar período seleccionado en consola
     print(f"\n{'='*80}")
