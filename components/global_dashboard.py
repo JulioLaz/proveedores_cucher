@@ -9,7 +9,8 @@ import plotly.graph_objects as go
 # Importar funciones cacheadas
 from components.global_dashboard_cache import (
     get_ventas_data,
-    get_presupuesto_data, 
+    get_presupuesto_data,
+    get_familias_data,    # ← AGREGAR
     process_ranking_data
 )
 
@@ -25,7 +26,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
     with container:
         # === SELECTOR DE PERÍODO ===
-        col1, col2, col3 = st.columns([2, 2, 1])
+        col1, col2, col3,col_fam1, col_fam2, col_fam3 = st.columns([2, 2, 1,2, 2, 1])
 
         with col1:
             periodo_opciones = {
@@ -84,173 +85,132 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                             unsafe_allow_html=True
                         )
 
-
         with col3:
             st.metric("📆 Días", f"{dias_periodo}")
 
+        # === CARGAR DATOS PRIMERO (para tener df_ventas disponible) ===
+        print(f"\n🔄 Cargando datos para filtros...")
+        df_ventas = get_ventas_data(
+            credentials_path, 
+            project_id, 
+            bigquery_table,
+            str(fecha_desde),
+            str(fecha_hasta)
+        )
 
+        df_presupuesto = get_presupuesto_data(credentials_path, project_id)
+        df_familias = get_familias_data(credentials_path, project_id)
 
-    # from datetime import datetime, timedelta
+        # Agregar familia/subfamilia a df_proveedores
+        df_prov_con_familias = df_proveedores.merge(
+            df_familias[['idarticulo', 'familia', 'subfamilia']],
+            on='idarticulo',
+            how='left'
+        )
 
-    # # Estado inicial seguro
-    # if "periodo_seleccionado" not in st.session_state:
-    #     st.session_state.periodo_seleccionado = "Últimos 30 días"
-    # if "desde_personalizado" not in st.session_state:
-    #     st.session_state.desde_personalizado = (datetime.now().date() - timedelta(days=30))
-    # if "hasta_personalizado" not in st.session_state:
-    #     st.session_state.hasta_personalizado = datetime.now().date()
+        # ⭐ FILTRAR SOLO ARTÍCULOS CON VENTAS EN EL PERÍODO
+        articulos_con_ventas = df_ventas['idarticulo'].unique()
+        df_prov_con_familias = df_prov_con_familias[
+            df_prov_con_familias['idarticulo'].isin(articulos_con_ventas)
+        ]
 
-    # def reset_fechas():
-    #     # Al cambiar el período, reponemos defaults y evitamos que se "pegue" el estado anterior
-    #     st.session_state.desde_personalizado = (datetime.now().date() - timedelta(days=30))
-    #     st.session_state.hasta_personalizado = datetime.now().date()
+        print(f"   ✅ Artículos con ventas en período: {len(df_prov_con_familias):,}")
 
-    # # === SELECTOR DE PERÍODO (VERSIÓN LIMPIA) ===
-    # container = st.container(border=True)
+        # col_fam1, col_fam2, col_fam3 = st.columns([3, 3, 1])
 
-    # with container:
-    #     col1, col2, col3 = st.columns([2, 2, 1])
+        # === FILTROS DE FAMILIA Y SUBFAMILIA ===
 
-    #     # 1) Selectbox principal
-    #     with col1:
-    #         periodo_opciones = {
-    #             "Últimos 30 días": 30,
-    #             "Últimos 60 días": 60,
-    #             "Últimos 90 días": 90,
-    #             "Últimos 6 meses": 180,
-    #             "Último año": 365,
-    #             "Personalizado": None,
-    #         }
-
-    #         periodo_seleccionado = st.selectbox(
-    #             "📅 Período de análisis de ventas:",
-    #             options=list(periodo_opciones.keys()),
-    #             index=0,
-    #             key="periodo_selector_global",  # 👈 clave única para este selector
-    #         )
-
-    #     # 2) Fechas según la opción
-    #     with col2:
-    #         if periodo_seleccionado == "Personalizado":
-    #             col_a, col_b = st.columns(2)
-    #             fecha_desde = col_a.date_input(
-    #                 "Desde:",
-    #                 value=datetime.now().date() - timedelta(days=30),
-    #                 key="fecha_desde_personalizada_global",
-    #             )
-    #             fecha_hasta = col_b.date_input(
-    #                 "Hasta:",
-    #                 value=datetime.now().date(),
-    #                 key="fecha_hasta_personalizada_global",
-    #             )
-    #         else:
-    #             hoy = datetime.now().date()
-    #             dias_base = periodo_opciones[periodo_seleccionado]
-    #             fecha_hasta = hoy
-    #             fecha_desde = hoy - timedelta(days=dias_base)
-
-    #     # 3) Validación general
-    #     if fecha_desde > fecha_hasta:
-    #         st.error("La fecha 'Desde' no puede ser mayor que 'Hasta'.")
-    #         st.stop()
-
-    #     # 4) Cálculo de días SIEMPRE a partir de las fechas efectivas
-    #     dias_periodo = (fecha_hasta - fecha_desde).days
-
-    #     with col3:
-    #         st.metric("📆 Días", f"{dias_periodo}")
-
-# 33333333333333333333333333333333333333333333333333333333333333333333
-
-
-    # A partir de acá, para tu query:
-    # usa SIEMPRE estas variables:
-    # - fecha_desde
-    # - fecha_hasta
-    # - dias_periodo (solo para mostrar o condicionar algo)
-
-
-    # with container:
-    #     # === SELECTOR DE PERÍODO ===
-    #     col1, col2, col3 = st.columns([2, 2, 1])
-        
-    #     with col1:
-
-    #         periodo_opciones = {
-    #             "Últimos 30 días": 30,
-    #             "Últimos 60 días": 60,
-    #             "Últimos 90 días": 90,
-    #             "Últimos 6 meses": 180,
-    #             "Último año": 365,
-    #             "Personalizado": None
-    #         }
+        with col_fam1:
+            familias_disponibles = sorted(df_prov_con_familias['familia'].dropna().unique().tolist())
             
-    #         periodo_seleccionado = st.selectbox(
-    #             "📅 Período de análisis de ventas:",
-    #             options=list(periodo_opciones.keys()),
-    #             index=0
-    #         )        
-    #     # col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
-        
-    #     # with col1:
-    #     #     periodo_opciones = {
-    #     #         "Últimos 30 días": 30,
-    #     #         "Últimos 60 días": 60,
-    #     #         "Últimos 90 días": 90,
-    #     #         "Últimos 6 meses": 180,
-    #     #         "Último año": 365,
-    #     #         "Personalizado": None
-    #     #     }
+            familias_seleccionadas = st.multiselect(
+                "🏷️ Filtrar por Familia:",
+                options=familias_disponibles,
+                default=[],  # Vacío = todas
+                placeholder="Selecciona una o más familias (vacío = todas)"
+            )
             
-    #     #     periodo_seleccionado = st.selectbox(
-    #     #         "📅 Período de análisis de ventas:",
-    #     #         options=list(periodo_opciones.keys()),
-    #     #         index=0,
-    #     #         key='periodo_selector'
-    #     #     )
-        
-    #     with col2:
-    #         if periodo_seleccionado == "Personalizado":
-    #         # if periodo_seleccionado == "Personalizado" or periodo_opciones.keys() != []:
-    #             from datetime import datetime, timedelta
-    #             col_a, col_b = st.columns(2)
-    #             fecha_desde = col_a.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
-    #             fecha_hasta = col_b.date_input("Hasta:", value=datetime.now().date())
-    #             dias_periodo = (fecha_hasta - fecha_desde).days
-    #         # else:
-    #         #     dias_periodo = periodo_opciones[periodo_seleccionado]
-    #         #     from datetime import datetime, timedelta
-    #         #     fecha_hasta = datetime.now().date()
-    #         #     fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
-    #         # if periodo_seleccionado == "Personalizado" or periodo_seleccionado is None:
-    #         #     col_a, col_b = st.columns(2)
-    #         #     fecha_desde = col_a.date_input(
-    #         #         "Desde:", 
-    #         #         value=datetime.now().date() - timedelta(days=30),
-    #         #         key='fecha_desde_custom'
-    #         #     )
-    #         #     fecha_hasta = col_b.date_input(
-    #         #         "Hasta:", 
-    #         #         value=datetime.now().date(),
-    #         #         key='fecha_hasta_custom'
-    #         #     )
-    #         #     dias_periodo = (fecha_hasta - fecha_desde).days
-    #         # else:
-    #         #     dias_periodo = periodo_opciones[periodo_seleccionado]
-    #         #     fecha_hasta = datetime.now().date()
-    #         #     fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
-                
-    #         #     # ✅ MOSTRAR las fechas calculadas automáticamente
-    #         #     st.info(f"📅 {fecha_desde.strftime('%d/%m/%Y')} → {fecha_hasta.strftime('%d/%m/%Y')}")
-        
-    #     with col3:
-    #         st.metric("📆 Días", f"{dias_periodo}", border=True)
-        
-    #   #   with col4:
-    #   #       # ✅ BOTÓN MANUAL de actualización
-    #   #       if st.button("🔄 Actualizar", use_container_width=True, type="primary"):
-    #   #           st.cache_data.clear()
-    #   #           st.rerun()
+            # Si no se selecciona nada, usar todas
+            if not familias_seleccionadas:
+                familias_seleccionadas = familias_disponibles
+
+        with col_fam2:
+            # Filtrar subfamilias según familias seleccionadas
+            df_familias_filtradas = df_prov_con_familias[
+                df_prov_con_familias['familia'].isin(familias_seleccionadas)
+            ]
+            
+            subfamilias_disponibles = sorted(df_familias_filtradas['subfamilia'].dropna().unique().tolist())
+            
+            subfamilias_seleccionadas = st.multiselect(
+                "📂 Filtrar por Subfamilia:",
+                options=subfamilias_disponibles,
+                default=[],  # Vacío = todas
+                placeholder="Selecciona una o más subfamilias (vacío = todas)"
+            )
+            
+            # Si no se selecciona nada, usar todas las disponibles
+            if not subfamilias_seleccionadas:
+                subfamilias_seleccionadas = subfamilias_disponibles
+
+        with col_fam3:
+            # Aplicar filtros para contar
+            df_temp = df_prov_con_familias[
+                df_prov_con_familias['familia'].isin(familias_seleccionadas)
+            ]
+            
+            if subfamilias_seleccionadas:
+                df_temp = df_temp[
+                    df_temp['subfamilia'].isin(subfamilias_seleccionadas)
+                ]
+            
+            st.metric("🎯 Artículos", f"{df_temp['idarticulo'].nunique():,}")
+
+        # === APLICAR FILTROS AL DATAFRAME PRINCIPAL ===
+        df_proveedores_filtrado = df_prov_con_familias[
+            df_prov_con_familias['familia'].isin(familias_seleccionadas)
+        ].copy()
+
+        if subfamilias_seleccionadas:
+            df_proveedores_filtrado = df_proveedores_filtrado[
+                df_proveedores_filtrado['subfamilia'].isin(subfamilias_seleccionadas)
+            ]
+
+        print(f"\n🎯 FILTROS APLICADOS:")
+        print(f"   🏷️  Familias: {len(familias_seleccionadas)} seleccionadas")
+        print(f"   📂 Subfamilias: {len(subfamilias_seleccionadas)} seleccionadas")
+        print(f"   📦 Artículos filtrados: {df_proveedores_filtrado['idarticulo'].nunique():,}")
+
+        # with col_fam1:
+        #     familias_disponibles = ["Todas"] + sorted(df_prov_con_familias['familia'].dropna().unique().tolist())
+        #     familia_seleccionada = st.selectbox("🏷️ Filtrar por Familia:", options=familias_disponibles, index=0)
+
+        # with col_fam2:
+        #     if familia_seleccionada == "Todas":
+        #         subfamilias_disponibles = ["Todas"] + sorted(df_prov_con_familias['subfamilia'].dropna().unique().tolist())
+        #     else:
+        #         df_fam = df_prov_con_familias[df_prov_con_familias['familia'] == familia_seleccionada]
+        #         subfamilias_disponibles = ["Todas"] + sorted(df_fam['subfamilia'].dropna().unique().tolist())
+            
+        #     subfamilia_seleccionada = st.selectbox("📂 Filtrar por Subfamilia:", options=subfamilias_disponibles, index=0)
+
+        # with col_fam3:
+        #     df_temp = df_prov_con_familias.copy()
+        #     if familia_seleccionada != "Todas":
+        #         df_temp = df_temp[df_temp['familia'] == familia_seleccionada]
+        #     if subfamilia_seleccionada != "Todas":
+        #         df_temp = df_temp[df_temp['subfamilia'] == subfamilia_seleccionada]
+            
+        #     st.metric("🎯 Artículos", f"{df_temp['idarticulo'].nunique():,}")
+
+        # # Aplicar filtros
+        # df_proveedores_filtrado = df_prov_con_familias.copy()
+        # if familia_seleccionada != "Todas":
+        #     df_proveedores_filtrado = df_proveedores_filtrado[df_proveedores_filtrado['familia'] == familia_seleccionada]
+        # if subfamilia_seleccionada != "Todas":
+        #     df_proveedores_filtrado = df_proveedores_filtrado[df_proveedores_filtrado['subfamilia'] == subfamilia_seleccionada]
+
+        # print(f"\n🎯 FILTROS: Familia={familia_seleccionada}, Subfamilia={subfamilia_seleccionada}, Artículos={len(df_proveedores_filtrado):,}")
     
     # 📊 DEBUG: Mostrar período seleccionado en consola
     print(f"\n{'='*80}")
@@ -297,8 +257,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     df_presupuesto = get_presupuesto_data(credentials_path, project_id)
     
-    ranking = process_ranking_data(df_proveedores, df_ventas, df_presupuesto)
-    
+    # ranking = process_ranking_data(df_proveedores, df_ventas, df_presupuesto)
+    ranking = process_ranking_data(df_proveedores_filtrado, df_ventas, df_presupuesto, df_familias)
     if ranking is None or ranking.empty:
         st.error("❌ No se pudieron cargar los datos")
         return
