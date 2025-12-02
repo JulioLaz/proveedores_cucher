@@ -479,6 +479,7 @@ from io import BytesIO
 from components.global_dashboard_cache import (
     get_ventas_data,
     get_presupuesto_data, 
+    get_familias_data,      # ← AGREGAR ESTA LÍNEA
     process_ranking_data
 )
 
@@ -632,14 +633,61 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
     # ✅ CARGAR DATOS CON CACHÉ (sin spinner duplicado)
     # Crear cache_key que incluya los filtros
-    cache_key = f"cache_check_{fecha_desde}_{fecha_hasta}_{familia_seleccionada}_{subfamilia_seleccionada}"
+    # cache_key = f"cache_check_{fecha_desde}_{fecha_hasta}_{familia_seleccionada}_{subfamilia_seleccionada}"
     
+    # # Mostrar spinner SOLO si es la primera carga
+    # if cache_key not in st.session_state:
+    #     print(f"\n🔄 Primera carga con estos filtros - Mostrando spinner")
+    #     with st.spinner(f"🔄 Cargando datos ({dias_periodo} días)..."):
+    #         inicio_carga = time.time()
+            
+    #         df_ventas = get_ventas_data(
+    #             credentials_path, 
+    #             project_id, 
+    #             bigquery_table,
+    #             str(fecha_desde),
+    #             str(fecha_hasta)
+    #         )
+            
+    #         df_presupuesto = get_presupuesto_data(credentials_path, project_id)
+            
+    #         # ⚠️ USAR DF FILTRADO AQUÍ
+    #         ranking = process_ranking_data(df_proveedores_filtrado, df_ventas, df_presupuesto)
+            
+    #         tiempo_carga = time.time() - inicio_carga
+    #         print(f"   ⏱️  Tiempo de carga: {tiempo_carga:.2f}s")
+        
+    #     # Marcar como cargado
+    #     st.session_state[cache_key] = True
+    # else:
+    #     print(f"\n⚡ Carga desde caché - Sin spinner")
+    #     inicio_carga = time.time()
+        
+    #     # Cargar sin spinner (será instantáneo desde caché)
+    #     df_ventas = get_ventas_data(
+    #         credentials_path, 
+    #         project_id, 
+    #         bigquery_table,
+    #         str(fecha_desde),
+    #         str(fecha_hasta)
+    #     )
+        
+    #     df_presupuesto = get_presupuesto_data(credentials_path, project_id)
+        
+    #     # ⚠️ USAR DF FILTRADO AQUÍ
+    #     ranking = process_ranking_data(df_proveedores_filtrado, df_ventas, df_presupuesto)
+
+# ✅ CARGAR DATOS CON CACHÉ (sin spinner duplicado)
+# Crear cache_key que incluya los filtros
+    cache_key = f"cache_check_{fecha_desde}_{fecha_hasta}_{familia_seleccionada}_{subfamilia_seleccionada}"
+
     # Mostrar spinner SOLO si es la primera carga
     if cache_key not in st.session_state:
         print(f"\n🔄 Primera carga con estos filtros - Mostrando spinner")
         with st.spinner(f"🔄 Cargando datos ({dias_periodo} días)..."):
             inicio_carga = time.time()
             
+            # Cargar ventas
             df_ventas = get_ventas_data(
                 credentials_path, 
                 project_id, 
@@ -648,10 +696,19 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                 str(fecha_hasta)
             )
             
+            # Cargar presupuesto
             df_presupuesto = get_presupuesto_data(credentials_path, project_id)
             
-            # ⚠️ USAR DF FILTRADO AQUÍ
-            ranking = process_ranking_data(df_proveedores_filtrado, df_ventas, df_presupuesto)
+            # ⭐ CARGAR FAMILIAS (NUEVA)
+            df_familias = get_familias_data(credentials_path, project_id)
+            
+            # ⚠️ USAR df_proveedores_filtrado (el que tiene los filtros aplicados)
+            ranking = process_ranking_data(
+                df_proveedores_filtrado,  # ← Cambiar aquí
+                df_ventas, 
+                df_presupuesto,
+                df_familias  # ← NUEVO parámetro
+            )
             
             tiempo_carga = time.time() - inicio_carga
             print(f"   ⏱️  Tiempo de carga: {tiempo_carga:.2f}s")
@@ -673,8 +730,16 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         
         df_presupuesto = get_presupuesto_data(credentials_path, project_id)
         
-        # ⚠️ USAR DF FILTRADO AQUÍ
-        ranking = process_ranking_data(df_proveedores_filtrado, df_ventas, df_presupuesto)
+        # ⭐ CARGAR FAMILIAS (NUEVA)
+        df_familias = get_familias_data(credentials_path, project_id)
+        
+        # ⚠️ USAR df_proveedores_filtrado (el que tiene los filtros aplicados)
+        ranking = process_ranking_data(
+            df_proveedores_filtrado,  # ← Cambiar aquí
+            df_ventas, 
+            df_presupuesto,
+            df_familias  # ← NUEVO parámetro
+        )
         
         tiempo_carga = time.time() - inicio_carga
         print(f"   ⏱️  Tiempo desde caché: {tiempo_carga:.2f}s")
