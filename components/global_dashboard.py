@@ -45,7 +45,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             )
         
         with col2:
-            if periodo_seleccionado == "Personalizado":
+            if periodo_seleccionado == "Personalizado" or periodo_seleccionado != 'Personalizado':
                 col_a, col_b = st.columns(2)
                 fecha_desde = col_a.date_input(
                     "Desde:", 
