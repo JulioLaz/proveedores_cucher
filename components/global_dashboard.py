@@ -25,8 +25,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
     with container:
         # === SELECTOR DE PERÍODO ===
-        col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
-        
+        col1, col2, col3 = st.columns([2, 2, 1])
+
         with col1:
             periodo_opciones = {
                 "Últimos 30 días": 30,
@@ -34,58 +34,223 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                 "Últimos 90 días": 90,
                 "Últimos 6 meses": 180,
                 "Último año": 365,
-                "Personalizado": None
+                "Personalizado": None,
             }
-            
+
             periodo_seleccionado = st.selectbox(
                 "📅 Período de análisis de ventas:",
                 options=list(periodo_opciones.keys()),
                 index=0,
-                key='periodo_selector'
             )
-        
+
         with col2:
             if periodo_seleccionado == "Personalizado":
-            # if periodo_seleccionado == "Personalizado" or periodo_opciones.keys() != []:
-                from datetime import datetime, timedelta
                 col_a, col_b = st.columns(2)
-                fecha_desde = col_a.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
-                fecha_hasta = col_b.date_input("Hasta:", value=datetime.now().date())
+                fecha_desde = col_a.date_input(
+                    "Desde:",
+                    value=datetime.now().date() - timedelta(days=30),
+                )
+                fecha_hasta = col_b.date_input(
+                    "Hasta:",
+                    value=datetime.now().date(),
+                )
+
+                if fecha_desde > fecha_hasta:
+                    st.error("La fecha 'Desde' no puede ser mayor que 'Hasta'.")
+                    st.stop()
+
                 dias_periodo = (fecha_hasta - fecha_desde).days
+
             else:
                 dias_periodo = periodo_opciones[periodo_seleccionado]
-                from datetime import datetime, timedelta
                 fecha_hasta = datetime.now().date()
                 fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
-            # if periodo_seleccionado == "Personalizado" or periodo_seleccionado is None:
-            #     col_a, col_b = st.columns(2)
-            #     fecha_desde = col_a.date_input(
-            #         "Desde:", 
-            #         value=datetime.now().date() - timedelta(days=30),
-            #         key='fecha_desde_custom'
-            #     )
-            #     fecha_hasta = col_b.date_input(
-            #         "Hasta:", 
-            #         value=datetime.now().date(),
-            #         key='fecha_hasta_custom'
-            #     )
-            #     dias_periodo = (fecha_hasta - fecha_desde).days
-            # else:
-            #     dias_periodo = periodo_opciones[periodo_seleccionado]
-            #     fecha_hasta = datetime.now().date()
-            #     fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
-                
-            #     # ✅ MOSTRAR las fechas calculadas automáticamente
-            #     st.info(f"📅 {fecha_desde.strftime('%d/%m/%Y')} → {fecha_hasta.strftime('%d/%m/%Y')}")
-        
+
+                # 👇 Mostrar el rango calculado también cuando NO es personalizado
+                # st.info(
+                #     f"📅 Rango:\n"
+                #     f"**Desde: {fecha_desde.strftime('%d/%m/%Y')}   -   hasta:{fecha_hasta.strftime('%d/%m/%Y')}**"
+                # )
+                st.markdown(
+                            f"""
+                            <div style:"text-align: center;">
+                                📅 <span style:"text-align: center;">Rango</span><br>
+                                <span class="label">Desde:</span>
+                                <span class="date">{fecha_desde.strftime('%d/%m/%Y')}</span><br>
+                                <span class="label">Hasta:</span>
+                                <span class="date">{fecha_hasta.strftime('%d/%m/%Y')}</span>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+
+
         with col3:
-            st.metric("📆 Días", f"{dias_periodo}", border=True)
+            st.metric("📆 Días", f"{dias_periodo}")
+
+
+
+    # from datetime import datetime, timedelta
+
+    # # Estado inicial seguro
+    # if "periodo_seleccionado" not in st.session_state:
+    #     st.session_state.periodo_seleccionado = "Últimos 30 días"
+    # if "desde_personalizado" not in st.session_state:
+    #     st.session_state.desde_personalizado = (datetime.now().date() - timedelta(days=30))
+    # if "hasta_personalizado" not in st.session_state:
+    #     st.session_state.hasta_personalizado = datetime.now().date()
+
+    # def reset_fechas():
+    #     # Al cambiar el período, reponemos defaults y evitamos que se "pegue" el estado anterior
+    #     st.session_state.desde_personalizado = (datetime.now().date() - timedelta(days=30))
+    #     st.session_state.hasta_personalizado = datetime.now().date()
+
+    # # === SELECTOR DE PERÍODO (VERSIÓN LIMPIA) ===
+    # container = st.container(border=True)
+
+    # with container:
+    #     col1, col2, col3 = st.columns([2, 2, 1])
+
+    #     # 1) Selectbox principal
+    #     with col1:
+    #         periodo_opciones = {
+    #             "Últimos 30 días": 30,
+    #             "Últimos 60 días": 60,
+    #             "Últimos 90 días": 90,
+    #             "Últimos 6 meses": 180,
+    #             "Último año": 365,
+    #             "Personalizado": None,
+    #         }
+
+    #         periodo_seleccionado = st.selectbox(
+    #             "📅 Período de análisis de ventas:",
+    #             options=list(periodo_opciones.keys()),
+    #             index=0,
+    #             key="periodo_selector_global",  # 👈 clave única para este selector
+    #         )
+
+    #     # 2) Fechas según la opción
+    #     with col2:
+    #         if periodo_seleccionado == "Personalizado":
+    #             col_a, col_b = st.columns(2)
+    #             fecha_desde = col_a.date_input(
+    #                 "Desde:",
+    #                 value=datetime.now().date() - timedelta(days=30),
+    #                 key="fecha_desde_personalizada_global",
+    #             )
+    #             fecha_hasta = col_b.date_input(
+    #                 "Hasta:",
+    #                 value=datetime.now().date(),
+    #                 key="fecha_hasta_personalizada_global",
+    #             )
+    #         else:
+    #             hoy = datetime.now().date()
+    #             dias_base = periodo_opciones[periodo_seleccionado]
+    #             fecha_hasta = hoy
+    #             fecha_desde = hoy - timedelta(days=dias_base)
+
+    #     # 3) Validación general
+    #     if fecha_desde > fecha_hasta:
+    #         st.error("La fecha 'Desde' no puede ser mayor que 'Hasta'.")
+    #         st.stop()
+
+    #     # 4) Cálculo de días SIEMPRE a partir de las fechas efectivas
+    #     dias_periodo = (fecha_hasta - fecha_desde).days
+
+    #     with col3:
+    #         st.metric("📆 Días", f"{dias_periodo}")
+
+# 33333333333333333333333333333333333333333333333333333333333333333333
+
+
+    # A partir de acá, para tu query:
+    # usa SIEMPRE estas variables:
+    # - fecha_desde
+    # - fecha_hasta
+    # - dias_periodo (solo para mostrar o condicionar algo)
+
+
+    # with container:
+    #     # === SELECTOR DE PERÍODO ===
+    #     col1, col2, col3 = st.columns([2, 2, 1])
         
-      #   with col4:
-      #       # ✅ BOTÓN MANUAL de actualización
-      #       if st.button("🔄 Actualizar", use_container_width=True, type="primary"):
-      #           st.cache_data.clear()
-      #           st.rerun()
+    #     with col1:
+
+    #         periodo_opciones = {
+    #             "Últimos 30 días": 30,
+    #             "Últimos 60 días": 60,
+    #             "Últimos 90 días": 90,
+    #             "Últimos 6 meses": 180,
+    #             "Último año": 365,
+    #             "Personalizado": None
+    #         }
+            
+    #         periodo_seleccionado = st.selectbox(
+    #             "📅 Período de análisis de ventas:",
+    #             options=list(periodo_opciones.keys()),
+    #             index=0
+    #         )        
+    #     # col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
+        
+    #     # with col1:
+    #     #     periodo_opciones = {
+    #     #         "Últimos 30 días": 30,
+    #     #         "Últimos 60 días": 60,
+    #     #         "Últimos 90 días": 90,
+    #     #         "Últimos 6 meses": 180,
+    #     #         "Último año": 365,
+    #     #         "Personalizado": None
+    #     #     }
+            
+    #     #     periodo_seleccionado = st.selectbox(
+    #     #         "📅 Período de análisis de ventas:",
+    #     #         options=list(periodo_opciones.keys()),
+    #     #         index=0,
+    #     #         key='periodo_selector'
+    #     #     )
+        
+    #     with col2:
+    #         if periodo_seleccionado == "Personalizado":
+    #         # if periodo_seleccionado == "Personalizado" or periodo_opciones.keys() != []:
+    #             from datetime import datetime, timedelta
+    #             col_a, col_b = st.columns(2)
+    #             fecha_desde = col_a.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
+    #             fecha_hasta = col_b.date_input("Hasta:", value=datetime.now().date())
+    #             dias_periodo = (fecha_hasta - fecha_desde).days
+    #         # else:
+    #         #     dias_periodo = periodo_opciones[periodo_seleccionado]
+    #         #     from datetime import datetime, timedelta
+    #         #     fecha_hasta = datetime.now().date()
+    #         #     fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
+    #         # if periodo_seleccionado == "Personalizado" or periodo_seleccionado is None:
+    #         #     col_a, col_b = st.columns(2)
+    #         #     fecha_desde = col_a.date_input(
+    #         #         "Desde:", 
+    #         #         value=datetime.now().date() - timedelta(days=30),
+    #         #         key='fecha_desde_custom'
+    #         #     )
+    #         #     fecha_hasta = col_b.date_input(
+    #         #         "Hasta:", 
+    #         #         value=datetime.now().date(),
+    #         #         key='fecha_hasta_custom'
+    #         #     )
+    #         #     dias_periodo = (fecha_hasta - fecha_desde).days
+    #         # else:
+    #         #     dias_periodo = periodo_opciones[periodo_seleccionado]
+    #         #     fecha_hasta = datetime.now().date()
+    #         #     fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
+                
+    #         #     # ✅ MOSTRAR las fechas calculadas automáticamente
+    #         #     st.info(f"📅 {fecha_desde.strftime('%d/%m/%Y')} → {fecha_hasta.strftime('%d/%m/%Y')}")
+        
+    #     with col3:
+    #         st.metric("📆 Días", f"{dias_periodo}", border=True)
+        
+    #   #   with col4:
+    #   #       # ✅ BOTÓN MANUAL de actualización
+    #   #       if st.button("🔄 Actualizar", use_container_width=True, type="primary"):
+    #   #           st.cache_data.clear()
+    #   #           st.rerun()
     
     # 📊 DEBUG: Mostrar período seleccionado en consola
     print(f"\n{'='*80}")

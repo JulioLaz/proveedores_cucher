@@ -24,7 +24,8 @@ from components.executive_summary import show_executive_summary as render_execut
 from components.products_analysis import show_products_analysis as render_products_analysis
 from components.temporal_analysis import show_temporal_analysis as render_temporal_analysis
 from components.advanced_analysis import show_advanced_analysis as render_advanced_analysis
-from components.global_dashboard_00 import show_global_dashboard
+from components.global_dashboard import show_global_dashboard
+# from components.global_dashboard_00 import show_global_dashboard
 
 # 🔥 NUEVOS IMPORTS
 from components.article_analysis import show_idarticulo_analysis

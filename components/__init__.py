@@ -17,7 +17,8 @@ from .executive_summary import show_executive_summary
 from .products_analysis import show_products_analysis
 from .temporal_analysis import show_temporal_analysis
 from .advanced_analysis import show_advanced_analysis
-from .global_dashboard_00 import show_global_dashboard
+from .global_dashboard import show_global_dashboard
+# from .global_dashboard_00 import show_global_dashboard
 
 __all__ = [
     'ProveedorDashboard',
