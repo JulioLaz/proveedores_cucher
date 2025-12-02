@@ -1,39 +1,48 @@
-gspread
-google-auth
-google-auth-oauthlib
-google-auth-httplib2
-oauth2client
-google-api-python-client
-db-dtypes
-streamlit
-
+# ============================================
+# CORE DEPENDENCIES
+# ============================================
+streamlit==1.51.0
 pandas>=2.0.0
 numpy>=1.24.0
-plotly>=5.15.0
-google-cloud-bigquery>=3.10.0
 python-dotenv>=1.0.0
-openpyxl>=3.1.0
 
-statsmodels
-babel>=2.12.1
-
-
-matplotlib
-seaborn
-xlsxwriter
-babel
+# ============================================
+# GOOGLE CLOUD & SHEETS
+# ============================================
+google-cloud-bigquery>=3.10.0
 pandas-gbq
+db-dtypes
+gspread>=5.10.0
+google-auth>=2.20.0
+google-auth-oauthlib>=1.0.0
+google-auth-httplib2>=0.1.0
+google-api-python-client>=2.90.0
 
+# ============================================
+# AUTHENTICATION (VERSIONES COMPATIBLES)
+# ============================================
+streamlit-authenticator==0.3.3
+PyJWT==2.8.0
+bcrypt==4.1.2
+cryptography==42.0.5
 
-streamlit==1.51.0
-streamlit-authenticator==0.4.2
-PyJWT==2.10.1
-bcrypt==5.0.0
-captcha==0.7.1
-cffi==2.0.0
-cryptography==46.0.3
-extra-streamlit-components==0.1.81
+# ============================================
+# VISUALIZATION
+# ============================================
+plotly>=5.15.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
 
-xlsxwriter
-requests
-pytz
+# ============================================
+# DATA PROCESSING
+# ============================================
+statsmodels>=0.14.0
+openpyxl>=3.1.0
+xlsxwriter>=3.1.0
+babel>=2.12.1
+pytz>=2023.3
+
+# ============================================
+# UTILITIES
+# ============================================
+requests>=2.31.0

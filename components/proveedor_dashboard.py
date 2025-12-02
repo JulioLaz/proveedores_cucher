@@ -106,104 +106,15 @@ class ProveedorDashboard:
             self.query_presupuesto
         )
     
-    # def show_main_dashboard(self):
-    #     """Mostrar dashboard principal"""
-    #     # Header basado en si hay datos de análisis cargados
-    #     if st.session_state.analysis_data is not None:
-    #         # HAY DATOS - Mostrar botón volver y título con proveedor
-    #         st.markdown("""
-    #         <div style="position: absolute; top: -4rem; left: 2.5rem; z-index: 1000;">
-    #         </div>
-    #         """, unsafe_allow_html=True)
-            
-    #         # Botón volver
-    #         col1, col2 = st.columns([1, 5])
-    #         with col1:
-    #             if st.button("← Inicio", type="secondary", width="stretch"):
-    #                 st.session_state.analysis_data = None
-    #                 st.session_state.selected_proveedor = None
-    #                 st.session_state.resultados_data = None
-                    
-    #                 # ✅ RESETEAR EL SELECTBOX
-    #                 st.session_state.selectbox_key += 1
-                    
-    #                 st.rerun()
-            
-    #         with col2:
-    #             proveedor = st.session_state.selected_proveedor
-    #             st.markdown(f"""
-    #             <div class="main-header">
-    #                 <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>
-    #                     📊 Análisis Detallado: {proveedor}
-    #                 </p>
-    #             </div>
-    #             """, unsafe_allow_html=True)
-    #     else:
-    #         # NO HAY DATOS - Mostrar título de ranking
-    #         st.markdown("""
-    #         <div class="main-header">
-    #             <p style='
-    #                 position: absolute;
-    #                 top: -4rem;
-    #                 left: 2.5rem;
-    #                 padding: 5px 0px;
-    #                 font-size: 2.2rem;
-    #                 color: #646060;
-    #                 font-weight: 500;'>📈 Ranking de Proveedores</p>
-    #         </div>
-    #         """, unsafe_allow_html=True)
-        
-    #     # # Si no hay datos, mostrar dashboard global
-    #     # if st.session_state.analysis_data is None:
-    #     #     show_global_dashboard(
-    #     #         df_proveedores=self.df_proveedores,
-    #     #         query_function=query_resultados_idarticulo,
-    #     #         credentials_path=self.config['credentials_path'],
-    #     #         project_id=self.config['project_id'],
-    #     #         bigquery_table=self.config['bigquery_table']
-    #     #     )
-    #     #     return
-
-
-    #     # Cachear el RESULTADO completo del dashboard
-    #     if st.session_state.analysis_data is None:
-    #         # Solo cargar la primera vez
-    #         if 'global_dashboard_loaded' not in st.session_state:
-    #             st.session_state.global_dashboard_loaded = False
-            
-    #         if not st.session_state.global_dashboard_loaded:
-    #             with st.spinner("📊 Cargando dashboard global..."):
-    #                 show_global_dashboard(
-    #                     df_proveedores=self.df_proveedores,
-    #                     query_function=query_resultados_idarticulo,
-    #                     credentials_path=self.config['credentials_path'],
-    #                     project_id=self.config['project_id'],
-    #                     bigquery_table=self.config['bigquery_table']
-    #                 )
-    #                 st.session_state.global_dashboard_loaded = True
-    #         else:
-    #             # Mostrar desde caché (instantáneo)
-    #             show_global_dashboard(
-    #                 df_proveedores=self.df_proveedores,
-    #                 query_function=query_resultados_idarticulo,
-    #                 credentials_path=self.config['credentials_path'],
-    #                 project_id=self.config['project_id'],
-    #                 bigquery_table=self.config['bigquery_table']
-    #             )
-    #         return
     def show_main_dashboard(self):
         """Mostrar dashboard principal"""
         # Header basado en si hay datos de análisis cargados
         if st.session_state.analysis_data is not None:
             # HAY DATOS - Mostrar botón volver
-            st.markdown("""
-            <div style="position: absolute; top: -2.5rem; left: 2rem; z-index: 1000;font-size:2rem">📊 Análisis Detallado
-            </div>
-            """, unsafe_allow_html=True)
             
             col1, col2 = st.columns([1, 5])
             with col1:
-                if st.button("← Inicio", type="secondary", width="stretch"):
+                if st.button("Volver al Inicio", type="secondary", width="stretch"):
                     st.session_state.analysis_data = None
                     st.session_state.selected_proveedor = None
                     st.session_state.resultados_data = None
