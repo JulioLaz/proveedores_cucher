@@ -126,13 +126,14 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             familias_seleccionadas = st.multiselect(
                 "🏷️ Filtrar por Familia:",
                 options=familias_disponibles,
-                default=[],  # Vacío = todas
-                placeholder="Selecciona una o más familias (vacío = todas)"
+                default=familias_disponibles,  # ← TODAS SELECCIONADAS POR DEFECTO
+                placeholder="Deselecciona las familias que NO quieres ver"
             )
             
-            # Si no se selecciona nada, usar todas
+            # Si se deseleccionan todas, mantener todas (evitar vacío)
             if not familias_seleccionadas:
                 familias_seleccionadas = familias_disponibles
+                st.warning("⚠️ Debes mantener al menos una familia seleccionada")
 
         with col_fam2:
             # Filtrar subfamilias según familias seleccionadas
@@ -145,13 +146,14 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             subfamilias_seleccionadas = st.multiselect(
                 "📂 Filtrar por Subfamilia:",
                 options=subfamilias_disponibles,
-                default=[],  # Vacío = todas
-                placeholder="Selecciona una o más subfamilias (vacío = todas)"
+                default=subfamilias_disponibles,  # ← TODAS SELECCIONADAS POR DEFECTO
+                placeholder="Deselecciona las subfamilias que NO quieres ver"
             )
             
-            # Si no se selecciona nada, usar todas las disponibles
+            # Si se deseleccionan todas, mantener todas
             if not subfamilias_seleccionadas:
                 subfamilias_seleccionadas = subfamilias_disponibles
+                st.warning("⚠️ Debes mantener al menos una subfamilia seleccionada")
 
         with col_fam3:
             # Aplicar filtros para contar
@@ -164,7 +166,15 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                     df_temp['subfamilia'].isin(subfamilias_seleccionadas)
                 ]
             
-            st.metric("🎯 Artículos", f"{df_temp['idarticulo'].nunique():,}")
+            # Mostrar cuántas están activas/totales
+            total_familias = len(familias_disponibles)
+            activas_familias = len(familias_seleccionadas)
+            
+            st.metric(
+                "🎯 Artículos", 
+                f"{df_temp['idarticulo'].nunique():,}",
+                delta=f"{activas_familias}/{total_familias} familias"
+            )
 
         # === APLICAR FILTROS AL DATAFRAME PRINCIPAL ===
         df_proveedores_filtrado = df_prov_con_familias[
@@ -176,41 +186,18 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                 df_proveedores_filtrado['subfamilia'].isin(subfamilias_seleccionadas)
             ]
 
+        # Logs mejorados
+        excluidas_familias = set(familias_disponibles) - set(familias_seleccionadas)
+        excluidas_subfamilias = set(subfamilias_disponibles) - set(subfamilias_seleccionadas)
+
         print(f"\n🎯 FILTROS APLICADOS:")
-        print(f"   🏷️  Familias: {len(familias_seleccionadas)} seleccionadas")
-        print(f"   📂 Subfamilias: {len(subfamilias_seleccionadas)} seleccionadas")
+        print(f"   ✅ Familias activas: {len(familias_seleccionadas)}/{len(familias_disponibles)}")
+        if excluidas_familias:
+            print(f"   ❌ Familias excluidas: {', '.join(excluidas_familias)}")
+        print(f"   ✅ Subfamilias activas: {len(subfamilias_seleccionadas)}/{len(subfamilias_disponibles)}")
+        if excluidas_subfamilias:
+            print(f"   ❌ Subfamilias excluidas: {len(excluidas_subfamilias)} items")
         print(f"   📦 Artículos filtrados: {df_proveedores_filtrado['idarticulo'].nunique():,}")
-
-        # with col_fam1:
-        #     familias_disponibles = ["Todas"] + sorted(df_prov_con_familias['familia'].dropna().unique().tolist())
-        #     familia_seleccionada = st.selectbox("🏷️ Filtrar por Familia:", options=familias_disponibles, index=0)
-
-        # with col_fam2:
-        #     if familia_seleccionada == "Todas":
-        #         subfamilias_disponibles = ["Todas"] + sorted(df_prov_con_familias['subfamilia'].dropna().unique().tolist())
-        #     else:
-        #         df_fam = df_prov_con_familias[df_prov_con_familias['familia'] == familia_seleccionada]
-        #         subfamilias_disponibles = ["Todas"] + sorted(df_fam['subfamilia'].dropna().unique().tolist())
-            
-        #     subfamilia_seleccionada = st.selectbox("📂 Filtrar por Subfamilia:", options=subfamilias_disponibles, index=0)
-
-        # with col_fam3:
-        #     df_temp = df_prov_con_familias.copy()
-        #     if familia_seleccionada != "Todas":
-        #         df_temp = df_temp[df_temp['familia'] == familia_seleccionada]
-        #     if subfamilia_seleccionada != "Todas":
-        #         df_temp = df_temp[df_temp['subfamilia'] == subfamilia_seleccionada]
-            
-        #     st.metric("🎯 Artículos", f"{df_temp['idarticulo'].nunique():,}")
-
-        # # Aplicar filtros
-        # df_proveedores_filtrado = df_prov_con_familias.copy()
-        # if familia_seleccionada != "Todas":
-        #     df_proveedores_filtrado = df_proveedores_filtrado[df_proveedores_filtrado['familia'] == familia_seleccionada]
-        # if subfamilia_seleccionada != "Todas":
-        #     df_proveedores_filtrado = df_proveedores_filtrado[df_proveedores_filtrado['subfamilia'] == subfamilia_seleccionada]
-
-        # print(f"\n🎯 FILTROS: Familia={familia_seleccionada}, Subfamilia={subfamilia_seleccionada}, Artículos={len(df_proveedores_filtrado):,}")
     
     # 📊 DEBUG: Mostrar período seleccionado en consola
     print(f"\n{'='*80}")
