@@ -651,8 +651,38 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             df_presupuesto = get_presupuesto_data(credentials_path, project_id)
             
             # ⚠️ USAR DF FILTRADO AQUÍ
+
+            # === APLICAR FILTROS AL DATAFRAME PRINCIPAL ===
+            print(f"\n{'─'*80}")
+            print(f"🔍 APLICANDO FILTROS:")
+            print(f"   📅 Período: {fecha_desde} a {fecha_hasta} ({dias_periodo} días)")
+            print(f"   🏷️  Familia: {familia_seleccionada}")
+            print(f"   📂 Subfamilia: {subfamilia_seleccionada}")
+            print(f"   📦 Artículos originales: {len(df_proveedores):,}")
+
+            df_proveedores_filtrado = df_proveedores.copy()
+
+            if familia_seleccionada != "Todas" and 'familia' in df_proveedores.columns:
+                df_proveedores_filtrado = df_proveedores_filtrado[
+                    df_proveedores_filtrado['familia'] == familia_seleccionada
+                ]
+                print(f"   ✅ Filtro Familia aplicado: {len(df_proveedores_filtrado):,} artículos")
+
+            if subfamilia_seleccionada != "Todas" and 'subfamilia' in df_proveedores.columns:
+                df_proveedores_filtrado = df_proveedores_filtrado[
+                    df_proveedores_filtrado['subfamilia'] == subfamilia_seleccionada
+                ]
+                print(f"   ✅ Filtro Subfamilia aplicado: {len(df_proveedores_filtrado):,} artículos")
+
+            print(f"   🎯 Total artículos filtrados: {len(df_proveedores_filtrado):,}")
+            print(f"{'─'*80}")
+
+            # === CARGAR DATOS ===
+            # ... tu código de caché existente ...
+
+            # ⚠️⚠️⚠️ IMPORTANTE: Usar df_proveedores_filtrado aquí
             ranking = process_ranking_data(df_proveedores_filtrado, df_ventas, df_presupuesto)
-            
+                                   
             tiempo_carga = time.time() - inicio_carga
             print(f"   ⏱️  Tiempo de carga: {tiempo_carga:.2f}s")
         
@@ -674,6 +704,34 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         df_presupuesto = get_presupuesto_data(credentials_path, project_id)
         
         # ⚠️ USAR DF FILTRADO AQUÍ
+        # === APLICAR FILTROS AL DATAFRAME PRINCIPAL ===
+        print(f"\n{'─'*80}")
+        print(f"🔍 APLICANDO FILTROS:")
+        print(f"   📅 Período: {fecha_desde} a {fecha_hasta} ({dias_periodo} días)")
+        print(f"   🏷️  Familia: {familia_seleccionada}")
+        print(f"   📂 Subfamilia: {subfamilia_seleccionada}")
+        print(f"   📦 Artículos originales: {len(df_proveedores):,}")
+
+        df_proveedores_filtrado = df_proveedores.copy()
+
+        if familia_seleccionada != "Todas" and 'familia' in df_proveedores.columns:
+            df_proveedores_filtrado = df_proveedores_filtrado[
+                df_proveedores_filtrado['familia'] == familia_seleccionada
+            ]
+            print(f"   ✅ Filtro Familia aplicado: {len(df_proveedores_filtrado):,} artículos")
+
+        if subfamilia_seleccionada != "Todas" and 'subfamilia' in df_proveedores.columns:
+            df_proveedores_filtrado = df_proveedores_filtrado[
+                df_proveedores_filtrado['subfamilia'] == subfamilia_seleccionada
+            ]
+            print(f"   ✅ Filtro Subfamilia aplicado: {len(df_proveedores_filtrado):,} artículos")
+
+        print(f"   🎯 Total artículos filtrados: {len(df_proveedores_filtrado):,}")
+        print(f"{'─'*80}")
+
+        # === CARGAR DATOS ===
+
+        # ⚠️⚠️⚠️ IMPORTANTE: Usar df_proveedores_filtrado aquí
         ranking = process_ranking_data(df_proveedores_filtrado, df_ventas, df_presupuesto)
         
         tiempo_carga = time.time() - inicio_carga
