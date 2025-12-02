@@ -147,6 +147,36 @@ def get_ventas_data(credentials_path, project_id, bigquery_table, fecha_desde, f
     
     return df
 
+@st.cache_data(ttl=3600, show_spinner=False)  # Cache por 1 hora (cambia poco)
+def get_familias_data(credentials_path, project_id):
+    """
+    Obtiene familia y subfamilia de todos los artículos (CACHEADO)
+    Query ligera - solo trae 3 columnas
+    """
+    print(f"\n🔄 EJECUTANDO QUERY DE FAMILIAS (sin caché)")
+    import time
+    from google.cloud import bigquery
+    
+    inicio = time.time()
+    client = bigquery.Client.from_service_account_json(credentials_path)
+    
+    # ⚠️ AJUSTA EL NOMBRE DE TU TABLA DE ARTÍCULOS
+    query = f"""
+    SELECT DISTINCT
+        idarticulo,
+        familia,
+        subfamilia
+    FROM `{project_id}.tu_dataset.tu_tabla_de_articulos`
+    WHERE familia IS NOT NULL
+    """
+    
+    df = client.query(query).to_dataframe()
+    tiempo = time.time() - inicio
+    print(f"✅ Query familias: {len(df):,} artículos en {tiempo:.2f}s")
+    print(f"   🏷️  Familias únicas: {df['familia'].nunique()}")
+    print(f"   📂 Subfamilias únicas: {df['subfamilia'].nunique()}")
+    
+    return df
 
 @st.cache_data(ttl=300, show_spinner=False)  # Cache por 5 minutos
 def get_presupuesto_data(credentials_path, project_id):
@@ -171,7 +201,7 @@ def get_presupuesto_data(credentials_path, project_id):
 
 
 @st.cache_data(ttl=300, show_spinner=False)
-def process_ranking_data(df_proveedores, df_ventas, df_presupuesto):
+def process_ranking_data(df_proveedores, df_ventas, df_presupuesto, df_familias):
     """
     Procesa y genera el ranking (CACHEADO)
     """
@@ -180,21 +210,22 @@ def process_ranking_data(df_proveedores, df_ventas, df_presupuesto):
     
     inicio = time.time()
     
-    # === PREPARAR COLUMNAS DE df_proveedores ===
-    # Incluir familia y subfamilia si existen
-    columnas_proveedores = ['idarticulo', 'proveedor', 'idproveedor']
+    # === AGREGAR FAMILIA Y SUBFAMILIA A df_proveedores ===
+    print(f"   🔗 Agregando familia/subfamilia a df_proveedores...")
+    df_proveedores_completo = df_proveedores.merge(
+        df_familias[['idarticulo', 'familia', 'subfamilia']],
+        on='idarticulo',
+        how='left'
+    )
     
-    # Verificar y agregar familia/subfamilia
-    if 'familia' in df_proveedores.columns:
-        columnas_proveedores.append('familia')
-        print(f"   ✅ Columna 'familia' encontrada: {df_proveedores['familia'].nunique()} familias")
+    print(f"   ✅ Merge completado: {len(df_proveedores_completo):,} artículos")
+    print(f"   🏷️  Familias: {df_proveedores_completo['familia'].nunique()}")
+    print(f"   📂 Subfamilias: {df_proveedores_completo['subfamilia'].nunique()}")
     
-    if 'subfamilia' in df_proveedores.columns:
-        columnas_proveedores.append('subfamilia')
-        print(f"   ✅ Columna 'subfamilia' encontrada: {df_proveedores['subfamilia'].nunique()} subfamilias")
+    # === MERGE PRINCIPAL ===
+    columnas_proveedores = ['idarticulo', 'proveedor', 'idproveedor', 'familia', 'subfamilia']
     
-    # === MERGE CON FAMILIA/SUBFAMILIA INCLUIDAS ===
-    df_merge = df_proveedores[columnas_proveedores].merge(
+    df_merge = df_proveedores_completo[columnas_proveedores].merge(
         df_ventas, on='idarticulo', how='left'
     ).merge(
         df_presupuesto[['idarticulo', 'PRESUPUESTO', 'exceso_STK', 'costo_exceso_STK', 'STK_TOTAL']],
