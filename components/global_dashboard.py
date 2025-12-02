@@ -45,43 +45,44 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             )
         
         with col2:
-            if periodo_seleccionado == "Personalizado":
-                # ✅ MODO PERSONALIZADO: Mostrar date_input activos
+            if periodo_seleccionado == "Personalizado" or periodo_opciones.keys() != []:
+                from datetime import datetime, timedelta
                 col_a, col_b = st.columns(2)
-                fecha_desde = col_a.date_input(
-                    "Desde:", 
-                    value=datetime.now().date() - timedelta(days=30),
-                    key='fecha_desde_custom'
-                )
-                fecha_hasta = col_b.date_input(
-                    "Hasta:", 
-                    value=datetime.now().date(),
-                    key='fecha_hasta_custom'
-                )
+                fecha_desde = col_a.date_input("Desde:", value=datetime.now().date() - timedelta(days=30))
+                fecha_hasta = col_b.date_input("Hasta:", value=datetime.now().date())
                 dias_periodo = (fecha_hasta - fecha_desde).days
             else:
-                # ✅ MODO AUTOMÁTICO: Calcular fechas SIN widgets activos
                 dias_periodo = periodo_opciones[periodo_seleccionado]
+                from datetime import datetime, timedelta
                 fecha_hasta = datetime.now().date()
                 fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
+            # if periodo_seleccionado == "Personalizado" or periodo_seleccionado is None:
+            #     col_a, col_b = st.columns(2)
+            #     fecha_desde = col_a.date_input(
+            #         "Desde:", 
+            #         value=datetime.now().date() - timedelta(days=30),
+            #         key='fecha_desde_custom'
+            #     )
+            #     fecha_hasta = col_b.date_input(
+            #         "Hasta:", 
+            #         value=datetime.now().date(),
+            #         key='fecha_hasta_custom'
+            #     )
+            #     dias_periodo = (fecha_hasta - fecha_desde).days
+            # else:
+            #     dias_periodo = periodo_opciones[periodo_seleccionado]
+            #     fecha_hasta = datetime.now().date()
+            #     fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
                 
-                # 📅 SOLO MOSTRAR las fechas (sin widgets editables)
-                st.markdown(f"""
-                <div style='background-color:#e3f2fd;padding:0.8rem;border-radius:8px;border-left:4px solid #1976d2;'>
-                    <div style='font-size:13px;color:#1565c0;'>
-                        📅 <b>Desde:</b> {fecha_desde.strftime('%d/%m/%Y')} 
-                        &nbsp;&nbsp;|&nbsp;&nbsp; 
-                        <b>Hasta:</b> {fecha_hasta.strftime('%d/%m/%Y')}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+            #     # ✅ MOSTRAR las fechas calculadas automáticamente
+            #     st.info(f"📅 {fecha_desde.strftime('%d/%m/%Y')} → {fecha_hasta.strftime('%d/%m/%Y')}")
         
         with col3:
             st.metric("📆 Días", f"{dias_periodo}", border=True)
         
         with col4:
-            # 🔄 BOTÓN de actualización forzada
-            if st.button("🔄", use_container_width=True, help="Forzar actualización de datos"):
+            # ✅ BOTÓN MANUAL de actualización
+            if st.button("🔄 Actualizar", use_container_width=True, type="primary"):
                 st.cache_data.clear()
                 st.rerun()
     
@@ -119,7 +120,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     </style>
     """, unsafe_allow_html=True)
 
-    # ✅ CARGAR DATOS
+    # ✅ CARGAR DATOS (con spinner visible)
     df_ventas = get_ventas_data(
         credentials_path, 
         project_id, 
