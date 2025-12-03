@@ -7,12 +7,26 @@ from io import BytesIO
 import plotly.graph_objects as go
 
 # Importar funciones cacheadas
+from utils.excel_exporter import crear_excel_ranking, generar_nombre_archivo
+
 from components.global_dashboard_cache import (
     get_ventas_data,
     get_presupuesto_data,
     get_familias_data,    # ← AGREGAR
     process_ranking_data
 )
+
+def format_millones(valor):
+        if valor >= 1_000_000:
+            millones = valor / 1_000_000
+            return f"{millones:,.0f} mll".replace(',', 'X').replace('.', ',').replace('X', '.')
+        elif valor >= 1_000:
+            return f"{valor/1_000:,.0f} mil".replace(',', '.')
+        else:
+            return f"{valor:,.0f}"
+        
+def format_miles(valor: int) -> str:
+        return f"{valor:,}".replace(",", ".")
 
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
     """Dashboard Global de Proveedores"""
@@ -99,7 +113,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         )
 
         df_presupuesto = get_presupuesto_data(credentials_path, project_id)
-        df_familias = get_familias_data(credentials_path, project_id)
+        # df_familias = get_familias_data(credentials_path, project_id)
+        df_familias = get_familias_data(credentials_path, project_id, bigquery_table)
 
         # Agregar familia/subfamilia a df_proveedores
         df_prov_con_familias = df_proveedores.merge(
@@ -115,8 +130,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         ]
 
         print(f"   ✅ Artículos con ventas en período: {len(df_prov_con_familias):,}")
-
-        # col_fam1, col_fam2, col_fam3 = st.columns([3, 3, 1])
 
         # === FILTROS DE FAMILIA Y SUBFAMILIA ===
 
@@ -172,9 +185,40 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             
             st.metric(
                 "🎯 Artículos", 
-                f"{df_temp['idarticulo'].nunique():,}",
+                f"{format_miles(int(df_temp['idarticulo'].nunique()))}",
                 delta=f"{activas_familias}/{total_familias} familias"
             )
+
+        # === APLICAR FILTROS AL DATAFRAME PRINCIPAL ===
+        df_proveedores_filtrado = df_prov_con_familias[
+            df_prov_con_familias['familia'].isin(familias_seleccionadas)
+        ].copy()
+
+        if subfamilias_seleccionadas:
+            df_proveedores_filtrado = df_proveedores_filtrado[
+                df_proveedores_filtrado['subfamilia'].isin(subfamilias_seleccionadas)
+            ]
+
+        # Logs mejorados
+        articulos_filtrados = df_temp['idarticulo'].unique()
+        df_ventas_filtrado = df_ventas[df_ventas['idarticulo'].isin(articulos_filtrados)].copy()
+
+        excluidas_familias = set(familias_disponibles) - set(familias_seleccionadas)
+        excluidas_subfamilias = set(subfamilias_disponibles) - set(subfamilias_seleccionadas)
+
+        print(f"\n🎯 FILTROS APLICADOS:")
+        print(f"   ✅ Familias activas: {len(familias_seleccionadas)}/{len(familias_disponibles)}")
+        if excluidas_familias:
+            print(f"   ❌ Familias excluidas: {', '.join(excluidas_familias)}")
+        print(f"   ✅ Subfamilias activas: {len(subfamilias_seleccionadas)}/{len(subfamilias_disponibles)}")
+        if excluidas_subfamilias:
+            print(f"   ❌ Subfamilias excluidas: {len(excluidas_subfamilias)} items")
+        print(f"   📦 Artículos filtrados: {df_proveedores_filtrado['idarticulo'].nunique():,}")
+    
+        print(f"\n🎯 ARTÍCULOS DESPUÉS DE FILTROS:")
+        print(f"   📦 En proveedores: {df_temp['idarticulo'].nunique():,}")
+        print(f"   📊 Con ventas: {df_ventas_filtrado['idarticulo'].nunique():,}")
+        # print(f"   💰 Venta filtrada: ${df_ventas_filtrado['importeConImpuestos'].sum():,.0f}")
 
         # === APLICAR FILTROS AL DATAFRAME PRINCIPAL ===
         df_proveedores_filtrado = df_prov_con_familias[
@@ -198,7 +242,10 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         if excluidas_subfamilias:
             print(f"   ❌ Subfamilias excluidas: {len(excluidas_subfamilias)} items")
         print(f"   📦 Artículos filtrados: {df_proveedores_filtrado['idarticulo'].nunique():,}")
-    
+
+
+
+
     # 📊 DEBUG: Mostrar período seleccionado en consola
     print(f"\n{'='*80}")
     print(f"📅 PERÍODO SELECCIONADO")
@@ -251,15 +298,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         return
     
     # === KPIs ===
-    def format_millones(valor):
-        if valor >= 1_000_000:
-            millones = valor / 1_000_000
-            return f"{millones:,.0f} mll".replace(',', 'X').replace('.', ',').replace('X', '.')
-        elif valor >= 1_000:
-            return f"{valor/1_000:,.0f} mil".replace(',', '.')
-        else:
-            return f"{valor:,.0f}"
-
     col1, col11, col2, col3, col4, col5 = st.columns(6)
         
     with col1:
@@ -301,15 +339,16 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         </div>
         """, unsafe_allow_html=True)
 
+                # <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{format_millones(ranking['Cantidad Vendida'].sum())}</div>
     with col3:
         st.markdown(f"""
         <div class="metric-box">
             <div style="text-align: center;">
                 <div style="font-size: 14px; color: #555;">📦 Cantidad Vendida</div>
-                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{format_millones(ranking['Cantidad Vendida'].sum())}</div>
+                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{format_miles(int(ranking['Cantidad Vendida'].sum()))}</div>
             </div>
             <div style="color: #555; font-size: 12px; margin-top: 0.2rem;">
-                🎯 {df_ventas['idarticulo'].nunique():,} art únicos
+                🎯 {df_ventas_filtrado['idarticulo'].nunique():,} art únicos
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -332,7 +371,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         <div class="metric-box">
             <div style="text-align: center;">
                 <div style="font-size: 14px; color: #555;">❌ Sin Stock</div>
-                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{ranking['Art. Sin Stock'].sum():,}</div>
+                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{format_miles(int(ranking['Art. Sin Stock'].sum()))}</div>
             </div>
             <div style="color: #c0392b; font-size: 12px; margin-top: 0.2rem;">
                 🔴 Artículos críticos
@@ -494,99 +533,22 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
        
     # === EXPORTAR RANKING ===
     st.markdown("---")
-    
+
+    # Preparar dataframe para exportación
     df_export = ranking[[
         'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total',
         'Utilidad', 'Rentabilidad %', '% Participación Presupuesto', 'Presupuesto',
         'Artículos', 'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
     ]].copy()
 
-    columnas_vacias = []
-    for col in df_export.columns:
-        if df_export[col].isna().all() or (df_export[col] == 0).all():
-            columnas_vacias.append(col)
-
-    df_export = df_export.drop(columns=columnas_vacias)
-
-    if 'Venta Total' in df_export.columns:
-        df_export['Venta Total'] = df_export['Venta Total'].astype(int)
-    if 'Costo Total' in df_export.columns:
-        df_export['Costo Total'] = df_export['Costo Total'].astype(int)
-    if 'Utilidad' in df_export.columns:
-        df_export['Utilidad'] = df_export['Utilidad'].astype(int)
-    if 'Presupuesto' in df_export.columns:
-        df_export['Presupuesto'] = df_export['Presupuesto'].astype(int)
-    if 'Costo Exceso' in df_export.columns:
-        df_export['Costo Exceso'] = df_export['Costo Exceso'].astype(int)
-    if 'Rentabilidad %' in df_export.columns:
-        df_export['Rentabilidad %'] = df_export['Rentabilidad %'].round(2)
-    if '% Participación Presupuesto' in df_export.columns:
-        df_export['% Participación Presupuesto'] = df_export['% Participación Presupuesto'].round(2)
-    if '% Participación Ventas' in df_export.columns:
-        df_export['% Participación Ventas'] = df_export['% Participación Ventas'].round(2)
-
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df_export.to_excel(writer, index=False, sheet_name='Ranking')
-        
-        workbook = writer.book
-        worksheet = writer.sheets['Ranking']
-        
-        formato_moneda = workbook.add_format({
-            'num_format': '$#,##0',
-            'align': 'right'
-        })
-        
-        formato_entero = workbook.add_format({
-            'num_format': '#,##0',
-            'align': 'center'
-        })
-        
-        formato_header = workbook.add_format({
-            'bold': True,
-            'bg_color': '#2E5090',
-            'font_color': 'white',
-            'align': 'center',
-            'valign': 'vcenter',
-            'border': 1
-        })
-        
-        num_columnas = len(df_export.columns)
-        worksheet.set_row(0, 25)
-        
-        for i in range(num_columnas):
-            worksheet.write(0, i, df_export.columns[i], formato_header)
-        
-        worksheet.freeze_panes(1, 0)
-        
-        for i, col in enumerate(df_export.columns):
-            max_len = max(len(col), 12) + 2
-            
-            if col in ['Venta Total', 'Costo Total', 'Utilidad', 'Presupuesto', 'Costo Exceso']:
-                worksheet.set_column(i, i, max(max_len, 15), formato_moneda)
-            elif col in ['Artículos', 'Art. con Exceso', 'Art. Sin Stock', 'Ranking']:
-                worksheet.set_column(i, i, max_len, formato_entero)
-            elif col == 'Proveedor':
-                worksheet.set_column(i, i, 30)
-            else:
-                worksheet.set_column(i, i, max_len)
-
-    output.seek(0)
+    # Generar Excel
+    output = crear_excel_ranking(df_export, str(fecha_desde), str(fecha_hasta))
+    nombre_archivo = generar_nombre_archivo("ranking_proveedores")
 
     st.download_button(
         label="📥 Descargar Ranking Completo (Excel)",
         data=output,
-        file_name=f"ranking_proveedores_{datetime.now().strftime('%d%B%Y')}.xlsx",
+        file_name=nombre_archivo,
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        width="stretch"
+        use_container_width=True
     )
-    
-    tiempo_total = time.time() - inicio_total
-    print(f"\n{'='*80}")
-    print(f"✅ DASHBOARD COMPLETADO")
-    print(f"{'='*80}")
-    print(f"   ├─ Período: {fecha_desde} → {fecha_hasta} ({dias_periodo} días)")
-    print(f"   ├─ Proveedores: {len(ranking)}")
-    print(f"   ├─ Venta Total: ${ranking['Venta Total'].sum():,.0f}")
-    print(f"   └─ Tiempo Total: {tiempo_total:.2f}s")
-    print(f"{'='*80}\n")

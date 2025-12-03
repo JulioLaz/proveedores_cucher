@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
+from google.cloud import bigquery
+import time
 
 @st.cache_data(ttl=3600, show_spinner=True)  # ✅ Cache 1 hora, con spinner
 def get_ventas_data(credentials_path, project_id, bigquery_table, fecha_desde, fecha_hasta):
@@ -67,36 +69,92 @@ def get_presupuesto_data(credentials_path, project_id):
     
     return df
 
-@st.cache_data(ttl=3600, show_spinner=False)  # Cache por 1 hora (cambia poco)
-def get_familias_data(credentials_path, project_id):
-    """
-    Obtiene familia y subfamilia de todos los artículos (CACHEADO)
-    Query ligera - solo trae 3 columnas
-    """
-    print(f"\n🔄 EJECUTANDO QUERY DE FAMILIAS (sin caché)")
-    import time
-    from google.cloud import bigquery
+# @st.cache_data(ttl=3600, show_spinner=False)  # Cache por 1 hora (cambia poco)
+# def get_familias_data(credentials_path, project_id):
+#     """
+#     Obtiene familia y subfamilia de todos los artículos (CACHEADO)
+#     Query ligera - solo trae 3 columnas
+#     """
+#     print(f"\n🔄 EJECUTANDO QUERY DE FAMILIAS (sin caché)")
+#     import time
+#     from google.cloud import bigquery
     
+#     inicio = time.time()
+#     client = bigquery.Client.from_service_account_json(credentials_path)
+    
+#     # ⚠️ AJUSTA ESTE NOMBRE A TU TABLA REAL
+#     query = f"""
+#     SELECT DISTINCT
+#         idarticulo,
+#         familia,
+#         subfamilia
+#     FROM `{project_id}.presupuesto.result_final_alert_all`
+#     WHERE familia IS NOT NULL
+#     """
+    
+#     df = client.query(query).to_dataframe()
+#     tiempo = time.time() - inicio
+#     print(f"✅ Query familias: {len(df):,} artículos en {tiempo:.2f}s")
+#     print(f"   🏷️  Familias únicas: {df['familia'].nunique()}")
+#     print(f"   📂 Subfamilias únicas: {df['subfamilia'].nunique()}")
+    
+#     return df
+
+@st.cache_data(ttl=3600)
+def get_familias_data(credentials_path, project_id, bigquery_table):
+    """
+    Obtener familias y subfamilias de artículos desde la tabla de ventas.
+    
+    Args:
+        credentials_path (str): Ruta a las credenciales de GCP
+        project_id (str): ID del proyecto de BigQuery
+        bigquery_table (str): Nombre completo de la tabla (proyecto.dataset.tabla)
+    
+    Returns:
+        pd.DataFrame: DataFrame con idarticulo, familia, subfamilia
+    """
+    print("\n" + "="*60)
+    print("📦 CARGANDO FAMILIAS Y SUBFAMILIAS")
+    print("="*60)
     inicio = time.time()
-    client = bigquery.Client.from_service_account_json(credentials_path)
     
-    # ⚠️ AJUSTA ESTE NOMBRE A TU TABLA REAL
+    # ✅ USAR LA MISMA TABLA QUE LAS VENTAS
     query = f"""
     SELECT DISTINCT
         idarticulo,
         familia,
         subfamilia
-    FROM `{project_id}.presupuesto.result_final_alert_all`
-    WHERE familia IS NOT NULL
+    FROM `{bigquery_table}`
+    WHERE idarticulo IS NOT NULL
+        AND familia IS NOT NULL
+    ORDER BY idarticulo
     """
     
-    df = client.query(query).to_dataframe()
-    tiempo = time.time() - inicio
-    print(f"✅ Query familias: {len(df):,} artículos en {tiempo:.2f}s")
-    print(f"   🏷️  Familias únicas: {df['familia'].nunique()}")
-    print(f"   📂 Subfamilias únicas: {df['subfamilia'].nunique()}")
-    
-    return df
+    try:
+        print(f"   📊 Tabla fuente: {bigquery_table}")
+        print(f"   🔍 Query: Obteniendo familias únicas...")
+        
+        client = bigquery.Client.from_service_account_json(
+            credentials_path,
+            project=project_id
+        )
+        
+        df = client.query(query).to_dataframe()
+        
+        tiempo = time.time() - inicio
+        
+        print(f"   ✅ {len(df):,} artículos con familia/subfamilia")
+        print(f"   📁 {df['familia'].nunique()} familias únicas")
+        print(f"   📂 {df['subfamilia'].nunique()} subfamilias únicas")
+        print(f"   ⏱️  Tiempo: {tiempo:.2f}s")
+        print("="*60 + "\n")
+        
+        return df
+        
+    except Exception as e:
+        print(f"   ❌ ERROR al cargar familias: {e}")
+        print("="*60 + "\n")
+        return pd.DataFrame(columns=['idarticulo', 'familia', 'subfamilia'])
 
 # @st.cache_data(ttl=3600, show_spinner=False)  # ✅ Procesamiento rápido, sin spinner
 # def process_ranking_data(df_proveedores, df_ventas, df_presupuesto):
