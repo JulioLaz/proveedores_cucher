@@ -115,7 +115,169 @@ def limpiar_dataframe_export(df):
     return df_clean
 
 
-def crear_excel_ranking(df, fecha_desde=None, fecha_hasta=None):
+def crear_excel_ranking(df, fecha_desde=None, fecha_hasta=None, 
+                       filtros_aplicados=False, familias_activas=None, 
+                       subfamilias_activas=None):
+    """
+    Crea archivo Excel con formato profesional para ranking de proveedores.
+    
+    Args:
+        df (pd.DataFrame): DataFrame con datos del ranking
+        fecha_desde (str, optional): Fecha inicio del período
+        fecha_hasta (str, optional): Fecha fin del período
+        filtros_aplicados (bool): Si se aplicaron filtros de familia/subfamilia
+        familias_activas (list, optional): Lista de familias incluidas
+        subfamilias_activas (list, optional): Lista de subfamilias incluidas
+        
+    Returns:
+        BytesIO: Buffer con el archivo Excel generado
+    """
+    print(f"\n{'='*80}")
+    print("📊 GENERANDO ARCHIVO EXCEL - RANKING DE PROVEEDORES")
+    print(f"{'='*80}")
+    
+    if filtros_aplicados:
+        print("   🎯 MODO: CON FILTROS APLICADOS")
+        if familias_activas:
+            print(f"   🏷️  Familias activas: {len(familias_activas)}")
+        if subfamilias_activas:
+            print(f"   📂 Subfamilias activas: {len(subfamilias_activas)}")
+    else:
+        print("   📊 MODO: RANKING COMPLETO (SIN FILTROS)")
+    
+    print(f"{'='*80}")
+    inicio = time.time()
+    
+    # Limpiar datos
+    print("   🧹 Limpiando datos para exportación...")
+    df_export = limpiar_dataframe_export(df)
+    print(f"   ✅ Datos limpiados: {len(df_export):,} filas")
+    
+    # Crear buffer
+    output = BytesIO()
+    
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        # Escribir datos
+        df_export.to_excel(writer, index=False, sheet_name='Ranking')
+        
+        workbook = writer.book
+        worksheet = writer.sheets['Ranking']
+        formatos = aplicar_formato_excel(workbook)
+        
+        # === APLICAR FORMATO A HEADERS ===
+        num_columnas = len(df_export.columns)
+        worksheet.set_row(0, 30)  # Altura del header
+        
+        print(f"\n   📐 Configurando formato de columnas...")
+        for i in range(num_columnas):
+            worksheet.write(0, i, df_export.columns[i], formatos['header'])
+        
+        # Congelar primera fila
+        worksheet.freeze_panes(1, 0)
+        
+        # === APLICAR FORMATO A COLUMNAS ===
+        columnas_formateadas = 0
+        
+        for i, col in enumerate(df_export.columns):
+            max_len = max(len(str(col)), 12) + 2
+            
+            if col in ['Venta Total', 'Costo Total', 'Utilidad', 'Presupuesto', 'Costo Exceso']:
+                worksheet.set_column(i, i, max(max_len, 15), formatos['moneda'])
+                columnas_formateadas += 1
+                
+            elif col in ['Artículos', 'Art. con Exceso', 'Art. Sin Stock', 'Ranking', 'Cantidad Vendida']:
+                worksheet.set_column(i, i, max_len, formatos['entero'])
+                columnas_formateadas += 1
+                
+            elif col in ['Rentabilidad %', '% Participación Presupuesto', '% Participación Ventas']:
+                worksheet.set_column(i, i, max_len, formatos['porcentaje'])
+                columnas_formateadas += 1
+                
+            elif col == 'Proveedor':
+                worksheet.set_column(i, i, 30, formatos['texto'])
+                columnas_formateadas += 1
+                
+            else:
+                worksheet.set_column(i, i, max_len, formatos['texto'])
+        
+        print(f"   ✅ {columnas_formateadas} columnas formateadas")
+        
+        # === AGREGAR METADATA ===
+        print(f"\n   📝 Agregando metadata al archivo...")
+        fila_metadata = 1000
+        
+        # Fecha de generación
+        worksheet.write(f'A{fila_metadata}', f'Generado: {datetime.now().strftime("%d/%m/%Y %H:%M")}')
+        
+        # Período
+        if fecha_desde and fecha_hasta:
+            fila_metadata += 1
+            worksheet.write(f'A{fila_metadata}', f'Período: {fecha_desde} - {fecha_hasta}')
+        
+        # Información de filtros
+        if filtros_aplicados:
+            fila_metadata += 1
+            worksheet.write(f'A{fila_metadata}', '═══════════════════════════════════════')
+            
+            fila_metadata += 1
+            worksheet.write(f'A{fila_metadata}', '🎯 FILTROS APLICADOS:')
+            
+            if familias_activas:
+                fila_metadata += 1
+                worksheet.write(f'A{fila_metadata}', f'  • Familias incluidas: {len(familias_activas)} activas')
+                
+                # Listar familias (máximo 10)
+                familias_mostrar = familias_activas[:10]
+                for familia in familias_mostrar:
+                    fila_metadata += 1
+                    worksheet.write(f'A{fila_metadata}', f'    - {familia}')
+                
+                if len(familias_activas) > 10:
+                    fila_metadata += 1
+                    worksheet.write(f'A{fila_metadata}', f'    ... y {len(familias_activas) - 10} más')
+            
+            if subfamilias_activas:
+                fila_metadata += 1
+                worksheet.write(f'A{fila_metadata}', f'  • Subfamilias incluidas: {len(subfamilias_activas)} activas')
+            
+            fila_metadata += 1
+            worksheet.write(f'A{fila_metadata}', f'  • Total proveedores: {len(df_export):,}')
+            
+        else:
+            fila_metadata += 1
+            worksheet.write(f'A{fila_metadata}', '═══════════════════════════════════════')
+            
+            fila_metadata += 1
+            worksheet.write(f'A{fila_metadata}', '📊 RANKING COMPLETO (SIN FILTROS)')
+            
+            fila_metadata += 1
+            worksheet.write(f'A{fila_metadata}', f'  • Incluye todas las familias y subfamilias')
+            
+            fila_metadata += 1
+            worksheet.write(f'A{fila_metadata}', f'  • Total proveedores: {len(df_export):,}')
+    
+    output.seek(0)
+    
+    tiempo = time.time() - inicio
+    
+    # Calcular totales para el resumen
+    venta_total = df['Venta Total'].sum() if 'Venta Total' in df.columns else 0
+    presupuesto_total = df['Presupuesto'].sum() if 'Presupuesto' in df.columns else 0
+    
+    print(f"\n   {'─'*76}")
+    print(f"   ✅ EXCEL GENERADO EXITOSAMENTE")
+    print(f"   {'─'*76}")
+    print(f"   📏 Filas exportadas: {len(df_export):,}")
+    print(f"   📊 Columnas: {num_columnas}")
+    print(f"   💰 Venta total: ${venta_total:,.0f}")
+    print(f"   💵 Presupuesto total: ${presupuesto_total:,.0f}")
+    print(f"   ⏱️  Tiempo de generación: {tiempo:.2f}s")
+    print(f"   {'─'*76}")
+    print(f"{'='*80}\n")
+    
+    return output
+
+def crear_excel_ranking00(df, fecha_desde=None, fecha_hasta=None):
     """
     Crea archivo Excel con formato profesional para ranking de proveedores.
     
@@ -195,7 +357,6 @@ def crear_excel_ranking(df, fecha_desde=None, fecha_hasta=None):
     print(f"{'='*60}\n")
     
     return output
-
 
 def generar_nombre_archivo(prefijo="ranking_proveedores", extension="xlsx"):
     """

@@ -1,24 +1,8 @@
-"""
-Dashboard principal de proveedores - Versión modularizada
-"""
 import streamlit as st
 import pandas as pd
 from babel.dates import format_date
 from babel import Locale
-
-# Imports de utilidades
-from utils import (
-    setup_credentials,
-    PROVEEDOR_UNIFICADO,
-    NOMBRES_UNIFICADOS,
-    query_bigquery_tickets,
-    query_resultados_idarticulo,
-    load_proveedores_from_sheet,
-    calculate_metrics,
-    generate_insights
-)
-
-# Imports de componentes
+from utils import (setup_credentials, PROVEEDOR_UNIFICADO, NOMBRES_UNIFICADOS, query_bigquery_tickets, query_resultados_idarticulo, load_proveedores_from_sheet, calculate_metrics, generate_insights)
 from components.sidebar_filters import show_sidebar_filters
 from components.executive_summary import show_executive_summary as render_executive_summary
 from components.products_analysis import show_products_analysis as render_products_analysis
@@ -26,18 +10,13 @@ from components.temporal_analysis import show_temporal_analysis as render_tempor
 from components.advanced_analysis import show_advanced_analysis as render_advanced_analysis
 from components.global_dashboard import show_global_dashboard
 # from components.global_dashboard_00 import show_global_dashboard
-
-# 🔥 NUEVOS IMPORTS
 from components.article_analysis import show_idarticulo_analysis
 from components.executive_summary_detailed import show_executive_summary_best
 from components.budget_analysis import show_presupuesto_estrategico
-
-# Imports de funciones auxiliares
 from generar_excel import generar_excel
 from custom_css import custom_css
 
 locale = Locale.parse('es_AR')
-
 
 class ProveedorDashboard:
     """
@@ -70,7 +49,6 @@ class ProveedorDashboard:
     
     def query_bigquery_data(self, proveedor, fecha_inicio, fecha_fin):
         """Consultar datos de BigQuery para un proveedor"""
-        # Obtener IDs de artículos del proveedor
         ids = self.df_proveedores[
             self.df_proveedores['proveedor'] == proveedor
         ]['idarticulo'].dropna().astype(int).astype(str).unique()
@@ -212,9 +190,6 @@ class ProveedorDashboard:
             else:
                 st.info("📊 No hay datos de presupuesto disponibles")
 
-
-
-
     def show_main_dashboard_00(self):
         """Mostrar dashboard principal"""
         proveedor = self.proveedor if hasattr(self, 'proveedor') else None
@@ -230,11 +205,6 @@ class ProveedorDashboard:
                 # Botón volver
                 col1, col2 = st.columns([1, 5])
                 with col1:
-                    # if st.button("← Inicio", type="secondary", width='stretch'):
-                    #     st.session_state.analysis_data = None
-                    #     st.session_state.selected_proveedor = None
-                    #     st.session_state.resultados_data = None
-                    #     st.rerun()
                     if st.button("← Inicio", type="secondary", width='stretch'):
                         # Limpiar datos
                         st.session_state.analysis_data = None
@@ -256,13 +226,6 @@ class ProveedorDashboard:
                     </div>
                     """, unsafe_allow_html=True)
 
-            # st.markdown(f"""
-            # <div class="main-header">
-            #     <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>
-            #         Proveedor: {proveedor}
-            #     </p>
-            # </div>
-            # """, unsafe_allow_html=True)
         else:
             st.markdown("""
             <div class="main-header">
@@ -287,26 +250,7 @@ class ProveedorDashboard:
                 bigquery_table=self.config['bigquery_table']
             )
             return
-        
-        # # Botón volver
-        # col1, col2 = st.columns([1, 5])
-        # with col1:
-        #     if st.button("← Dashboard Global", type="secondary", width='stretch'):
-        #         st.session_state.analysis_data = None
-        #         st.session_state.selected_proveedor = None
-        #         st.session_state.resultados_data = None
-        #         st.rerun()
-        
-        # with col2:
-        #     proveedor = st.session_state.selected_proveedor
-        #     st.markdown(f"""
-        #     <div class="main-header">
-        #         <p style='padding:5px 0px; font-size:1.5rem; font-weight:semibold;'>
-        #             📊 Análisis Detallado: {proveedor}
-        #         </p>
-        #     </div>
-        #     """, unsafe_allow_html=True)
-        
+               
         # Datos y métricas
         df = st.session_state.analysis_data
         df_presu = st.session_state.get('resultados_data')
@@ -355,11 +299,9 @@ class ProveedorDashboard:
                 render_advanced_analysis(df, metrics)
         
         with tab5:
-            # 🔥 AQUÍ ESTÁ EL CAMBIO
             show_executive_summary_best(df, proveedor, metrics)
         
         with tab6:
-            # 🔥 AQUÍ ESTÁ EL CAMBIO
             if df_presu is not None:
                 show_presupuesto_estrategico(df_presu)
             else:
