@@ -36,6 +36,17 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     print("="*80)
     inicio_total = time.time()
 
+    df_presupuesto = get_presupuesto_data(credentials_path, project_id)
+    
+    if 'ultima_fecha' in df_presupuesto.columns:
+        fecha_maxima_disponible = pd.to_datetime(df_presupuesto['ultima_fecha']).iloc[0].date()
+    else:
+        # Fallback: usar fecha actual menos 1 día
+        fecha_maxima_disponible = datetime.now().date() - timedelta(days=1)
+    
+    print(f"   ✅ Última fecha con datos: {fecha_maxima_disponible.strftime('%d/%m/%Y')}")
+
+
     container = st.container(border=True)
 
     with container:
@@ -59,16 +70,30 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                 index=0,
             )
 
+            st.markdown(
+                    f"""
+                    <div>
+                        <span style='font-weight:semi-bold;padding: 5px;font-size:1rem'>🆙 Actualizado al:</span><br>
+                        <div style='font-weight:300;padding-top: 5px;padding-left: 1.5rem;font-size:1rem'>
+                            {fecha_maxima_disponible.strftime('%d %B %Y')}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+
         with col2:
             if periodo_seleccionado == "Personalizado":
                 col_a, col_b = st.columns(2)
                 fecha_desde = col_a.date_input(
                     "Desde:",
-                    value=datetime.now().date() - timedelta(days=30),
+                    value= fecha_maxima_disponible - timedelta(days=30),
                 )
                 fecha_hasta = col_b.date_input(
                     "Hasta:",
-                    value=datetime.now().date(),
+                    value=fecha_maxima_disponible,  # ← CAMBIADO
+                    max_value=fecha_maxima_disponible
                 )
 
                 if fecha_desde > fecha_hasta:
@@ -79,18 +104,18 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
             else:
                 dias_periodo = periodo_opciones[periodo_seleccionado]
-                fecha_hasta = datetime.now().date()
-                fecha_desde = fecha_hasta - timedelta(days=dias_periodo)
+                fecha_hasta = fecha_maxima_disponible
+                fecha_desde = fecha_maxima_disponible - timedelta(days=dias_periodo)
 
                 st.markdown(
                     f"""
                     <div>
                         <span style='font-weight:semi-bold;padding: 5px;font-size:1rem'>⏳ Rango de fechas</span><br>
-                        <div style='font-weight:300;padding-top: 5px;padding-left: 1.5rem;font-size:1rem'>
-                            Desde: {fecha_desde.strftime('%d/%m/%Y')}
+                        <div style='font-weight:300;padding-top: 5px;padding-left: 1rem;font-size:1rem'>
+                            Desde: {fecha_desde.strftime('%d %b %Y')}
                         </div>
-                        <div style='font-weight:300; padding-left: 1.5rem;font-size:1rem'>
-                            Hasta: {fecha_hasta.strftime('%d/%m/%Y')}
+                        <div style='font-weight:300; padding-left: 1rem;font-size:1rem'>
+                            Hasta: {fecha_hasta.strftime('%d %b %Y')}
                         </div>
                         <div style='font-weight:semi-bold;padding-top: 5px;padding-left: 5px;font-size:1rem'> 📆 Días de actividad:</div>
                         <div style='font-weight:400;margin-left:2.8rem;font-size:1.4rem'>{dias_periodo} días</div>
