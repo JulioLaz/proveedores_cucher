@@ -9,3 +9,4 @@ components/ver.py
 *.txt
 
 *.toml
+auxiliar.ipynb
