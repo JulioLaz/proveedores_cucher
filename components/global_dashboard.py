@@ -830,8 +830,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # print(f"   ⏱️  Tiempo total de ejecución: {tiempo_total:.2f}s")
     # print(f"{'='*80}\n")
     # === TARJETA DE COBERTURA DE STOCK ===
-    st.markdown("---")
-    st.markdown("### 📦 Análisis de Cobertura de Stock")
+    # st.markdown("---")
+    # st.markdown("### 📦 Análisis de Cobertura de Stock")
 
     # Preparar DataFrame para cobertura (con datos filtrados)
     print(f"\n{'='*80}")
@@ -863,8 +863,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
     # ═══ OBTENER DESCRIPCIÓN ═══
     # === PREPARAR DATOS PARA COBERTURA ===
-    st.markdown("---")
-    st.markdown("### 📦 Análisis de Cobertura de Stock")
+    # st.markdown("---")
+    # st.markdown("### 📦 Análisis de Cobertura de Stock")
 
     print(f"\n{'='*80}")
     print("📦 PREPARANDO DATOS PARA COBERTURA DE STOCK")
@@ -918,64 +918,64 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             fecha_hasta
         )    
     
-    if metricas_stock:
-        col1, col2, col3, col4 = st.columns(4)
+    # if metricas_stock:
+    #     col1, col2, col3, col4 = st.columns(4)
         
-        with col1:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div style="text-align: center;">
-                    <div style="font-size: 14px; color: #555;">📊 Stock Total</div>
-                    <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{format_miles(metricas_stock['stock_total'])}</div>
-                </div>
-                <div style="color: #555; font-size: 12px; margin-top: 0.2rem;">
-                    📦 Unidades en inventario
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+    #     with col1:
+    #         st.markdown(f"""
+    #         <div class="metric-box">
+    #             <div style="text-align: center;">
+    #                 <div style="font-size: 14px; color: #555;">📊 Stock Total</div>
+    #                 <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{format_miles(metricas_stock['stock_total'])}</div>
+    #             </div>
+    #             <div style="color: #555; font-size: 12px; margin-top: 0.2rem;">
+    #                 📦 Unidades en inventario
+    #             </div>
+    #         </div>
+    #         """, unsafe_allow_html=True)
         
-        with col2:
-            # Color según cobertura
-            color_cobertura = '#27ae60' if 15 <= metricas_stock['cobertura_promedio'] <= 60 else '#e67e22'
-            st.markdown(f"""
-            <div class="metric-box">
-                <div style="text-align: center;">
-                    <div style="font-size: 14px; color: #555;">⏱️ Cobertura Promedio</div>
-                    <div style="font-size: 18px; font-weight: bold; color: {color_cobertura};">{metricas_stock['cobertura_promedio']} días</div>
-                </div>
-                <div style="color: #555; font-size: 12px; margin-top: 0.2rem;">
-                    📈 Duración proyectada
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+    #     with col2:
+    #         # Color según cobertura
+    #         color_cobertura = '#27ae60' if 15 <= metricas_stock['cobertura_promedio'] <= 60 else '#e67e22'
+    #         st.markdown(f"""
+    #         <div class="metric-box">
+    #             <div style="text-align: center;">
+    #                 <div style="font-size: 14px; color: #555;">⏱️ Cobertura Promedio</div>
+    #                 <div style="font-size: 18px; font-weight: bold; color: {color_cobertura};">{metricas_stock['cobertura_promedio']} días</div>
+    #             </div>
+    #             <div style="color: #555; font-size: 12px; margin-top: 0.2rem;">
+    #                 📈 Duración proyectada
+    #             </div>
+    #         </div>
+    #         """, unsafe_allow_html=True)
         
-        with col3:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div style="text-align: center;">
-                    <div style="font-size: 14px; color: #555;">🟠 Sobrestock</div>
-                    <div style="font-size: 18px; font-weight: bold; color: #e67e22;">{format_miles(metricas_stock['articulos_sobrestock'])}</div>
-                </div>
-                <div style="color: #e67e22; font-size: 12px; margin-top: 0.2rem;">
-                    📊 {metricas_stock['pct_sobrestock']}% del total
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+    #     with col3:
+    #         st.markdown(f"""
+    #         <div class="metric-box">
+    #             <div style="text-align: center;">
+    #                 <div style="font-size: 14px; color: #555;">🟠 Sobrestock</div>
+    #                 <div style="font-size: 18px; font-weight: bold; color: #e67e22;">{format_miles(metricas_stock['articulos_sobrestock'])}</div>
+    #             </div>
+    #             <div style="color: #e67e22; font-size: 12px; margin-top: 0.2rem;">
+    #                 📊 {metricas_stock['pct_sobrestock']}% del total
+    #             </div>
+    #         </div>
+    #         """, unsafe_allow_html=True)
         
-        with col4:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div style="text-align: center;">
-                    <div style="font-size: 14px; color: #555;">🔴 Stock Crítico</div>
-                    <div style="font-size: 18px; font-weight: bold; color: #c0392b;">{format_miles(metricas_stock['articulos_criticos'])}</div>
-                </div>
-                <div style="color: #c0392b; font-size: 12px; margin-top: 0.2rem;">
-                    ⚠️ {metricas_stock['pct_critico']}% del total
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-    else:
-        st.warning("⚠️ No se pudieron calcular las métricas de cobertura. Verifica la conexión a BigQuery.")
+    #     with col4:
+    #         st.markdown(f"""
+    #         <div class="metric-box">
+    #             <div style="text-align: center;">
+    #                 <div style="font-size: 14px; color: #555;">🔴 Stock Crítico</div>
+    #                 <div style="font-size: 18px; font-weight: bold; color: #c0392b;">{format_miles(metricas_stock['articulos_criticos'])}</div>
+    #             </div>
+    #             <div style="color: #c0392b; font-size: 12px; margin-top: 0.2rem;">
+    #                 ⚠️ {metricas_stock['pct_critico']}% del total
+    #             </div>
+    #         </div>
+    #         """, unsafe_allow_html=True)
+    # else:
+    #     st.warning("⚠️ No se pudieron calcular las métricas de cobertura. Verifica la conexión a BigQuery.")
 
     # === EXPORTAR RANKING ===
     st.markdown("---")
@@ -988,7 +988,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # ============================================
     with col_btn1:
         st.markdown("#### 📊 Ranking Completo")
-        st.caption("Incluye TODOS los proveedores sin aplicar filtros de familia/subfamilia")
+        st.caption("Incluye TODOS los proveedores sin aplicar filtros")
         
         print(f"\n{'='*80}")
         print("📊 GENERANDO RANKING COMPLETO (SIN FILTROS)")
@@ -1097,8 +1097,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # BOTÓN 3: DESCARGAR COBERTURA DE STOCK
     # ============================================
     with col_btn3:
-        st.markdown("#### 📦 Cobertura de Stock")
-        st.caption("Análisis detallado de inventario vs ventas")
+        st.markdown("#### 💰 Utilidad vs Stock")
+        st.caption("Análisis detallado de inventario vs utilidad")
         
         if st.button("🔄 Generar Reporte de Cobertura", use_container_width=True, type="primary"):
             with st.spinner("📊 Generando reporte de cobertura..."):
