@@ -86,7 +86,7 @@ class CoberturaStockExporter:
          print(f"❌ Error consultando BigQuery: {e}")
          return None
     
-    def calcular_cobertura(self, df_ventas, df_stock, fecha_inicio, fecha_fin):
+    def calcular_cobertura(self, df_ventas, df_stock, fecha_inicio, fecha_fin, utilidad_minima=10000):
         """
         Calcula cobertura en días y clasifica
         
@@ -137,11 +137,15 @@ class CoberturaStockExporter:
         
         df_merged['clasificacion'] = df_merged['cobertura_dias'].apply(clasificar_cobertura)
         
-
-        # ⭐ FILTRAR UTILIDADES NEGATIVAS
+        # ⭐ FILTRAR POR UTILIDAD MÍNIMA
         print(f"   • Artículos antes de filtrar: {len(df_merged):,}")
-        df_merged = df_merged[df_merged['utilidad_total'] > 10000].copy()
-        print(f"   • Artículos después de filtrar (utilidad >= 0): {len(df_merged):,}\n ⚠️ Con utilidad > $ 10K.")
+        df_merged = df_merged[df_merged['utilidad_total'] > utilidad_minima].copy()
+        print(f"   • Artículos después de filtrar: {len(df_merged):,}")
+        print(f"   💵 Utilidad mínima aplicada: ${utilidad_minima:,.0f}")
+        # # ⭐ FILTRAR UTILIDADES NEGATIVAS
+        # print(f"   • Artículos antes de filtrar: {len(df_merged):,}")
+        # df_merged = df_merged[df_merged['utilidad_total'] > 10000].copy()
+        # print(f"   • Artículos después de filtrar (utilidad >= 0): {len(df_merged):,}\n ⚠️ Con utilidad > $ 10K.")
 
         # Ordenar por proveedor, familia, subfamilia, utilidad
         df_merged = df_merged.sort_values(by=['proveedor', 'familia', 'subfamilia', 'utilidad_total'],
@@ -267,7 +271,7 @@ class CoberturaStockExporter:
         
         return output
     
-    def exportar_completo(self, df_ventas, fecha_inicio, fecha_fin):
+    def exportar_completo(self, df_ventas, fecha_inicio, fecha_fin, utilidad_minima=10000):
         """
         Función principal que ejecuta todo el proceso
         
@@ -301,7 +305,7 @@ class CoberturaStockExporter:
             return None
         
         # Calcular cobertura
-        df_completo = self.calcular_cobertura(df_ventas, df_stock, fecha_inicio, fecha_fin)
+        df_completo = self.calcular_cobertura(df_ventas, df_stock, fecha_inicio, fecha_fin, utilidad_minima)
         
         # Generar Excel
         excel_file = self.generar_excel(df_completo, fecha_inicio, fecha_fin)
@@ -316,7 +320,7 @@ class CoberturaStockExporter:
         
         return excel_file
     
-    def obtener_metricas(self, df_ventas, fecha_inicio, fecha_fin):
+    def obtener_metricas(self, df_ventas, fecha_inicio, fecha_fin, utilidad_minima=10000):
         """
         Calcula métricas para la tarjeta de dashboard
         
@@ -332,7 +336,7 @@ class CoberturaStockExporter:
             return None
         
         # Calcular cobertura
-        df_completo = self.calcular_cobertura(df_ventas, df_stock, fecha_inicio, fecha_fin)
+        df_completo = self.calcular_cobertura(df_ventas, df_stock, fecha_inicio, fecha_fin, utilidad_minima)
         
         # Calcular métricas
         metricas = {
@@ -349,22 +353,35 @@ class CoberturaStockExporter:
 # ═══════════════════════════════════════════════════════════════════
 # FUNCIONES PARA USAR EN STREAMLIT
 # ═══════════════════════════════════════════════════════════════════
-def generar_reporte_cobertura(df_ventas, fecha_inicio, fecha_fin, credentials_path=None, project_id=None):
+
+def generar_reporte_cobertura(df_ventas, fecha_inicio, fecha_fin, credentials_path=None, project_id=None, utilidad_minima=10000):
     """
     Función simplificada para llamar desde Streamlit
     
-    Args:
-        df_ventas: DataFrame con datos de ventas
-        fecha_inicio, fecha_fin: datetime
-        credentials_path: Ruta al JSON (solo en local, None en nube)
-        project_id: ID del proyecto de GCP
-    
     Returns:
-        BytesIO con Excel o None
+        tuple: (excel_file, df_completo) - Excel BytesIO y DataFrame con datos completos
     """
     exporter = CoberturaStockExporter(credentials_path, project_id)
-    return exporter.exportar_completo(df_ventas, fecha_inicio, fecha_fin)
-
+    
+    # Conectar a BigQuery
+    if not exporter.conectar_bigquery():
+        return None, None
+    
+    # Obtener stock
+    df_stock = exporter.obtener_stock_bigquery()
+    if df_stock is None:
+        return None, None
+    
+    # Calcular cobertura (este DF tiene TODAS las columnas)
+    df_completo = exporter.calcular_cobertura(df_ventas, df_stock, fecha_inicio, fecha_fin, utilidad_minima)
+    
+    # Generar Excel
+    excel_file = exporter.generar_excel(df_completo, fecha_inicio, fecha_fin)
+    
+    print(f"✅ Devolviendo Excel y DataFrame con {len(df_completo):,} registros")
+    
+    # Devolver AMBOS: el Excel y el DataFrame
+    return excel_file, df_completo
 
 def obtener_metricas_cobertura(df_ventas, fecha_inicio, fecha_fin, credentials_path=None, project_id=None):
     """
