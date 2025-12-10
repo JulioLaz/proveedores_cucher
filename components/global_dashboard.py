@@ -911,12 +911,19 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
     # Obtener métricas de cobertura
     with st.spinner("Calculando métricas de cobertura..."):
+        # metricas_stock = obtener_metricas_cobertura(
+        # # metricas_stock = get_metricas_cobertura_optimized(
+        #     df_para_cobertura,
+        #     fecha_desde,
+        #     fecha_hasta
+        # )
         metricas_stock = obtener_metricas_cobertura(
-        # metricas_stock = get_metricas_cobertura_optimized(
-            df_para_cobertura,
-            fecha_desde,
-            fecha_hasta
-        )    
+        df_para_cobertura,
+        fecha_desde,
+        fecha_hasta,
+        # credentials_path,  # ← AGREGAR
+        # project_id          # ← AGREGAR
+        ) 
     
     # if metricas_stock:
     #     col1, col2, col3, col4 = st.columns(4)
@@ -1112,7 +1119,14 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                     fecha_desde,
                     fecha_hasta
                 )
-                
+                # excel_cobertura = generar_reporte_cobertura(
+                #     df_para_cobertura,
+                #     fecha_desde,
+                #     fecha_hasta,
+                #     credentials_path,  # ← AGREGAR
+                #     project_id          # ← AGREGAR
+                # )
+
                 tiempo_cobertura = time.time() - inicio_cobertura
                 print(f"   ⏱️  Tiempo generación: {tiempo_cobertura:.2f}s")
                 print(f"{'='*80}\n")

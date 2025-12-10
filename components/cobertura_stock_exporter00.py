@@ -11,6 +11,15 @@ import time
 
 class CoberturaStockExporter:
     
+    # def __init__(self):
+    #     """Inicializa el exportador con configuración de BigQuery"""
+    #     self.project_id = "youtube-analysis-24"
+    #     self.dataset_id = "stk_all_actual"
+    #     self.table_id = "stock_por_sucursal"
+    #     self.credentials_path = r"C:\JulioPrograma\JSON-clave-bigquery\youtube-analysis-24-432dad7a202f.json"
+    #     # self.credentials_path = credentials_path  # Puede ser None en la nube
+    #     self.client = None
+
     def __init__(self, credentials_path=None, project_id=None):
         """Inicializa el exportador con configuración de BigQuery"""
         
@@ -29,6 +38,7 @@ class CoberturaStockExporter:
         
         self.client = None
 
+    
     def conectar_bigquery(self):
         """Conecta a BigQuery (funciona en local y en nube)"""
         try:
@@ -63,7 +73,50 @@ class CoberturaStockExporter:
             print(f"❌ Error conectando a BigQuery: {e}")
             return False
 
-       
+
+    def conectar_bigquery00(self):
+        """Conecta a BigQuery (funciona en local y en la nube)"""
+        try:
+            # En la nube: usar credenciales desde secrets
+            if self.credentials_path is None:
+                import streamlit as st
+                from google.oauth2 import service_account
+                
+                credentials = service_account.Credentials.from_service_account_info(
+                    st.secrets["gcp_service_account"]
+                )
+                self.client = bigquery.Client(
+                    credentials=credentials,
+                    project=self.project_id
+                )
+                print(f"✅ Conectado a BigQuery (desde Streamlit Secrets)")
+            else:
+                # En local: usar archivo JSON
+                self.client = bigquery.Client.from_service_account_json(
+                    self.credentials_path, 
+                    project=self.project_id
+                )
+                print(f"✅ Conectado a BigQuery (desde archivo local)")
+            
+            return True
+        except Exception as e:
+            print(f"❌ Error conectando a BigQuery: {e}")
+            return False
+
+
+    def conectar_bigquery0000(self):
+        """Conecta a BigQuery"""
+        try:
+            self.client = bigquery.Client.from_service_account_json(
+                self.credentials_path, 
+                project=self.project_id
+            )
+            print(f"✅ Conectado a BigQuery")
+            return True
+        except Exception as e:
+            print(f"❌ Error conectando a BigQuery: {e}")
+            return False
+    
     def obtener_stock_bigquery(self):
       """Obtiene datos de stock desde BigQuery"""
       inicio = time.time()
@@ -341,38 +394,66 @@ class CoberturaStockExporter:
         
         return metricas
 
+
 # ═══════════════════════════════════════════════════════════════════
-# FUNCIONES PARA USAR EN STREAMLIT
+# FUNCIÓN RÁPIDA PARA USAR EN STREAMLIT
 # ═══════════════════════════════════════════════════════════════════
-def generar_reporte_cobertura(df_ventas, fecha_inicio, fecha_fin, credentials_path=None, project_id=None):
+def generar_reporte_cobertura(df_ventas, fecha_inicio, fecha_fin):
     """
     Función simplificada para llamar desde Streamlit
     
     Args:
         df_ventas: DataFrame con datos de ventas
         fecha_inicio, fecha_fin: datetime
-        credentials_path: Ruta al JSON (solo en local, None en nube)
-        project_id: ID del proyecto de GCP
     
     Returns:
         BytesIO con Excel o None
     """
-    exporter = CoberturaStockExporter(credentials_path, project_id)
+    exporter = CoberturaStockExporter()
     return exporter.exportar_completo(df_ventas, fecha_inicio, fecha_fin)
 
 
-def obtener_metricas_cobertura(df_ventas, fecha_inicio, fecha_fin, credentials_path=None, project_id=None):
+def obtener_metricas_cobertura(df_ventas, fecha_inicio, fecha_fin):
     """
     Función simplificada para obtener métricas
-    
-    Args:
-        df_ventas: DataFrame con datos de ventas
-        fecha_inicio, fecha_fin: datetime
-        credentials_path: Ruta al JSON (solo en local, None en nube)
-        project_id: ID del proyecto de GCP
     
     Returns:
         dict con métricas
     """
-    exporter = CoberturaStockExporter(credentials_path, project_id)
+    exporter = CoberturaStockExporter()
     return exporter.obtener_metricas(df_ventas, fecha_inicio, fecha_fin)
+# ═══════════════════════════════════════════════════════════════════
+# FUNCIÓN RÁPIDA PARA USAR EN STREAMLIT
+# ═══════════════════════════════════════════════════════════════════
+# def generar_reporte_cobertura(df_ventas, fecha_inicio, fecha_fin, credentials_path=None, project_id=None):
+#     """
+#     Función simplificada para llamar desde Streamlit
+    
+#     Args:
+#         df_ventas: DataFrame con datos de ventas
+#         fecha_inicio, fecha_fin: datetime
+#         credentials_path: Ruta al JSON (solo en local, None en nube)
+#         project_id: ID del proyecto de GCP
+    
+#     Returns:
+#         BytesIO con Excel o None
+#     """
+#     exporter = CoberturaStockExporter(credentials_path, project_id)
+#     return exporter.exportar_completo(df_ventas, fecha_inicio, fecha_fin)
+
+
+# def obtener_metricas_cobertura(df_ventas, fecha_inicio, fecha_fin, credentials_path=None, project_id=None):
+#     """
+#     Función simplificada para obtener métricas
+    
+#     Args:
+#         df_ventas: DataFrame con datos de ventas
+#         fecha_inicio, fecha_fin: datetime
+#         credentials_path: Ruta al JSON (solo en local, None en nube)
+#         project_id: ID del proyecto de GCP
+    
+#     Returns:
+#         dict con métricas
+#     """
+#     exporter = CoberturaStockExporter(credentials_path, project_id)
+#     return exporter.obtener_metricas(df_ventas, fecha_inicio, fecha_fin)
