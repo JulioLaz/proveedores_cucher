@@ -324,7 +324,7 @@ def show_sidebar_filters(df_proveedores, df_proveedor_ids, query_bigquery_functi
         return proveedor, fecha_inicio, fecha_fin, None
     
     # Botón de análisis
-    if st.sidebar.button("Realizar Análisis", type="primary", use_container_width=True):
+    if st.sidebar.button("Realizar Análisis", type="primary", width='stretch'):
         if not proveedor:
             st.sidebar.error("❌ Selecciona un proveedor")
         else:

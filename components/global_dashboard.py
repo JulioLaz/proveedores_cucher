@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import time
 from io import BytesIO
 import plotly.graph_objects as go
+from google.cloud import bigquery  # ← AGREGAR ESTO
 
 # Importar funciones cacheadas
 from utils.excel_exporter import crear_excel_ranking, generar_nombre_archivo
@@ -503,7 +504,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             )
         )
 
-        st.plotly_chart(fig_ventas, use_container_width=True)
+        st.plotly_chart(fig_ventas, width='stretch')
 
     with col2:
         # 🎯 Título dinámico según filtros
@@ -559,7 +560,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             )
         )
 
-        st.plotly_chart(fig_util, use_container_width=True)
+        st.plotly_chart(fig_util, width='stretch')
 
     with col3:
         # 🎯 Título dinámico según filtros
@@ -614,7 +615,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             )
         )
 
-        st.plotly_chart(fig_presu, use_container_width=True)
+        st.plotly_chart(fig_presu, width='stretch')
 
 
 
@@ -639,7 +640,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             '% Participación Presupuesto', 'Presupuesto', 'Artículos', 'Art. con Exceso', 
             'Costo Exceso', 'Art. Sin Stock'
         ]],
-        use_container_width=True,
+        width='stretch',
         hide_index=True
     )
     
@@ -758,7 +759,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     #         data=output_completo,
     #         file_name=nombre_archivo_completo,
     #         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    #         use_container_width=True,
+    #         width='stretch',
     #         type="secondary"
     #     )
         
@@ -808,7 +809,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     #         data=output_filtrado,
     #         file_name=nombre_archivo_filtrado,
     #         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    #         use_container_width=True,
+    #         width='stretch',
     #         type="primary"
     #     )
         
@@ -884,39 +885,205 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     df_para_cobertura = df_para_cobertura.merge(
         df_proveedores_filtrado[['idarticulo', 'proveedor', 'familia', 'subfamilia']],
         on='idarticulo',
-        how='left'
-    )
+        how='left')
+    
 
-    # Agregar descripción desde df_familias
-    if 'descripcion' in df_familias.columns:
+    # # ═══ OBTENER DESCRIPCIÓN DESDE BIGQUERY (tickets_all) ═══
+    # print(f"\n🔍 Obteniendo descripciones desde BigQuery...")
+    # inicio_desc = time.time()
+
+    # try:
+    #     # Obtener lista de idarticulos únicos
+    #     ids_para_buscar = df_para_cobertura['idarticulo'].unique().tolist()
+    #     id_str = ','.join(map(str, ids_para_buscar))
+        
+    #     # Detectar si estamos en la nube
+    #     import os
+    #     is_cloud = not os.path.exists(credentials_path)
+        
+    #     if is_cloud:
+    #         from google.oauth2 import service_account
+    #         credentials = service_account.Credentials.from_service_account_info(
+    #             st.secrets["gcp_service_account"]
+    #         )
+    #         client = bigquery.Client(credentials=credentials, project=project_id)
+    #     else:
+    #         client = bigquery.Client.from_service_account_json(credentials_path, project=project_id)
+        
+    #     # Query para obtener descripciones
+    #     query_desc = f"""
+    #     SELECT DISTINCT idarticulo, descripcion
+    #     FROM `{project_id}.{bigquery_table}`
+    #     WHERE idarticulo IN ({id_str})
+    #     AND descripcion IS NOT NULL
+    #     """
+        
+    #     df_descripciones = client.query(query_desc).to_dataframe()
+        
+    #     # Merge con df_para_cobertura
+    #     df_para_cobertura = df_para_cobertura.merge(
+    #         df_descripciones[['idarticulo', 'descripcion']],
+    #         on='idarticulo',
+    #         how='left'
+    #     )
+        
+    #     # Si aún faltan descripciones, rellenar con genéricas
+    #     df_para_cobertura['descripcion'].fillna(
+    #         'Artículo ' + df_para_cobertura['idarticulo'].astype(str),
+    #         inplace=True
+    #     )
+        
+    #     tiempo_desc = time.time() - inicio_desc
+    #     print(f"✅ Descripciones obtenidas en {tiempo_desc:.2f}s")
+    #     print(f"   • {df_descripciones['idarticulo'].nunique():,} descripciones encontradas")
+        
+    # except Exception as e:
+    #     print(f"⚠️ Error obteniendo descripciones: {e}")
+    #     print(f"   Usando descripciones genéricas...")
+    #     df_para_cobertura['descripcion'] = 'Artículo ' + df_para_cobertura['idarticulo'].astype(str)
+
+
+    # print(f"✅ Datos preparados: {len(df_para_cobertura):,} artículos")
+    # print(f"   📊 Cantidad vendida: {df_para_cobertura['cantidad_vendida'].sum():,.0f}")
+    # print(f"   💰 Utilidad total: ${df_para_cobertura['utilidad_total'].sum():,.0f}")
+    # print(f"{'='*80}\n")
+
+
+    # ═══ OBTENER DESCRIPCIÓN DESDE BIGQUERY ═══
+    print(f"\n{'='*80}")
+    print("🔍 OBTENIENDO DESCRIPCIONES DESDE BIGQUERY")
+    print(f"{'='*80}")
+
+    # Verificar si df_ventas_filtrado tiene descripcion
+    print(f"📋 Columnas en df_ventas_filtrado: {df_ventas_filtrado.columns.tolist()}")
+
+    if 'descripcion' in df_ventas_filtrado.columns:
+        print(f"✅ Usando descripciones desde df_ventas_filtrado")
+        df_desc_temp = df_ventas_filtrado[['idarticulo', 'descripcion']].drop_duplicates('idarticulo')
         df_para_cobertura = df_para_cobertura.merge(
-            df_familias[['idarticulo', 'descripcion']],
+            df_desc_temp,
             on='idarticulo',
             how='left'
         )
-    elif 'producto' in df_familias.columns:
-        df_para_cobertura = df_para_cobertura.merge(
-            df_familias[['idarticulo', 'producto']],
-            on='idarticulo',
-            how='left'
-        )
-        df_para_cobertura.rename(columns={'producto': 'descripcion'}, inplace=True)
     else:
+        print(f"⚠️ 'descripcion' NO está en df_ventas_filtrado")
+        print(f"🔄 Consultando BigQuery para obtener descripciones...")
+        
+        try:
+            inicio_desc = time.time()
+            
+            # Obtener lista de idarticulos únicos
+            ids_para_buscar = df_para_cobertura['idarticulo'].unique().tolist()
+            
+            # Limitar a 10,000 IDs por consulta (límite de BigQuery)
+            if len(ids_para_buscar) > 10000:
+                print(f"⚠️ Hay {len(ids_para_buscar):,} artículos. Limitando a 10,000 para la consulta...")
+                ids_para_buscar = ids_para_buscar[:10000]
+            
+            id_str = ','.join(map(str, ids_para_buscar))
+            
+            print(f"   • IDs a consultar: {len(ids_para_buscar):,}")
+            print(f"   • Tabla: {bigquery_table}")
+            
+            # Conectar a BigQuery
+            import os
+            is_cloud = not os.path.exists(credentials_path)
+            
+            if is_cloud:
+                print(f"   • Ambiente: Streamlit Cloud")
+                from google.oauth2 import service_account
+                credentials = service_account.Credentials.from_service_account_info(
+                    st.secrets["gcp_service_account"]
+                )
+                client = bigquery.Client(credentials=credentials, project=project_id)
+            else:
+                print(f"   • Ambiente: Local")
+                client = bigquery.Client.from_service_account_json(credentials_path, project=project_id)
+            
+            # Query para obtener descripciones (más reciente por artículo)
+            query_desc = f"""
+            SELECT idarticulo, descripcion
+            FROM (
+                SELECT idarticulo, descripcion,
+                    ROW_NUMBER() OVER (PARTITION BY idarticulo ORDER BY fecha_comprobante DESC) as rn
+                FROM `{project_id}.{bigquery_table}`
+                WHERE idarticulo IN ({id_str})
+                AND descripcion IS NOT NULL
+                AND descripcion != ''
+            )
+            WHERE rn = 1
+            """
+            
+            print(f"\n🔄 Ejecutando query...")
+            df_descripciones = client.query(query_desc).to_dataframe()
+            
+            tiempo_desc = time.time() - inicio_desc
+            
+            print(f"✅ Query completada en {tiempo_desc:.2f}s")
+            print(f"   • Descripciones obtenidas: {len(df_descripciones):,}")
+            print(f"   • Muestra:")
+            print(df_descripciones.head(5))
+            
+            # Merge con df_para_cobertura
+            df_para_cobertura = df_para_cobertura.merge(
+                df_descripciones,
+                on='idarticulo',
+                how='left'
+            )
+            
+            print(f"✅ Merge completado")
+            
+        except Exception as e:
+            print(f"\n❌ ERROR OBTENIENDO DESCRIPCIONES:")
+            print(f"   Tipo de error: {type(e).__name__}")
+            print(f"   Mensaje: {str(e)}")
+            print(f"\n⚠️ Usando descripciones genéricas como fallback...")
+            
+            # Si no existe la columna descripcion, crearla genérica
+            if 'descripcion' not in df_para_cobertura.columns:
+                df_para_cobertura['descripcion'] = 'Artículo ' + df_para_cobertura['idarticulo'].astype(str)
+
+    # Rellenar faltantes con genéricas
+    if 'descripcion' in df_para_cobertura.columns:
+        faltantes_antes = df_para_cobertura['descripcion'].isna().sum()
+        if faltantes_antes > 0:
+            print(f"⚠️ Rellenando {faltantes_antes:,} descripciones faltantes...")
+            df_para_cobertura['descripcion'].fillna(
+                'Artículo ' + df_para_cobertura['idarticulo'].astype(str),
+                inplace=True
+            )
+    else:
+        print(f"⚠️ Columna 'descripcion' no existe. Creándola...")
         df_para_cobertura['descripcion'] = 'Artículo ' + df_para_cobertura['idarticulo'].astype(str)
 
-    print(f"✅ Datos preparados: {len(df_para_cobertura):,} artículos")
-    print(f"   📊 Cantidad vendida: {df_para_cobertura['cantidad_vendida'].sum():,.0f}")
-    print(f"   💰 Utilidad total: ${df_para_cobertura['utilidad_total'].sum():,.0f}")
+    # Verificar resultado final
+    descripciones_genericas = df_para_cobertura['descripcion'].str.contains('Artículo', na=False).sum()
+    descripciones_reales = len(df_para_cobertura) - descripciones_genericas
+
+    print(f"\n📊 RESULTADO FINAL:")
+    print(f"   • Total artículos: {len(df_para_cobertura):,}")
+    print(f"   • ✅ Con descripción real: {descripciones_reales:,}")
+    print(f"   • ⚠️ Con descripción genérica: {descripciones_genericas:,}")
     print(f"{'='*80}\n")
+
+################################################################################
+
+    # === DEBUG: VERIFICAR DESCRIPCIONES ===
+    print("\n" + "="*80)
+    print("🔍 DEBUG: VERIFICANDO DESCRIPCIONES EN df_para_cobertura")
+    print("="*80)
+    print(f"Columnas: {df_para_cobertura.columns.tolist()}")
+    print(f"\nPrimeras 5 descripciones:")
+    print(df_para_cobertura[['idarticulo', 'descripcion']].head(10))
+    print(f"\nTotal artículos: {len(df_para_cobertura):,}")
+    print(f"Descripciones genéricas (contienen 'Artículo'): {df_para_cobertura['descripcion'].str.contains('Artículo').sum():,}")
+    print(f"Descripciones reales: {(~df_para_cobertura['descripcion'].str.contains('Artículo')).sum():,}")
+    print("="*80 + "\n")
+
+################################################################################
 
     # Obtener métricas de cobertura
     with st.spinner("Calculando métricas de cobertura..."):
-        # metricas_stock = obtener_metricas_cobertura(
-        # # metricas_stock = get_metricas_cobertura_optimized(
-        #     df_para_cobertura,
-        #     fecha_desde,
-        #     fecha_hasta
-        # )
         metricas_stock = obtener_metricas_cobertura(
         df_para_cobertura,
         fecha_desde,
@@ -925,65 +1092,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         # project_id          # ← AGREGAR
         ) 
     
-    # if metricas_stock:
-    #     col1, col2, col3, col4 = st.columns(4)
-        
-    #     with col1:
-    #         st.markdown(f"""
-    #         <div class="metric-box">
-    #             <div style="text-align: center;">
-    #                 <div style="font-size: 14px; color: #555;">📊 Stock Total</div>
-    #                 <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{format_miles(metricas_stock['stock_total'])}</div>
-    #             </div>
-    #             <div style="color: #555; font-size: 12px; margin-top: 0.2rem;">
-    #                 📦 Unidades en inventario
-    #             </div>
-    #         </div>
-    #         """, unsafe_allow_html=True)
-        
-    #     with col2:
-    #         # Color según cobertura
-    #         color_cobertura = '#27ae60' if 15 <= metricas_stock['cobertura_promedio'] <= 60 else '#e67e22'
-    #         st.markdown(f"""
-    #         <div class="metric-box">
-    #             <div style="text-align: center;">
-    #                 <div style="font-size: 14px; color: #555;">⏱️ Cobertura Promedio</div>
-    #                 <div style="font-size: 18px; font-weight: bold; color: {color_cobertura};">{metricas_stock['cobertura_promedio']} días</div>
-    #             </div>
-    #             <div style="color: #555; font-size: 12px; margin-top: 0.2rem;">
-    #                 📈 Duración proyectada
-    #             </div>
-    #         </div>
-    #         """, unsafe_allow_html=True)
-        
-    #     with col3:
-    #         st.markdown(f"""
-    #         <div class="metric-box">
-    #             <div style="text-align: center;">
-    #                 <div style="font-size: 14px; color: #555;">🟠 Sobrestock</div>
-    #                 <div style="font-size: 18px; font-weight: bold; color: #e67e22;">{format_miles(metricas_stock['articulos_sobrestock'])}</div>
-    #             </div>
-    #             <div style="color: #e67e22; font-size: 12px; margin-top: 0.2rem;">
-    #                 📊 {metricas_stock['pct_sobrestock']}% del total
-    #             </div>
-    #         </div>
-    #         """, unsafe_allow_html=True)
-        
-    #     with col4:
-    #         st.markdown(f"""
-    #         <div class="metric-box">
-    #             <div style="text-align: center;">
-    #                 <div style="font-size: 14px; color: #555;">🔴 Stock Crítico</div>
-    #                 <div style="font-size: 18px; font-weight: bold; color: #c0392b;">{format_miles(metricas_stock['articulos_criticos'])}</div>
-    #             </div>
-    #             <div style="color: #c0392b; font-size: 12px; margin-top: 0.2rem;">
-    #                 ⚠️ {metricas_stock['pct_critico']}% del total
-    #             </div>
-    #         </div>
-    #         """, unsafe_allow_html=True)
-    # else:
-    #     st.warning("⚠️ No se pudieron calcular las métricas de cobertura. Verifica la conexión a BigQuery.")
-
     # === EXPORTAR RANKING ===
     st.markdown("---")
     st.markdown("### 📥 Exportar Datos")
@@ -1036,7 +1144,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             data=output_completo,
             file_name=nombre_archivo_completo,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True,
+            width='stretch',
             type="secondary"
         )
         
@@ -1086,7 +1194,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             data=output_filtrado,
             file_name=nombre_archivo_filtrado,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True,
+            width='stretch',
             type="primary"
         )
         
@@ -1107,7 +1215,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         st.markdown("#### 💰 Utilidad vs Stock")
         st.caption("Análisis detallado de inventario vs utilidad")
         
-        if st.button("🔄 Generar Reporte de Cobertura", use_container_width=True, type="primary"):
+        if st.button("🔄 Generar Reporte de Cobertura", width='stretch', type="primary"):
             with st.spinner("📊 Generando reporte de cobertura..."):
                 print(f"\n{'='*80}")
                 print("📦 GENERANDO REPORTE DE COBERTURA")
@@ -1132,13 +1240,25 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                 print(f"{'='*80}\n")
                 
                 if excel_cobertura:
+                    # Generar nombre de archivo con formato: utilidad_stck_cobertura_10Nov2024_10Dic2024.xlsx
+                    fecha_inicio_str = fecha_desde.strftime('%d%b%Y')
+                    fecha_fin_str = fecha_hasta.strftime('%d%b%Y')
+                    nombre_archivo_cobertura = f"utilidad_stock_cobertura_{fecha_inicio_str}_{fecha_fin_str}.xlsx"
+
                     st.download_button(
                         label="📥 Descargar Análisis de Cobertura",
                         data=excel_cobertura,
-                        file_name=f"cobertura_stock_{fecha_desde.strftime('%Y%m%d')}_{fecha_hasta.strftime('%Y%m%d')}.xlsx",
+                        file_name=nombre_archivo_cobertura,  # ← AQUÍ SE APLICA
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        use_container_width=True
-                    )
+                        width='stretch')
+
+                    # st.download_button(
+                    #     label="📥 Descargar Análisis de Cobertura",
+                    #     data=excel_cobertura,
+                    #     file_name=f"cobertura_stock_{fecha_desde.strftime('%Y%m%d')}_{fecha_hasta.strftime('%Y%m%d')}.xlsx",
+                    #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    #     width='stretch'
+                    # )
                     st.success("✅ Reporte generado exitosamente!")
                 else:
                     st.error("❌ Error generando reporte de cobertura")

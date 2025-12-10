@@ -137,12 +137,16 @@ class CoberturaStockExporter:
         
         df_merged['clasificacion'] = df_merged['cobertura_dias'].apply(clasificar_cobertura)
         
+
+        # ⭐ FILTRAR UTILIDADES NEGATIVAS
+        print(f"   • Artículos antes de filtrar: {len(df_merged):,}")
+        df_merged = df_merged[df_merged['utilidad_total'] > 10000].copy()
+        print(f"   • Artículos después de filtrar (utilidad >= 0): {len(df_merged):,}\n ⚠️ Con utilidad > $ 10K.")
+
         # Ordenar por proveedor, familia, subfamilia, utilidad
-        df_merged = df_merged.sort_values(
-            by=['proveedor', 'familia', 'subfamilia', 'utilidad_total'],
-            ascending=[True, True, True, False]
-        )
-        
+        df_merged = df_merged.sort_values(by=['proveedor', 'familia', 'subfamilia', 'utilidad_total'],
+            ascending=[True, True, True, False])
+
         tiempo = time.time() - inicio
         print(f"✅ Cobertura calculada en {tiempo:.2f}s")
         
@@ -206,6 +210,7 @@ class CoberturaStockExporter:
             formato_numero = workbook.add_format({'num_format': '#,##0'})
             formato_decimal = workbook.add_format({'num_format': '#,##0.00'})
             formato_moneda = workbook.add_format({'num_format': '$#,##0.00'})
+            formato_moneda_int = workbook.add_format({'num_format': '$#,##0'})
             
             # ═══ APLICAR FORMATOS ═══
             # Header
@@ -233,11 +238,11 @@ class CoberturaStockExporter:
                 worksheet.write(row_num, 2, df_export.iloc[row_num-1]['Proveedor'])
                 worksheet.write(row_num, 3, df_export.iloc[row_num-1]['Familia'])
                 worksheet.write(row_num, 4, df_export.iloc[row_num-1]['SubFamilia'])
-                worksheet.write(row_num, 5, df_export.iloc[row_num-1]['Utilidad'], formato_moneda)
+                worksheet.write(row_num, 5, df_export.iloc[row_num-1]['Utilidad'], formato_moneda_int)
                 worksheet.write(row_num, 6, df_export.iloc[row_num-1]['Cant. Vendida'], formato_numero)
                 worksheet.write(row_num, 7, df_export.iloc[row_num-1]['Stock Total'], formato_numero)
-                worksheet.write(row_num, 8, df_export.iloc[row_num-1]['Venta Prom/Día'], formato_decimal)
-                worksheet.write(row_num, 9, df_export.iloc[row_num-1]['Cobertura (días)'], formato_decimal)
+                worksheet.write(row_num, 8, df_export.iloc[row_num-1]['Venta Prom/Día'], formato_numero)
+                worksheet.write(row_num, 9, df_export.iloc[row_num-1]['Cobertura (días)'], formato_numero)
                 
                 # Clasificación con color
                 clasificacion = df_export.iloc[row_num-1]['Clasificación']
