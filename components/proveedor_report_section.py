@@ -1,198 +1,3 @@
-# """
-# ============================================================
-# MÓDULO: Proveedor Report Section
-# ============================================================
-# Maneja la generación y descarga de reportes individuales
-# por proveedor (con y sin filtros).
-
-# Autor: Julio Lazarte
-# Fecha: Diciembre 2024
-# ============================================================
-# """
-
-#                     # nombre_archivo_cobertura = f"utilidad_stock_cobertura_{fecha_inicio_str}_{fecha_fin_str}.xlsx"
-
-
-# import streamlit as st
-# from utils.proveedor_exporter import generar_reporte_proveedor
-
-
-# def format_millones(valor):
-#     """Formatea valores grandes en millones o miles"""
-#     if valor >= 1_000_000:
-#         millones = valor / 1_000_000
-#         return f"{millones:,.0f} mll".replace(',', 'X').replace('.', ',').replace('X', '.')
-#     elif valor >= 1_000:
-#         return f"{valor/1_000:,.0f} mil".replace(',', '.')
-#     else:
-#         return f"{valor:,.0f}"
-
-
-# def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveedores,
-#                                   fecha_desde, fecha_hasta,
-#                                   familias_seleccionadas, subfamilias_seleccionadas):
-#     """
-#     Renderiza la sección de reportes individuales por proveedor.
-    
-#     Args:
-#         ranking (pd.DataFrame): Ranking de proveedores actual
-#         df_presupuesto_con_ventas (pd.DataFrame): Presupuesto enriquecido con ventas
-#         df_proveedores (pd.DataFrame): Catálogo de proveedores
-#         fecha_desde (date): Fecha inicio del período
-#         fecha_hasta (date): Fecha fin del período
-#         familias_seleccionadas (list): Familias seleccionadas
-#         subfamilias_seleccionadas (list): Subfamilias seleccionadas
-#     """
-    
-#     print(f"\n{'='*80}")
-#     print("📦 SECCIÓN: REPORTES INDIVIDUALES POR PROVEEDOR")
-#     print(f"{'='*80}\n")
-    
-#     st.markdown(
-#         """
-#         <div style="font-size:28px; font-weight:bold; color:#1e3c72; margin-bottom:4px; text-align: center;">
-#             📦 Reportes Individuales por Proveedor
-#         <div style="font-size:22px; color:#555;">
-#             Análisis detallado de presupuesto y ventas por proveedor
-#         </div>
-#         <div style="font-size:20px; color:#555;font-weight: bold; text-align: center;">
-#            ⚠️ Los datos de presupuesto corresponden al análisis a 30 días
-#         </div>
-#         </div>
-#         """,
-#         unsafe_allow_html=True
-#     )
-    
-#     # Obtener lista de proveedores con sus datos
-#     proveedores_list = ranking[['Proveedor']].copy()
-#     proveedores_list['id_temp'] = range(len(proveedores_list))
-    
-#     # Crear diccionario para el selector
-#     proveedores_dict = {}
-#     for idx, row in proveedores_list.iterrows():
-#         nombre_prov = row['Proveedor']
-#         # Obtener ID del proveedor desde df_proveedores
-#         id_prov = df_proveedores[df_proveedores['proveedor'] == nombre_prov]['idproveedor'].iloc[0] if nombre_prov in df_proveedores['proveedor'].values else None
-#         if id_prov:
-#             proveedores_dict[nombre_prov] = int(id_prov)
-    
-#     col_selector, col_btns = st.columns([1, 2])
-    
-#     with col_selector:
-#         proveedor_seleccionado = st.selectbox(
-#             "🏢 Seleccionar Proveedor:",
-#             options=list(proveedores_dict.keys()),
-#             help="Selecciona el proveedor para generar su reporte detallado"
-#         )
-        
-#         if proveedor_seleccionado:
-#             id_proveedor = proveedores_dict[proveedor_seleccionado]
-            
-#             # Obtener info del proveedor del ranking
-#             info_prov = ranking[ranking['Proveedor'] == proveedor_seleccionado].iloc[0]
-            
-#             st.markdown(f"""
-#             **Información del Proveedor:**
-#             - 📊 Ranking: #{info_prov['Ranking']}
-#             - 💰 Venta Total: ${format_millones(info_prov['Venta Total'])}
-#             - 💵 Presupuesto: ${format_millones(info_prov['Presupuesto'])}
-#             - 📦 Artículos: {info_prov['Artículos']}
-#             """)
-    
-#     with col_btns:
-#         col_btn_sin_filtro, col_btn_con_filtro = st.columns(2)
-        
-#         # BOTÓN 1: SIN FILTROS
-#         with col_btn_sin_filtro:
-#             st.markdown("#### 📊 Análisis Completo")
-#             st.caption("Sin filtros de familia/subfamilia")
-            
-#             if st.button("📥 Descargar Sin Filtros", key="btn_prov_sin_filtro", 
-#                         use_container_width=True, type="secondary"):
-#                 with st.spinner(f"📊 Generando reporte completo de {proveedor_seleccionado}..."):
-#                     print(f"\n{'='*80}")
-#                     print(f"📦 GENERANDO REPORTE SIN FILTROS: {proveedor_seleccionado}")
-#                     print(f"{'='*80}")
-                    
-#                     # Usar el presupuesto completo (sin filtrar por familias)
-#                     excel_prov, nombre_archivo_prov = generar_reporte_proveedor(
-#                         df_presupuesto_con_ventas,
-#                         id_proveedor,
-#                         fecha_desde.strftime('%d/%m/%Y'),
-#                         fecha_hasta.strftime('%d/%m/%Y'),
-#                         con_filtros=False
-#                     )
-                    
-#                     if excel_prov and nombre_archivo_prov:
-#                         st.download_button(
-#                             label=f"📥 {nombre_archivo_prov}",
-#                             data=excel_prov,
-#                             file_name=nombre_archivo_prov,
-#                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-#                             key="download_prov_sin_filtro",
-#                             use_container_width=True
-#                         )
-#                         st.success("✅ Reporte generado exitosamente!")
-#                     else:
-#                         st.error("❌ Error generando reporte")
-        
-#         # BOTÓN 2: CON FILTROS
-#         with col_btn_con_filtro:
-#             st.markdown("#### 🎯 Análisis Filtrado")
-#             st.caption("Con filtros de familia/subfamilia aplicados")
-            
-#             if st.button("📥 Descargar Con Filtros", key="btn_prov_con_filtro", 
-#                         use_container_width=True, type="primary"):
-#                 with st.spinner(f"📊 Generando reporte filtrado de {proveedor_seleccionado}..."):
-#                     print(f"\n{'='*80}")
-#                     print(f"🎯 GENERANDO REPORTE CON FILTROS: {proveedor_seleccionado}")
-#                     print(f"{'='*80}")
-                    
-#                     # Filtrar presupuesto por familias/subfamilias seleccionadas
-#                     df_presupuesto_filtrado = df_presupuesto_con_ventas.copy()
-                    
-#                     # Aplicar filtros de familia y subfamilia
-#                     if 'familia' in df_presupuesto_filtrado.columns:
-#                         df_presupuesto_filtrado = df_presupuesto_filtrado[
-#                             df_presupuesto_filtrado['familia'].isin(familias_seleccionadas)
-#                         ]
-                    
-#                     if 'subfamilia' in df_presupuesto_filtrado.columns:
-#                         df_presupuesto_filtrado = df_presupuesto_filtrado[
-#                             df_presupuesto_filtrado['subfamilia'].isin(subfamilias_seleccionadas)
-#                         ]
-                    
-#                     print(f"   📦 Artículos después de filtros: {len(df_presupuesto_filtrado):,}")
-                    
-#                     excel_prov, nombre_archivo_prov = generar_reporte_proveedor(
-#                         df_presupuesto_filtrado,
-#                         id_proveedor,
-#                         fecha_desde.strftime('%d/%m/%Y'),
-#                         fecha_hasta.strftime('%d/%m/%Y'),
-#                         con_filtros=True,
-#                         familias_activas=familias_seleccionadas,
-#                         subfamilias_activas=subfamilias_seleccionadas
-#                     )
-                    
-#                     if excel_prov and nombre_archivo_prov:
-#                         st.download_button(
-#                             label=f"📥 {nombre_archivo_prov}",
-#                             data=excel_prov,
-#                             file_name=nombre_archivo_prov,
-#                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-#                             key="download_prov_con_filtro",
-#                             use_container_width=True
-#                         )
-#                         st.success(f"""
-#                         ✅ Reporte generado exitosamente!
-                        
-#                         **Filtros aplicados:**
-#                         - 🏷️ {len(familias_seleccionadas)} familias
-#                         - 📂 {len(subfamilias_seleccionadas)} subfamilias
-#                         """)
-#                     else:
-#                         st.error("❌ Error generando reporte")
-
 """
 ============================================================
 MÓDULO: Proveedor Report Section
@@ -210,6 +15,7 @@ Fecha: Diciembre 2024
 import streamlit as st
 import plotly.graph_objects as go
 from utils.proveedor_exporter import generar_reporte_proveedor, obtener_ids_originales
+from utils.telegram_notifier import send_telegram_alert  # ← AGREGAR
 
 def format_millones(valor):
     """Formatea valores grandes en millones o miles"""
@@ -363,6 +169,14 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                         st.session_state['prov_con_filtros'] = False
                         st.session_state['prov_nombre'] = proveedor_seleccionado
                         st.session_state['prov_id'] = id_proveedor
+                        # ✅ NOTIFICACIÓN TELEGRAM
+                        usuario = st.session_state.get('username', 'Usuario desconocido')
+                        mensaje = f"""<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>
+                                     🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}
+                                    """
+                        send_telegram_alert(mensaje, tipo="SUCCESS")
+                        
+                        st.toast("🎉 ¡Análisis generado exitosamente!", icon="✅")
                         st.success("✅ Análisis generado exitosamente!")
                     else:
                         st.warning("⚠️ No hay artículos con presupuesto > 0 para este proveedor")
@@ -389,6 +203,7 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                     ids_a_buscar = obtener_ids_originales(id_proveedor)
 
                     print(f"   🔍 IDs a buscar: {ids_a_buscar}")
+
                     if len(ids_a_buscar) > 1:
                         print(f"   ⚠️ Proveedor UNIFICADO - Buscando {len(ids_a_buscar)} IDs")
 
@@ -408,6 +223,14 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                         st.session_state['prov_con_filtros'] = False
                         st.session_state['prov_nombre'] = proveedor_seleccionado
                         st.session_state['prov_id'] = id_proveedor
+                        # ✅ NOTIFICACIÓN TELEGRAM
+                        usuario = st.session_state.get('username', 'Usuario desconocido')
+                        mensaje = f"""<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>
+                                     🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}
+                                    """
+                        send_telegram_alert(mensaje, tipo="SUCCESS")
+                        
+                        st.toast("🎉 ¡Análisis generado exitosamente!", icon="✅")
                         st.success("✅ Análisis generado exitosamente!")
                     else:
                         st.warning("⚠️ No hay artículos con presupuesto > 0 para este proveedor")            
@@ -465,6 +288,17 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                         st.session_state['prov_con_filtros'] = True
                         st.session_state['prov_nombre'] = proveedor_seleccionado
                         st.session_state['prov_id'] = id_proveedor
+
+                        # ✅ NOTIFICACIÓN TELEGRAM
+                        usuario = st.session_state.get('username', 'Usuario desconocido')
+                        mensaje = f"""
+                                    <b>👤 USUARIO:</b> {usuario} - <b>🎯 ANÁLISIS GENERADO - FILTRADO</b>
+                                    🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}
+                                    🏷️ <b>Familias:</b> {len(familias_seleccionadas)} - 📂 <b>Subfamilias:</b> {len(subfamilias_seleccionadas)}
+                                    """
+                        send_telegram_alert(mensaje, tipo="SUCCESS")
+                        
+                        st.toast("🎉 ¡Análisis filtrado generado!", icon="✅")
                         st.success(f"""
                         ✅ Análisis generado exitosamente!
                         
@@ -512,6 +346,15 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
         )
         
         if excel_prov and nombre_archivo_prov:
+
+    # ✅ NOTIFICACIÓN TELEGRAM - Excel preparado para descarga
+            usuario = st.session_state.get('username', 'Usuario desconocido')
+            mensaje = f"""
+                    <b>👤 USUARIO:</b> {usuario} - <b>📥 EXCEL PREPARADO PARA DESCARGA</b>
+                    📄 <b>Archivo:</b> {nombre_archivo_prov}
+                    """
+            send_telegram_alert(mensaje, tipo="INFO")
+
             st.download_button(
                 label=f"📥 Descargar Excel: {nombre_archivo_prov}",
                 data=excel_prov,
