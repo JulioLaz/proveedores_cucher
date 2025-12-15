@@ -77,8 +77,13 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
         <div style="font-size:22px; color:#555;">
             Análisis detallado de presupuesto y ventas por proveedor
         </div>
-        <div style="font-size:20px; color:#555;font-weight: bold; text-align: center;">
-           ⚠️ Los datos de presupuesto corresponden al análisis a 30 días
+        <div style="margin-top:10px; padding:10px; border:1px solid gray; border-radius:5px; background:#F0E69B;">
+            <div style="font-size:20px; color:#555; font-weight: bold;">
+                ⚠️ Los datos de presupuesto corresponden al análisis a 30 días
+            </div>
+            <div style='font-size:14px; color: gray'>
+                Para que el análisis comparativo sea consistente, se recomienda generar reportes dentro del mismo rango de días.
+            </div>
         </div>
         </div>
         """,

@@ -719,9 +719,9 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col1:
         top_proveedor = ranking.iloc[0]
         st.markdown(f"""
-        <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #4caf50'>
-        <b>🏆 Proveedor Líder en Ventas</b><br>
-        <b>{top_proveedor['Proveedor']}</b><br>
+        <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #4caf50; font-size:13px'>
+        <b style='border-bottom:1px solid gray; margin-bottom: 3px'>🏆 Proveedor Líder en Ventas</b><br>
+        <b style='text-align: center'>{top_proveedor['Proveedor']}</b><br>
         💰 ${top_proveedor['Venta Total']:,.0f}<br>
         📊 {top_proveedor['% Participación Ventas']:.1f}% del total<br>
         📦 {top_proveedor['Artículos']} artículos
@@ -731,8 +731,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col2:
         top_presupuesto = ranking.nlargest(1, 'Presupuesto').iloc[0]
         st.markdown(f"""
-        <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #ff9800'>
-        <b>💰 Mayor Presupuesto Requerido</b><br>
+        <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #4caf50; font-size:13px'>
+        <b style='border-bottom:1px solid gray; margin-bottom: 3px'>💰 Mayor Presupuesto Requerido</b><br>
         <b>{top_presupuesto['Proveedor']}</b><br>
         💵 ${top_presupuesto['Presupuesto']:,.0f}<br>
         📊 {top_presupuesto['% Participación Presupuesto']:.1f}% del total<br>
@@ -743,8 +743,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col3:
         mas_util = ranking.nlargest(1, 'Utilidad').iloc[0]
         st.markdown(f"""
-        <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #4caf50'>
-        <b>🏆 Proveedor Líder en Utilidad</b><br>
+        <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #4caf50; font-size:13px'>
+        <b style='border-bottom:1px solid gray; margin-bottom: 3px'>🏆 Proveedor Líder en Utilidad</b><br>
         <b>{mas_util['Proveedor']}</b><br>
         💸 ${mas_util['Utilidad']:,.0f}<br>
         📦 {mas_util['Artículos']} artículos<br>
@@ -754,8 +754,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col4:
         peor_util = ranking.nsmallest(1, 'Utilidad').iloc[0]
         st.markdown(f"""
-        <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid #f44336'>
-        <b>⚠️ Proveedor con Menor Utilidad</b><br>
+        <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid #4caf50; font-size:13px'>
+        <b style='border-bottom:1px solid gray; margin-bottom: 3px'>⚠️ Proveedor con Menor Utilidad</b><br>
         <b>{peor_util['Proveedor']}</b><br>
         💸 ${peor_util['Utilidad']:,.0f}<br>
         📦 {peor_util['Artículos']} artículos<br>
@@ -765,8 +765,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col5:
         mas_exceso = ranking.nlargest(1, 'Costo Exceso').iloc[0]
         st.markdown(f"""
-        <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid #f44336'>
-        <b>⚠️ Mayor Exceso de Stock</b><br>
+        <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid #4caf50; font-size:13px'>
+        <b style='border-bottom:1px solid gray; margin-bottom: 3px'>⚠️ Mayor Exceso de Stock</b><br>
         <b>{mas_exceso['Proveedor']}</b><br>
         💸 ${mas_exceso['Costo Exceso']:,.0f} inmovilizado<br>
         📊 {mas_exceso['Art. con Exceso']} artículos<br>
@@ -962,27 +962,45 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # st.markdown("### 📊 Análizar y descargar tablas xlsx")
     st.markdown(
         """<div style=" text-align: center; padding: 1rem; border: 1px solid gray; border-radius: 5px; background: #f0e69b; font-size: 1.8rem; font-weight: 600;">
-        📊 Análizar y descargar tablas xlsx</div>
+        📊 Análizar y descargar tablas xlsx: Seleccionar reporte</div>
         """, unsafe_allow_html=True)
-    
-    st.markdown("""
-      <style>
-      /* Ajustar la distribución de los tabs */
-      .stTabs [role="tablist"] {
-         justify-content: space-around;
-      }
-      /* Opcional: color del tab activo */
-      .stTabs [role="tab"][aria-selected="true"] {
-         color: #0066cc;
-         border-bottom: 5px solid #0066cc;
-      }
-      </style>
-   """, unsafe_allow_html=True)
+    st.markdown(
+    """
+    <style>
+    /* Ajustar la distribución de los tabs */
+    .stTabs [role="tablist"] {
+        justify-content: space-around;
+    }
+
+    /* Estilo general de los títulos de las tabs */
+    .stTabs [data-baseweb="tab"] {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #444;
+        background-color: #f0e69b;
+        border-radius: 5px;
+        padding: 0.5rem 1rem;
+    }
+
+    /* Tab seleccionada */
+    .stTabs [aria-selected="true"] {
+        font-weight: bold;
+        color: #000;
+        background-color: #ffd700;
+        border-bottom: 5px solid #0066cc;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True)
+
+    # ANTES de crear las tabs, inicializa el estado si no existe
+    if 'active_tab_index' not in st.session_state:
+        st.session_state['active_tab_index'] = 0
 
     tab1, tab2, tab3 = st.tabs([
-      "📊 Rankings de Proveedores por Ventas", 
-      "💰 Utilidad vs Cobertura", 
-      "📦 Proveedor Ventas vs Presupuesto | Cobertura"
+      "1- 📊 Rankings de Proveedores por Ventas", 
+      "2- 💰 Utilidad vs Cobertura", 
+      "3- 📦 Proveedor Ventas vs Presupuesto | Cobertura"
    ])
 
 
@@ -990,6 +1008,9 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # TAB 1: RANKINGS (COMPLETO Y FILTRADO)
     # =================================================================
     with tab1:
+        st.markdown(
+        "<h3 style='text-align:center; color:rgb(30, 60, 114);font-weight: bold;'>📊 Rankings de Proveedores por Ventas</h3>",
+        unsafe_allow_html=True)
         show_ranking_section(
             df_prov_con_familias=df_prov_con_familias,
             df_ventas=df_ventas,
@@ -1009,6 +1030,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # =================================================================
     cnt_proveedores = len(ranking)
     st.session_state['cnt_proveedores_cobertura'] = cnt_proveedores
+    pass
+
     with tab2:
         show_cobertura_section(
             df_para_cobertura=df_para_cobertura,
@@ -1020,7 +1043,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             subfamilias_seleccionadas=subfamilias_seleccionadas,
             cnt_proveedores=cnt_proveedores,
         )
-
+        pass
+    
     # =================================================================
     # TAB 3: REPORTES INDIVIDUALES POR PROVEEDOR
     # =================================================================
