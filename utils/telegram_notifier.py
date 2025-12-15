@@ -34,14 +34,18 @@ def send_telegram_notification(username, name, email, success=True):
             action = "INTENTO FALLIDO"
         
         mensaje = f"""
-{emoji} <b>{action} - Dashboard Proveedores</b>
-
-👤 <b>Usuario:</b> {username}
+{emoji} <b>{action} - 🖥️ Dashboard Proveedores</b>
 📝 <b>Nombre:</b> {name}
-📧 <b>Email:</b> {email}
 🕒 <b>Fecha/Hora:</b> {timestamp} (ARG)
-🖥️ <b>App:</b> Análisis de Proveedores Cucher
 """
+#         mensaje = f"""
+# {emoji} <b>{action} - Dashboard Proveedores</b>
+# 👤 <b>Usuario:</b> {username}
+# 📝 <b>Nombre:</b> {name}
+# 📧 <b>Email:</b> {email}
+# 🕒 <b>Fecha/Hora:</b> {timestamp} (ARG)
+# 🖥️ <b>App:</b> Análisis de Proveedores Cucher
+# """
         
         # Enviar mensaje
         url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
@@ -101,9 +105,7 @@ def send_telegram_alert(mensaje, tipo="INFO"):
         
         mensaje_formatted = f"""
 {emoji} <b>{tipo}</b>
-
 {mensaje}
-
 🕒 {timestamp} (ARG)
 """
         

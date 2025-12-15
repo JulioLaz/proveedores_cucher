@@ -9,4 +9,5 @@ components/ver.py
 *.txt
 
 *.toml
-auxiliar.ipynb
+auxiliar_crear_hash_key_access.ipynb
+code_crea_key_acces_streamlit_users.py

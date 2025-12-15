@@ -171,15 +171,19 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                         st.session_state['prov_id'] = id_proveedor
                         # ✅ NOTIFICACIÓN TELEGRAM
                         usuario = st.session_state.get('username', 'Usuario desconocido')
-                        mensaje = f"""<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>
-                                     🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}
-                                    """
+                        # mensaje = f"""<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>
+                        # 🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}
+                        # """
+                        mensaje = (
+                            f"<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>\n"
+                            f"🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}"
+                        )
                         send_telegram_alert(mensaje, tipo="SUCCESS")
                         
                         st.toast("🎉 ¡Análisis generado exitosamente!", icon="✅")
                         st.success("✅ Análisis generado exitosamente!")
                     else:
-                        st.warning("⚠️ No hay artículos con presupuesto > 0 para este proveedor")
+                        st.warning(f"⚠️ No hay artículos con presupuesto > 0 para {proveedor_seleccionado}")
         else:
 
 # BOTÓN 1: GENERAR 📊 Análisis Completo
@@ -225,15 +229,20 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                         st.session_state['prov_id'] = id_proveedor
                         # ✅ NOTIFICACIÓN TELEGRAM
                         usuario = st.session_state.get('username', 'Usuario desconocido')
-                        mensaje = f"""<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>
-                                     🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}
-                                    """
+                        # mensaje = f"""<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>
+                        #              🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}
+                        #             """
+                        mensaje = (
+                            f"<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>\n"
+                            f"🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}"
+                        )
+
                         send_telegram_alert(mensaje, tipo="SUCCESS")
                         
                         st.toast("🎉 ¡Análisis generado exitosamente!", icon="✅")
                         st.success("✅ Análisis generado exitosamente!")
                     else:
-                        st.warning("⚠️ No hay artículos con presupuesto > 0 para este proveedor")            
+                        st.warning(f"⚠️ No hay artículos con presupuesto > 0 para {proveedor_seleccionado}")            
 
             # BOTÓN 2: GENERAR ANÁLISIS CON FILTROS
             st.markdown("""
@@ -291,11 +300,12 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
 
                         # ✅ NOTIFICACIÓN TELEGRAM
                         usuario = st.session_state.get('username', 'Usuario desconocido')
-                        mensaje = f"""
-                                    <b>👤 USUARIO:</b> {usuario} - <b>🎯 ANÁLISIS GENERADO - FILTRADO</b>
-                                    🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}
-                                    🏷️ <b>Familias:</b> {len(familias_seleccionadas)} - 📂 <b>Subfamilias:</b> {len(subfamilias_seleccionadas)}
-                                    """
+                        mensaje = (
+                            f"<b>👤 USUARIO:</b> {usuario} - <b>🎯 ANÁLISIS GENERADO - FILTRADO</b>\n"
+                            f"🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}\n"
+                            f"🏷️ <b>Familias:</b> {len(familias_seleccionadas)} - 📂 <b>Subfamilias:</b> {len(subfamilias_seleccionadas)}"
+                        )
+
                         send_telegram_alert(mensaje, tipo="SUCCESS")
                         
                         st.toast("🎉 ¡Análisis filtrado generado!", icon="✅")
@@ -349,10 +359,13 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
 
     # ✅ NOTIFICACIÓN TELEGRAM - Excel preparado para descarga
             usuario = st.session_state.get('username', 'Usuario desconocido')
-            mensaje = f"""
-                    <b>👤 USUARIO:</b> {usuario} - <b>📥 EXCEL PREPARADO PARA DESCARGA</b>
-                    📄 <b>Archivo:</b> {nombre_archivo_prov}
-                    """
+            tipo_filtro = "CON FILTROS" if con_filtros else "SIN FILTROS"
+            mensaje = (
+                f"<b>👤 USUARIO:</b> {usuario} -\n"
+                f"<b>📥 EXCEL PREPARADO PARA DESCARGA</b>\n"
+                f"📄 <b>Archivo:</b> {nombre_archivo_prov}"
+            )
+
             send_telegram_alert(mensaje, tipo="INFO")
 
             st.download_button(
