@@ -110,19 +110,28 @@ class ProveedorDashboard:
                 """, unsafe_allow_html=True)
         else:
             # NO HAY DATOS - Solo mostrar título (SIN BOTÓN REFRESCAR)
-            st.markdown("""
-            <div class="main-header">
-                <p style='
+            st.markdown(
+                """
+                <div style='
                     position: absolute;
-                    top: -4rem;
-                    left: 2.5rem;
-                    padding: 5px 0px;
+                    top: -5rem;
+                    text-align: center;
+                    padding: .7rem 0px;
+                    margin-bottom: 1rem;
                     font-size: 2.2rem;
                     color: #646060;
-                    font-weight: 500;'>📈 Ranking de Proveedores</p>
-            </div>
-            """, unsafe_allow_html=True)
-        
+                    font-weight: 600;
+                    width: 100%;
+                            border: 1px solid gray;
+                            border-radius: 5px;
+                            background: #f0e69b;                    
+                '>
+                    📈 Ranking de Proveedores
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
         # Si no hay datos, mostrar dashboard global
         if st.session_state.analysis_data is None:
             show_global_dashboard(

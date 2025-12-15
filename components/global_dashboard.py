@@ -455,13 +455,83 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
         top_ventas_num = st.slider("Cantidad de proveedores (Ventas):", 5, 80, 20, step=5, key='slider_ventas')
 
+        # # ✅ ranking YA está filtrado, así que esto ya usa datos filtrados
+        # top_ventas = ranking.head(top_ventas_num).copy()
+        # top_ventas['Venta_M'] = top_ventas['Venta Total'] / 1_000_000
+        # top_ventas['Texto'] = top_ventas['Venta Total'].apply(lambda x: f"${x/1_000_000:.1f}M")
+
+        # # Color dinámico según filtros
+        # color_barra = '#2ecc71' if not filtros_activos else '#3498db'  # Verde normal, Azul si hay filtros
+
+        # fig_ventas = go.Figure(go.Bar(
+        #     y=top_ventas['Proveedor'][::-1],
+        #     x=top_ventas['Venta_M'][::-1],
+        #     orientation='h',
+        #     text=top_ventas['Texto'][::-1],
+        #     textposition='outside',
+        #     cliponaxis=False,  # ← Permite que el texto salga del área del gráfico
+        #     marker_color=color_barra,
+        #     hovertemplate='<b>%{y}</b><br>Venta: %{text}<br>Participación: ' +
+        #                 top_ventas['% Participación Ventas'][::-1].apply(lambda x: f"{x:.1f}%") + '<extra></extra>'
+        # ))
+
+        # # Título interno del gráfico con indicador de filtros
+        # titulo_grafico = f"Top {top_ventas_num} Proveedores por Ventas"
+        # if filtros_activos:
+        #     titulo_grafico += f" (Filtrado: {len(familias_seleccionadas)} familias, {len(subfamilias_seleccionadas)} subfamilias)"
+
+        # # Calcular rango del eje X para dar espacio al texto
+        # max_venta = top_ventas['Venta_M'].max()
+
+        # fig_ventas.update_layout(
+        #     height=max(400, top_ventas_num * 25),
+        #     margin=dict(t=30, b=10, l=10, r=30),
+        #     xaxis=dict(
+        #         visible=False,
+        #         range=[0, max_venta * 1.15]  # ← 15% extra para el texto
+        #     ),
+        #     yaxis=dict(visible=True, tickfont=dict(size=10)),
+        #     showlegend=False,
+        #     plot_bgcolor='white',
+        #     paper_bgcolor='white',
+        #     title=dict(
+        #         text=titulo_grafico,
+        #         # text=titulo_grafico if filtros_activos else None,
+        #         font=dict(size=12, color='#3498db'),
+        #         x=0.5,
+        #         xanchor='center'
+        #     )
+        # )
+
+        # st.plotly_chart(fig_ventas, width='stretch')
         # ✅ ranking YA está filtrado, así que esto ya usa datos filtrados
         top_ventas = ranking.head(top_ventas_num).copy()
         top_ventas['Venta_M'] = top_ventas['Venta Total'] / 1_000_000
-        top_ventas['Texto'] = top_ventas['Venta Total'].apply(lambda x: f"${x/1_000_000:.1f}M")
 
-        # Color dinámico según filtros
-        color_barra = '#2ecc71' if not filtros_activos else '#3498db'  # Verde normal, Azul si hay filtros
+        # 🎨 Escala de colores según rentabilidad
+        # Asumiendo que existe columna 'Rentabilidad %' en el dataframe
+        import numpy as np
+
+        def get_color_by_rentability(rentabilidad):
+            """
+            Verde oscuro (alta rent) → Amarillo (media) → Rojo (baja)
+            """
+            if rentabilidad >= 15:
+                return '#27ae60'  # Verde oscuro
+            elif rentabilidad >= 12:
+                return '#2ecc71'  # Verde medio
+            elif rentabilidad >= 9:
+                return '#f39c12'  # Amarillo/naranja
+            elif rentabilidad >= 6:
+                return '#e67e22'  # Naranja
+            else:
+                return '#e74c3c'  # Rojo
+
+        top_ventas['Color'] = top_ventas['Rentabilidad %'].apply(get_color_by_rentability)
+        top_ventas['Texto'] = top_ventas.apply(
+            lambda row: f"${row['Venta Total']/1_000_000:.0f}M | {row['Rentabilidad %']:.1f}%", 
+            axis=1
+        )
 
         fig_ventas = go.Figure(go.Bar(
             y=top_ventas['Proveedor'][::-1],
@@ -469,10 +539,13 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             orientation='h',
             text=top_ventas['Texto'][::-1],
             textposition='outside',
-            cliponaxis=False,  # ← Permite que el texto salga del área del gráfico
-            marker_color=color_barra,
-            hovertemplate='<b>%{y}</b><br>Venta: %{text}<br>Participación: ' +
-                        top_ventas['% Participación Ventas'][::-1].apply(lambda x: f"{x:.1f}%") + '<extra></extra>'
+            cliponaxis=False,
+            marker_color=top_ventas['Color'][::-1].tolist(),  # ← Color dinámico por rentabilidad
+            hovertemplate='<b>%{y}</b><br>' +
+                        'Venta: ' + top_ventas['Venta Total'][::-1].apply(lambda x: f"${x/1_000_000:.1f}M") + '<br>' +
+                        'Rentabilidad: ' + top_ventas['Rentabilidad %'][::-1].apply(lambda x: f"{x:.1f}%") + '<br>' +
+                        'Participación: ' + top_ventas['% Participación Ventas'][::-1].apply(lambda x: f"{x:.1f}%") + 
+                        '<extra></extra>'
         ))
 
         # Título interno del gráfico con indicador de filtros
@@ -485,10 +558,10 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
         fig_ventas.update_layout(
             height=max(400, top_ventas_num * 25),
-            margin=dict(t=30, b=10, l=10, r=30),
+            margin=dict(t=30, b=10, l=10, r=50),  # ← Más margen derecho para el texto con rentabilidad
             xaxis=dict(
                 visible=False,
-                range=[0, max_venta * 1.15]  # ← 15% extra para el texto
+                range=[0, max_venta * 1.30]  # ← 20% extra para el texto más largo
             ),
             yaxis=dict(visible=True, tickfont=dict(size=10)),
             showlegend=False,
@@ -496,7 +569,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             paper_bgcolor='white',
             title=dict(
                 text=titulo_grafico,
-                # text=titulo_grafico if filtros_activos else None,
                 font=dict(size=12, color='#3498db'),
                 x=0.5,
                 xanchor='center'
@@ -887,8 +959,12 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 ################################################################################
 
     st.markdown("---")
-    st.markdown("### 📊 Análizar y descargar tablas xlsx")
-
+    # st.markdown("### 📊 Análizar y descargar tablas xlsx")
+    st.markdown(
+        """<div style=" text-align: center; padding: 1rem; border: 1px solid gray; border-radius: 5px; background: #f0e69b; font-size: 1.8rem; font-weight: 600;">
+        📊 Análizar y descargar tablas xlsx</div>
+        """, unsafe_allow_html=True)
+    
     st.markdown("""
       <style>
       /* Ajustar la distribución de los tabs */
