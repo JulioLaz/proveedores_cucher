@@ -12,16 +12,13 @@ from utils.ranking_proveedores import crear_excel_ranking, generar_nombre_archiv
 from utils.proveedor_exporter import generar_reporte_proveedor, obtener_ids_originales
 
 from components.cobertura_stock_exporter import generar_reporte_cobertura, obtener_metricas_cobertura  # ← CAMBIAR ESTO
-from components.global_dashboard_cache import (
-    get_ventas_data,
-    get_presupuesto_data,
-    get_familias_data,    # ← AGREGAR
-    process_ranking_data
-)
-
+from components.global_dashboard_cache import (get_ventas_data, get_presupuesto_data, get_familias_data, process_ranking_data)
 from components.ranking_export_section import show_ranking_section
 from components.cobertura_section import show_cobertura_section
 from components.proveedor_report_section import show_proveedor_report_section
+from components.cobertura_stock_exporter import CoberturaStockExporter
+from components.global_dashboard_cache import get_ventas_agregadas_stock  # ← NUEVA FUNCIÓN
+from components.analisis_stock_rentables_simple import main_analisis_stock_simple  
 
 def format_millones(valor):
         if valor >= 1_000_000:
@@ -455,55 +452,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
         top_ventas_num = st.slider("Cantidad de proveedores (Ventas):", 5, 80, 20, step=5, key='slider_ventas')
 
-        # # ✅ ranking YA está filtrado, así que esto ya usa datos filtrados
-        # top_ventas = ranking.head(top_ventas_num).copy()
-        # top_ventas['Venta_M'] = top_ventas['Venta Total'] / 1_000_000
-        # top_ventas['Texto'] = top_ventas['Venta Total'].apply(lambda x: f"${x/1_000_000:.1f}M")
-
-        # # Color dinámico según filtros
-        # color_barra = '#2ecc71' if not filtros_activos else '#3498db'  # Verde normal, Azul si hay filtros
-
-        # fig_ventas = go.Figure(go.Bar(
-        #     y=top_ventas['Proveedor'][::-1],
-        #     x=top_ventas['Venta_M'][::-1],
-        #     orientation='h',
-        #     text=top_ventas['Texto'][::-1],
-        #     textposition='outside',
-        #     cliponaxis=False,  # ← Permite que el texto salga del área del gráfico
-        #     marker_color=color_barra,
-        #     hovertemplate='<b>%{y}</b><br>Venta: %{text}<br>Participación: ' +
-        #                 top_ventas['% Participación Ventas'][::-1].apply(lambda x: f"{x:.1f}%") + '<extra></extra>'
-        # ))
-
-        # # Título interno del gráfico con indicador de filtros
-        # titulo_grafico = f"Top {top_ventas_num} Proveedores por Ventas"
-        # if filtros_activos:
-        #     titulo_grafico += f" (Filtrado: {len(familias_seleccionadas)} familias, {len(subfamilias_seleccionadas)} subfamilias)"
-
-        # # Calcular rango del eje X para dar espacio al texto
-        # max_venta = top_ventas['Venta_M'].max()
-
-        # fig_ventas.update_layout(
-        #     height=max(400, top_ventas_num * 25),
-        #     margin=dict(t=30, b=10, l=10, r=30),
-        #     xaxis=dict(
-        #         visible=False,
-        #         range=[0, max_venta * 1.15]  # ← 15% extra para el texto
-        #     ),
-        #     yaxis=dict(visible=True, tickfont=dict(size=10)),
-        #     showlegend=False,
-        #     plot_bgcolor='white',
-        #     paper_bgcolor='white',
-        #     title=dict(
-        #         text=titulo_grafico,
-        #         # text=titulo_grafico if filtros_activos else None,
-        #         font=dict(size=12, color='#3498db'),
-        #         x=0.5,
-        #         xanchor='center'
-        #     )
-        # )
-
-        # st.plotly_chart(fig_ventas, width='stretch')
         # ✅ ranking YA está filtrado, así que esto ya usa datos filtrados
         top_ventas = ranking.head(top_ventas_num).copy()
         top_ventas['Venta_M'] = top_ventas['Venta Total'] / 1_000_000
@@ -754,7 +702,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col4:
         peor_util = ranking.nsmallest(1, 'Utilidad').iloc[0]
         st.markdown(f"""
-        <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid #4caf50; font-size:13px'>
+        <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid red; font-size:13px'>
         <b style='border-bottom:1px solid gray; margin-bottom: 3px'>⚠️ Proveedor con Menor Utilidad</b><br>
         <b>{peor_util['Proveedor']}</b><br>
         💸 ${peor_util['Utilidad']:,.0f}<br>
@@ -765,7 +713,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     with col5:
         mas_exceso = ranking.nlargest(1, 'Costo Exceso').iloc[0]
         st.markdown(f"""
-        <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid #4caf50; font-size:13px'>
+        <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid red; font-size:13px'>
         <b style='border-bottom:1px solid gray; margin-bottom: 3px'>⚠️ Mayor Exceso de Stock</b><br>
         <b>{mas_exceso['Proveedor']}</b><br>
         💸 ${mas_exceso['Costo Exceso']:,.0f} inmovilizado<br>
@@ -997,10 +945,11 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     if 'active_tab_index' not in st.session_state:
         st.session_state['active_tab_index'] = 0
 
-    tab1, tab2, tab3 = st.tabs([
+    tab1, tab2, tab3, tab4 = st.tabs([
       "1- 📊 Rankings de Proveedores por Ventas", 
       "2- 💰 Utilidad vs Cobertura", 
-      "3- 📦 Proveedor Ventas vs Presupuesto | Cobertura"
+      "3- 📦 Proveedor Ventas vs Presupuesto | Cobertura",
+      "4- 📊 Análisis de Stock Rentable"
    ])
 
 
@@ -1087,4 +1036,73 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             subfamilias_disponibles=subfamilias_disponibles,    # ← AGREGAR
             familias_seleccionadas=familias_seleccionadas,
             subfamilias_seleccionadas=subfamilias_seleccionadas
-         )        
+         )
+            
+    with tab4:
+        st.markdown(
+            "<h3 style='text-align:center; color:rgb(30, 60, 114);font-weight: bold;'>📦 Análisis de Stock - Artículos Rentables</h3>",
+            unsafe_allow_html=True
+        )
+        
+        # ═══════════════════════════════════════════════════════════════════════════
+        # CARGAR DATOS (con spinner visible)
+        # ═══════════════════════════════════════════════════════════════════════════
+        
+        with st.spinner("🔄 Cargando datos para análisis de stock... (~10 segundos)"):
+            
+            print(f"\n{'='*80}")
+            print(f"📦 TAB4: CARGANDO DATOS PARA ANÁLISIS DE STOCK")
+            print(f"{'='*80}")
+            
+            # Determinar año actual
+            año_actual = fecha_maxima_disponible.year
+            
+            print(f"   • Año de análisis: {año_actual}")
+            print(f"   • Tabla: {bigquery_table}")
+            
+            # 1. Cargar VENTAS AGREGADAS desde BigQuery (~7 segundos)
+            df_ventas_agregadas = get_ventas_agregadas_stock(
+                credentials_path=credentials_path,
+                project_id=project_id,
+                bigquery_table=bigquery_table,
+                año=año_actual
+            )
+            
+            if df_ventas_agregadas is None or len(df_ventas_agregadas) == 0:
+                st.error("❌ No se pudieron cargar datos de ventas desde BigQuery")
+                print(f"{'='*80}\n")
+                st.stop()
+            
+            print(f"   ✅ Ventas agregadas: {len(df_ventas_agregadas):,} artículos")
+            
+            # 2. Cargar STOCK ACTUAL desde BigQuery (~2 segundos)
+            exporter = CoberturaStockExporter(
+                credentials_path=credentials_path,
+                project_id=project_id
+            )
+            
+            if not exporter.conectar_bigquery():
+                st.error("❌ No se pudo conectar a BigQuery para cargar stock")
+                print(f"{'='*80}\n")
+                st.stop()
+            
+            df_stock = exporter.obtener_stock_bigquery()
+            
+            if df_stock is None or len(df_stock) == 0:
+                st.error("❌ No se pudieron cargar datos de stock desde BigQuery")
+                print(f"{'='*80}\n")
+                st.stop()
+            
+            print(f"   ✅ Stock cargado: {len(df_stock):,} artículos")
+            print(f"{'='*80}\n")
+        
+        # ═══════════════════════════════════════════════════════════════════════════
+        # ANÁLISIS Y VISUALIZACIÓN
+        # ═══════════════════════════════════════════════════════════════════════════
+        
+        # Llamar al módulo de análisis
+        main_analisis_stock_simple(
+            df_ventas_agregadas=df_ventas_agregadas,
+            df_stock=df_stock,
+            df_presupuesto=df_presupuesto  # Ya disponible en la función
+        )

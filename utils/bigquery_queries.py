@@ -4,10 +4,12 @@ Funciones para consultas a BigQuery
 import streamlit as st
 import pandas as pd
 import numpy as np
+import os
 from google.cloud import bigquery
 from limpiar_datos import limpiar_datos
-
-
+# from time import time
+import time
+@st.cache_data(ttl=3600)
 def query_bigquery_tickets(credentials_path, project_id, bigquery_table, 
                            ids, fecha_inicio, fecha_fin):
     """
@@ -66,6 +68,69 @@ def query_bigquery_tickets(credentials_path, project_id, bigquery_table,
         st.error(f"Error consultando BigQuery: {e}")
         return None
 
+@st.cache_data(ttl=3600)
+def get_tickets_para_analisis_stock(credentials_path, project_id, bigquery_table, fecha_desde, fecha_hasta):
+    """
+    Obtiene tickets COMPLETOS con fecha_comprobante para análisis de stock
+    Solo se usa para tab4 (análisis de artículos rentables)
+    
+    Args:
+        credentials_path: Ruta a credenciales JSON
+        project_id: ID del proyecto
+        bigquery_table: Nombre de la tabla
+        fecha_desde: Fecha inicio (str o date)
+        fecha_hasta: Fecha fin (str o date)
+    
+    Returns:
+        DataFrame con tickets completos
+    """
+    import os
+    
+    print(f"\n{'='*80}")
+    print(f"📊 CARGANDO TICKETS COMPLETOS PARA ANÁLISIS DE STOCK")
+    print(f"{'='*80}")
+    print(f"   • Desde: {fecha_desde}")
+    print(f"   • Hasta: {fecha_hasta}")
+    
+    inicio = time.time()
+    
+    # Detectar ambiente
+    is_cloud = not os.path.exists(credentials_path) if credentials_path else True
+    
+    if is_cloud:
+        from google.oauth2 import service_account
+        credentials = service_account.Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"]
+        )
+        client = bigquery.Client(credentials=credentials, project=project_id)
+    else:
+        client = bigquery.Client.from_service_account_json(credentials_path, project=project_id)
+    
+    query = f"""
+    SELECT 
+        fecha_comprobante,
+        idarticulo,
+        idartalfa,
+        descripcion,
+        cantidad_total,
+        precio_total,
+        costo_total,
+        familia,
+        subfamilia
+    FROM `{project_id}.{bigquery_table}`
+    WHERE DATE(fecha_comprobante) BETWEEN '{fecha_desde}' AND '{fecha_hasta}'
+    ORDER BY fecha_comprobante
+    """
+    
+    df = client.query(query).to_dataframe()
+    
+    tiempo = time.time() - inicio
+    
+    print(f"   ✅ Tickets cargados: {len(df):,} registros")
+    print(f"   ⏱️  Tiempo: {tiempo:.2f}s")
+    print(f"{'='*80}\n")
+    
+    return df
 
 def query_resultados_idarticulo(credentials_path, project_id, 
                                 dataset='presupuesto', 

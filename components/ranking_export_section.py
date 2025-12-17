@@ -100,7 +100,7 @@ def show_ranking_section(df_prov_con_familias, df_ventas, df_presupuesto, df_fam
             data=output_completo,
             file_name=nombre_archivo_completo,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True,
+            width='content',
             type="secondary"
         )
         
@@ -150,7 +150,7 @@ def show_ranking_section(df_prov_con_familias, df_ventas, df_presupuesto, df_fam
             data=output_filtrado,
             file_name=nombre_archivo_filtrado,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True,
+            width='content',
             type="primary"
         )
         

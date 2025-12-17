@@ -145,7 +145,7 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
             """, unsafe_allow_html=True)
 
             if st.button("🔄 Generar Análisis Completo", key="btn_generar_sin_filtro", 
-                        use_container_width=True, type="secondary"):
+                        width='content', type="secondary"):
                 with st.spinner(f"📊 Generando análisis de {proveedor_seleccionado}..."):
                     print(f"\n{'='*80}")
                     print(f"📦 GENERANDO ANÁLISIS SIN FILTROS: {proveedor_seleccionado}")
@@ -186,7 +186,8 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                         send_telegram_alert(mensaje, tipo="SUCCESS")
                         
                         st.toast("🎉 ¡Análisis generado exitosamente!", icon="✅")
-                        st.success("✅ Análisis generado exitosamente!")
+                        # st.balloons()
+                        # st.success("✅ Análisis generado exitosamente!")
                     else:
                         st.warning(f"⚠️ No hay artículos con presupuesto > 0 para {proveedor_seleccionado}")
         else:
@@ -202,7 +203,7 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
             """, unsafe_allow_html=True)
 
             if st.button("🔄 Generar Análisis Completo", key="btn_generar_sin_filtro", 
-                        use_container_width=True, type="secondary"):
+                        width='content', type="secondary"):
                 with st.spinner(f"📊 Generando análisis de {proveedor_seleccionado}..."):
                     print(f"\n{'='*80}")
                     print(f"📦 GENERANDO ANÁLISIS SIN FILTROS: {proveedor_seleccionado}")
@@ -245,7 +246,7 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                         send_telegram_alert(mensaje, tipo="SUCCESS")
                         
                         st.toast("🎉 ¡Análisis generado exitosamente!", icon="✅")
-                        st.success("✅ Análisis generado exitosamente!")
+                        # st.success("✅ Análisis generado exitosamente!")
                     else:
                         st.warning(f"⚠️ No hay artículos con presupuesto > 0 para {proveedor_seleccionado}")            
 
@@ -261,7 +262,7 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
 
             
             if st.button("🔄 Generar Análisis Filtrado", key="btn_generar_con_filtro", 
-                        use_container_width=True, type="primary"):
+                        width='content', type="primary"):
                 with st.spinner(f"📊 Generando análisis filtrado de {proveedor_seleccionado}..."):
                     print(f"\n{'='*80}")
                     print(f"🎯 GENERANDO ANÁLISIS CON FILTROS: {proveedor_seleccionado}")
@@ -330,7 +331,7 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
     
     if 'df_prov_viz' in st.session_state and st.session_state['df_prov_viz'] is not None:
         
-        st.markdown("---")
+        # st.markdown("---")
         
         # Cargar datos desde session_state
         df_viz = st.session_state['df_prov_viz'].copy()
@@ -378,7 +379,7 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                 data=excel_prov,
                 file_name=nombre_archivo_prov,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True,
+                width='content',
                 type="primary"
             )
         
@@ -393,19 +394,43 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
         
         # Ordenar por PRESUPUESTO
         df_viz = df_viz.sort_values('PRESUPUESTO', ascending=False)
-        
+
         # Slider para cantidad de artículos
         col_slider, col_info1, col_info2 = st.columns([3, 1, 1])
-        
+
         with col_slider:
-            top_articulos = st.slider(
-                "📦 Cantidad de artículos a mostrar:",
-                min_value=5,
-                max_value=min(50, len(df_viz)),
-                value=min(20, len(df_viz)),
-                step=5,
-                key='slider_articulos_proveedor'
-            )
+            # ✅ AJUSTAR min_value DINÁMICAMENTE
+            total_articulos = len(df_viz)
+            min_articulos = min(5, total_articulos)  # Si hay menos de 5, usar el total
+            max_articulos = min(50, total_articulos)
+            valor_inicial = min(20, total_articulos)
+            
+            # ✅ VALIDACIÓN: Si hay muy pocos artículos, deshabilitar slider
+            if total_articulos <= 5:
+                st.info(f"ℹ️ Mostrando todos los {total_articulos} artículos disponibles")
+                top_articulos = total_articulos
+            else:
+                top_articulos = st.slider(
+                    "📦 Cantidad de artículos a mostrar:",
+                    min_value=min_articulos,
+                    max_value=max_articulos,
+                    value=valor_inicial,
+                    step=5,
+                    key='slider_articulos_proveedor'
+                )
+
+        # # Slider para cantidad de artículos
+        # col_slider, col_info1, col_info2 = st.columns([3, 1, 1])
+        
+        # with col_slider:
+        #     top_articulos = st.slider(
+        #         "📦 Cantidad de artículos a mostrar:",
+        #         min_value=5,
+        #         max_value=min(50, len(df_viz)),
+        #         value=min(20, len(df_viz)),
+        #         step=5,
+        #         key='slider_articulos_proveedor'
+        #     )
         
         with col_info1:
             st.metric(
@@ -485,7 +510,7 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                 paper_bgcolor='white'
             )
             
-            st.plotly_chart(fig_presupuesto, use_container_width=True)
+            st.plotly_chart(fig_presupuesto, width='content')
         
         with col_graf2:
             st.markdown("#### ⏱️ Días de Cobertura (Cap: 31 días)")
@@ -563,7 +588,7 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                 paper_bgcolor='white'
             )
             
-            st.plotly_chart(fig_cobertura, use_container_width=True)
+            st.plotly_chart(fig_cobertura, width='content')
         
         # === TABLA DETALLADA ===
         st.markdown("#### 📋 Tabla Detallada")
@@ -605,7 +630,7 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
         # Mostrar tabla
         st.dataframe(
             df_tabla,
-            use_container_width=True,
+            width='content',
             hide_index=True,
             height=min(400, (top_articulos * 35) + 38)
         )

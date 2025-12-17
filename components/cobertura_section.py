@@ -66,7 +66,7 @@ def show_cobertura_section(df_para_cobertura, fecha_desde, fecha_hasta,
 
     with col_btn_REPORTE:
         if st.button("🔄 Generar Análisis y Reporte para descarga: Top Artículos x Utilidad vs días de cobertura", 
-                     use_container_width=True, type="primary"):
+                     width='content', type="primary"):
             with st.spinner("📊 Generando reporte..."):
                 print(f"\n{'='*80}")
                 print("📦 GENERANDO REPORTE DE COBERTURA")
@@ -101,7 +101,7 @@ def show_cobertura_section(df_para_cobertura, fecha_desde, fecha_hasta,
                         data=excel_cobertura,
                         file_name=nombre_archivo_cobertura,
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        use_container_width=True
+                        width='content'
                     )
                 else:
                     st.error("❌ Error generando reporte de cobertura")
@@ -254,7 +254,7 @@ def show_cobertura_section(df_para_cobertura, fecha_desde, fecha_hasta,
                 paper_bgcolor='white'
             )
             
-            st.plotly_chart(fig_utilidad, use_container_width=True)
+            st.plotly_chart(fig_utilidad, width='content')
 
         with col_graf2:
             st.markdown("#### ⏱️ Días de Cobertura (Cap: 31 días)")
@@ -341,7 +341,7 @@ def show_cobertura_section(df_para_cobertura, fecha_desde, fecha_hasta,
                 paper_bgcolor='white'
             )
             
-            st.plotly_chart(fig_cobertura, use_container_width=True)
+            st.plotly_chart(fig_cobertura, width='content')
         
         # === TABLA DETALLADA ===
         st.markdown("#### 📋 Tabla Detallada")
@@ -383,7 +383,7 @@ def show_cobertura_section(df_para_cobertura, fecha_desde, fecha_hasta,
         # Mostrar tabla con estilo
         st.dataframe(
             df_tabla,
-            use_container_width=True,
+            width='content',
             hide_index=True,
             height=min(400, (top_articulos * 35) + 38)
         )

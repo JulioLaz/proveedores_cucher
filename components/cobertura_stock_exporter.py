@@ -63,8 +63,48 @@ class CoberturaStockExporter:
             print(f"❌ Error conectando a BigQuery: {e}")
             return False
 
-       
     def obtener_stock_bigquery(self):
+        """
+        Obtiene datos de stock desde BigQuery con TODAS las columnas necesarias
+        
+        Returns:
+            DataFrame con columnas:
+            - idarticulo, idartalfa
+            - stk_corrientes, stk_express, stk_formosa, stk_hiper, stk_tirol, stk_central
+            - stk_total
+        """
+        inicio = time.time()
+        print(f"\n📥 Consultando stock desde BigQuery...")
+        
+        query = f"""
+        SELECT 
+            idarticulo,
+            idartalfa,
+            stk_corrientes,
+            stk_express,
+            stk_formosa,
+            stk_hiper,
+            stk_tirol,
+            stk_central,
+            stk_total
+        FROM `{self.project_id}.{self.dataset_id}.{self.table_id}`
+        """
+        
+        try:
+            df_stock = self.client.query(query).to_dataframe()
+            tiempo = time.time() - inicio
+            
+            print(f"✅ Stock obtenido: {len(df_stock):,} registros en {tiempo:.2f}s")
+            print(f"   Columnas disponibles: {df_stock.columns.tolist()}")
+            print(f"   Stock total (suma): {df_stock['stk_total'].sum():,.0f} unidades")
+            
+            return df_stock
+            
+        except Exception as e:
+            print(f"❌ Error consultando BigQuery: {e}")
+            return None
+       
+    def obtener_stock_bigquery00(self):
       """Obtiene datos de stock desde BigQuery"""
       inicio = time.time()
       print(f"\n📥 Consultando stock desde BigQuery...")
@@ -86,6 +126,65 @@ class CoberturaStockExporter:
          print(f"❌ Error consultando BigQuery: {e}")
          return None
     
+
+#     # En cobertura_stock_exporter.py
+#     def obtener_stock_completo_bigquery(self):
+#         """Obtiene stock CON TODAS LAS SUCURSALES desde BigQuery"""
+#         inicio = time.time()
+#         print(f"\n📥 Consultando stock completo desde BigQuery...")
+        
+#         query = f"""
+#         SELECT 
+#             idarticulo,
+#             idartalfa,
+#             stk_corrientes,
+#             stk_express,
+#             stk_formosa,
+#             stk_hiper,
+#             stk_tirol,
+#             stk_central,
+#             stk_total
+#         FROM `{self.project_id}.{self.dataset_id}.{self.table_id}`
+#         """
+        
+#         try:
+#             df_stock = self.client.query(query).to_dataframe()
+#             tiempo = time.time() - inicio
+#             print(f"✅ Stock obtenido: {len(df_stock):,} registros en {tiempo:.2f}s")
+#             return df_stock
+#         except Exception as e:
+#             print(f"❌ Error consultando BigQuery: {e}")
+#             return None
+# #######################################################################################
+#     def obtener_stock_bigquery(self):
+#         """Obtiene datos de stock desde BigQuery CON TODAS LAS COLUMNAS"""
+#         inicio = time.time()
+#         print(f"\n📥 Consultando stock desde BigQuery...")
+        
+#         query = f"""
+#         SELECT 
+#             idarticulo,
+#             idartalfa,
+#             stk_corrientes,
+#             stk_express,
+#             stk_formosa,
+#             stk_hiper,
+#             stk_tirol,
+#             stk_central,
+#             stk_total
+#         FROM `{self.project_id}.{self.dataset_id}.{self.table_id}`
+#         """
+        
+#         try:
+#             df_stock = self.client.query(query).to_dataframe()
+#             tiempo = time.time() - inicio
+#             print(f"✅ Stock obtenido: {len(df_stock):,} registros en {tiempo:.2f}s")
+#             return df_stock
+#         except Exception as e:
+#             print(f"❌ Error consultando BigQuery: {e}")
+#             return None
+# #######################################################################################
+
     def calcular_cobertura(self, df_ventas, df_stock, fecha_inicio, fecha_fin, utilidad_minima=10000):
         """
         Calcula cobertura en días y clasifica

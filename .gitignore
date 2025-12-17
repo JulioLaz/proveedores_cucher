@@ -11,3 +11,4 @@ components/ver.py
 *.toml
 auxiliar_crear_hash_key_access.ipynb
 code_crea_key_acces_streamlit_users.py
+test_query_stock_agregada.py
