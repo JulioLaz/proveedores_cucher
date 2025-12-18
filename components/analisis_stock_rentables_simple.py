@@ -546,7 +546,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
 
     with container:
 
-        st.subheader("⚙️ Configuración de Análisis")
+        st.subheader("⚙️ Configuración de Análisis - Selecciona los Parámetros y filtros para el análisis de stock de artículos rentables.")
         
         # FILA 1: Período, Tipo Margen, Margen Mínimo
         col1, col2, col3 = st.columns([2, 1.5, 1])
@@ -576,7 +576,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
             tipo_margen = st.radio(
                 "📊 Base de cálculo de margen:",
                 ["Margen Anual", "Margen del Período"],
-                help="**Margen Anual**: Artículos rentables todo el año\n**Margen del Período**: Artículos rentables en el trimestre seleccionado"
+                help="**Margen Anual**: Artículos rentables todo el año\n\n**Margen del Período**: Artículos rentables en el trimestre seleccionado"
             )
         
         with col3:
@@ -720,7 +720,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
     container = st.container(border=True)
 
     with container:
-        st.subheader("📊 Resumen")
+        st.subheader(f"📊 Resumen - Período {periodo_seleccionado}")
         
         # FILA 1: Contadores de artículos
         col1, col2, col3, col4, col_margen = st.columns(5)

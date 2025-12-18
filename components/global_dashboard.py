@@ -635,7 +635,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         st.plotly_chart(fig_presu, width='stretch')
 
     # === TABLA RANKING ===
-    st.markdown("### 📋 Ranking Detallado de Proveedores")
+    st.markdown("### 📋 Ranking Detallado de Proveedores ordenados por ranking Venta")
     
     df_display = ranking.copy()
     df_display['Venta Total'] = df_display['Venta Total'].apply(lambda x: f"${x:,.0f}")
@@ -660,7 +660,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     )
     
     # === INSIGHTS ===
-    st.markdown("### 💡 Insights Clave")
+    st.markdown("### 💡 Insights Clave de Proveedores")
     
     col1, col2, col3, col4, col5 = st.columns(5)
     
