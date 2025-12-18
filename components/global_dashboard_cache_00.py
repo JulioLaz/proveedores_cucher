@@ -211,14 +211,13 @@ def process_ranking_data(df_proveedores, df_ventas, df_presupuesto, df_familias)
         'STK_TOTAL': lambda x: (x == 0).sum()
     }).reset_index()
     
-    # ✅ RENOMBRAR COLUMNAS (necesario para global_dashboard.py)
     ranking.columns = [
         'Proveedor', 'ID', 'Venta Total', 'Costo Total', 'Cantidad Vendida', 
         'Artículos', 'Presupuesto', 'Art. con Exceso', 
         'Costo Exceso', 'Art. Sin Stock'
     ]
     
-    # Cálculos adicionales
+    # Cálculos
     ranking['Utilidad'] = (ranking['Venta Total'] - ranking['Costo Total']).round(0).astype(int)
     ranking['Rentabilidad %'] = ((ranking['Utilidad'] / ranking['Venta Total']) * 100).round(2)
     ranking['% Participación Presupuesto'] = (ranking['Presupuesto'] / ranking['Presupuesto'].sum() * 100).round(2)
@@ -234,30 +233,39 @@ def process_ranking_data(df_proveedores, df_ventas, df_presupuesto, df_familias)
 
 """
 ═══════════════════════════════════════════════════════════════════════════════
-    FUNCIÓN ANTIGUA - AHORA OBSOLETA (mantener por compatibilidad)
-    Reemplazada por get_ventas_agregadas_stock() para análisis sin filtros
+    Cargar ventas agregadas para análisis de stock
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
 @st.cache_data(ttl=3600)
-def get_ventas_agregadas_filtradas(credentials_path, project_id, bigquery_table, año, margen_min=0.25, dias_min=270):
+def get_ventas_agregadas_stock(credentials_path, project_id, bigquery_table, año, margen_min=0.25, dias_min=270):
     """
-    ⚠️ FUNCIÓN ANTIGUA - Reemplazada por get_ventas_agregadas_stock()
+    Obtiene ventas agregadas por artículo con datos por trimestre
+    Ya filtradas por margen >= 25% y días activo >= 270
     
-    Obtiene ventas agregadas CON FILTROS aplicados
-    Mantener por compatibilidad con código legacy
+    Args:
+        credentials_path: Ruta a credenciales JSON (None en cloud)
+        project_id: ID del proyecto de GCP
+        bigquery_table: Nombre de la tabla (formato: dataset.tabla)
+        año: Año a analizar (ej: 2024)
+        margen_min: Margen mínimo (default: 0.25 = 25%)
+        dias_min: Días mínimos activo (default: 270)
+    
+    Returns:
+        DataFrame con columnas:
+        - idarticulo, idartalfa, descripcion, familia, subfamilia
+        - cantidad_total_anual, precio_total_anual, costo_total_anual
+        - cantidad_q1, venta_q1, costo_q1 (y Q2, Q3, Q4)
+        - margen_anual, utilidad_anual, velocidad_venta_diaria
+        - dias_activo, fecha_primera_venta, fecha_ultima_venta
     """
-    import os
-    import time
-    from google.cloud import bigquery
-    import streamlit as st
     
     print(f"\n{'='*80}")
-    print(f"⚠️  USANDO FUNCIÓN ANTIGUA: get_ventas_agregadas_filtradas()")
+    print(f"📊 CARGANDO VENTAS AGREGADAS PARA ANÁLISIS DE STOCK")
     print(f"{'='*80}")
     print(f"   • Año: {año}")
-    print(f"   • Margen mín: {margen_min*100:.1f}%")
-    print(f"   • Días mín: {dias_min}")
+    print(f"   • Margen mínimo: {margen_min*100:.0f}%")
+    print(f"   • Días mínimos activo: {dias_min}")
     
     inicio = time.time()
     
@@ -376,18 +384,16 @@ def get_ventas_agregadas_filtradas(credentials_path, project_id, bigquery_table,
     
 """
 ═══════════════════════════════════════════════════════════════════════════════
-    FUNCIÓN NUEVA - REEMPLAZA A get_ventas_agregadas_filtradas()
-    Cargar ventas agregadas SIN FILTROS para permitir filtrado dinámico
-    ✅ INCLUYE NORMALIZACIÓN DE FAMILIA/SUBFAMILIA
+    FUNCIÓN PARA AGREGAR EN: global_dashboard_cache.py
+    Cargar ventas agregadas para análisis de stock
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
 @st.cache_data(ttl=3600)
-def get_ventas_agregadas_stock(credentials_path, project_id, bigquery_table, año):
+def get_ventas_agregadas_stock_00(credentials_path, project_id, bigquery_table, año):
     """
     Obtiene ventas agregadas por artículo con datos por trimestre
     SIN FILTROS - Trae todos los artículos para permitir filtrado dinámico
-    ✅ INCLUYE NORMALIZACIÓN: familia, subfamilia en UPPER y sin espacios
     
     Args:
         credentials_path: Ruta a credenciales JSON (None en cloud)
@@ -397,7 +403,7 @@ def get_ventas_agregadas_stock(credentials_path, project_id, bigquery_table, añ
     
     Returns:
         DataFrame con columnas:
-        - idarticulo, idartalfa, descripcion, familia, subfamilia (NORMALIZADAS)
+        - idarticulo, idartalfa, descripcion, familia, subfamilia
         - cantidad_total_anual, precio_total_anual, costo_total_anual
         - cantidad_q1, venta_q1, costo_q1 (y Q2, Q3, Q4)
         - margen_anual, utilidad_anual, velocidad_venta_diaria
@@ -413,7 +419,6 @@ def get_ventas_agregadas_stock(credentials_path, project_id, bigquery_table, añ
     print(f"{'='*80}")
     print(f"   • Año: {año}")
     print(f"   • Sin filtros - Permite filtrado dinámico por usuario")
-    print(f"   • ✅ CON NORMALIZACIÓN: familia/subfamilia UPPER + sin espacios")
     
     inicio = time.time()
     
@@ -435,8 +440,7 @@ def get_ventas_agregadas_stock(credentials_path, project_id, bigquery_table, añ
         print(f"   💻 Ambiente: Local")
     
     # ═══════════════════════════════════════════════════════════════════════════
-    # QUERY AGREGADA CON NORMALIZACIÓN EN BIGQUERY
-    # ✅ TRIM() + UPPER() aplicado directamente en la query
+    # QUERY AGREGADA (con PARSE_DATE para convertir STRING a DATE)
     # ═══════════════════════════════════════════════════════════════════════════
     
     query = f"""
@@ -445,9 +449,8 @@ def get_ventas_agregadas_stock(credentials_path, project_id, bigquery_table, añ
         idarticulo,
         idartalfa,
         MAX(descripcion) as descripcion,
-        -- ✅ NORMALIZACIÓN: TRIM + UPPER
-        UPPER(TRIM(MAX(familia))) as familia,
-        UPPER(TRIM(MAX(subfamilia))) as subfamilia,
+        MAX(familia) as familia,
+        MAX(subfamilia) as subfamilia,
         
         -- ═══ MÉTRICAS ANUALES ═══
         SUM(cantidad_total) as cantidad_total_anual,
@@ -521,13 +524,6 @@ def get_ventas_agregadas_stock(credentials_path, project_id, bigquery_table, añ
         print(f"   ⏱️  Tiempo: {tiempo:.2f}s")
         print(f"   💰 Venta total: ${df['precio_total_anual'].sum():,.0f}")
         print(f"   💵 Utilidad total: ${df['utilidad_anual'].sum():,.0f}")
-        
-        # Verificar normalización
-        if 'familia' in df.columns:
-            print(f"   ✅ Familias normalizadas: {df['familia'].nunique()} únicas")
-        if 'subfamilia' in df.columns:
-            print(f"   ✅ Subfamilias normalizadas: {df['subfamilia'].nunique()} únicas")
-        
         print(f"{'='*80}\n")
         
         return df

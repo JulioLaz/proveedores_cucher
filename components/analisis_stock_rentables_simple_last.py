@@ -1,8 +1,8 @@
 """
 ═══════════════════════════════════════════════════════════════════════════════
     MÓDULO SIMPLIFICADO: ANÁLISIS DE STOCK DE ARTÍCULOS RENTABLES
-    Versión optimizada para recibir datos PRE-AGREGADOS desde BigQuery
-    Con selectores dinámicos y gráficas mejoradas
+    Versión CORREGIDA - Rankings con TODOS los artículos rentables
+    Con selectores dinámicos y gráficas mejoradas con indicadores visuales
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
@@ -69,15 +69,6 @@ def limpiar_valores_negativos(df):
 def filtrar_por_periodo(df_ventas_agregadas, periodo, tipo_margen, margen_min):
     """
     Filtra y prepara datos según el período seleccionado
-    
-    Args:
-        df_ventas_agregadas: DataFrame con datos agregados por trimestre
-        periodo: 'ANUAL', 'Q1', 'Q2', 'Q3', 'Q4'
-        tipo_margen: 'Margen Anual' o 'Margen del Período'
-        margen_min: Margen mínimo (0.0 a 1.0)
-    
-    Returns:
-        DataFrame con columnas necesarias para análisis
     """
     
     df_periodo = df_ventas_agregadas.copy()
@@ -93,13 +84,14 @@ def filtrar_por_periodo(df_ventas_agregadas, periodo, tipo_margen, margen_min):
         df_periodo['costo_total'] = df_periodo['costo_total_anual']
         df_periodo['utilidad'] = df_periodo['utilidad_anual']
         
-        # ✅ CORRECCIÓN: Eliminado filtro dias_activo >= 270
-        # Motivo: Causaba que ANUAL tuviera MENOS artículos que Q4 (lógicamente incorrecto)
-        # Un producto estacional (ej: navideño) que vende solo en Q4 es rentable y necesita análisis de stock
-        print(f"   ✅ Período ANUAL: {len(df_periodo):,} artículos (sin filtro de días activos)")
+        # Filtrar por días activos SOLO para ANUAL
+        articulos_antes = len(df_periodo)
+        df_periodo = df_periodo[df_periodo['dias_activo'] >= 270].copy()
+        articulos_despues = len(df_periodo)
+        print(f"   🔍 Filtro días activos >= 270: {articulos_antes:,} → {articulos_despues:,} (-{articulos_antes - articulos_despues:,})")
     else:
         # Usar datos del trimestre específico
-        q_num = periodo[1]  # 'Q1' → '1'
+        q_num = periodo[1]
         df_periodo['cantidad_total'] = df_periodo[f'cantidad_q{q_num}']
         df_periodo['precio_total'] = df_periodo[f'venta_q{q_num}']
         df_periodo['costo_total'] = df_periodo[f'costo_q{q_num}']
@@ -124,9 +116,13 @@ def filtrar_por_periodo(df_ventas_agregadas, periodo, tipo_margen, margen_min):
     
     return df_periodo
 
-def consolidar_con_stock(df_periodo, df_stock, df_presupuesto):
+def consolidar_con_stock(df_periodo, df_stock, df_presupuesto, filtrar_problemas=True):
     """
     Cruza datos de ventas con stock actual
+    
+    Args:
+        filtrar_problemas: Si True, devuelve solo artículos con problemas.
+                          Si False, devuelve TODOS los artículos rentables.
     """
     
     # Merge con stock
@@ -137,28 +133,19 @@ def consolidar_con_stock(df_periodo, df_stock, df_presupuesto):
         suffixes=('_venta', '_actual')
     )
     
-    # DEBUG: Ver qué columnas tenemos después del merge
-    print(f"\n🔍 DEBUG: Columnas después de merge con stock:")
-    print(f"   {df_resultado.columns.tolist()}")
-    
     # ═══ CALCULAR STK_TOTAL ═══
     if 'stk_total' in df_resultado.columns:
-        print(f"   ✅ Encontrada columna 'stk_total'")
         df_resultado['STK_TOTAL'] = df_resultado['stk_total'].fillna(0)
     elif 'STK_TOTAL' in df_resultado.columns:
-        print(f"   ✅ Encontrada columna 'STK_TOTAL'")
         df_resultado['STK_TOTAL'] = df_resultado['STK_TOTAL'].fillna(0)
     else:
         cols_stock = [col for col in df_resultado.columns if col.startswith('stk_') and col != 'stk_total']
         if cols_stock:
-            print(f"   ✅ Calculando STK_TOTAL desde: {cols_stock}")
             df_resultado['STK_TOTAL'] = df_resultado[cols_stock].fillna(0).sum(axis=1)
         else:
-            print(f"   ⚠️  No se encontraron columnas de stock, usando STK_TOTAL = 0")
             df_resultado['STK_TOTAL'] = 0
     
     df_resultado['STK_TOTAL'] = df_resultado['STK_TOTAL'].astype(int)
-    print(f"   📊 Estadísticas STK_TOTAL: min={df_resultado['STK_TOTAL'].min()}, max={df_resultado['STK_TOTAL'].max()}, promedio={df_resultado['STK_TOTAL'].mean():.2f}\n")
     
     # Calcular días de cobertura
     df_resultado['dias_cobertura'] = df_resultado.apply(
@@ -168,11 +155,6 @@ def consolidar_con_stock(df_periodo, df_stock, df_presupuesto):
         ),
         axis=1
     )
-    
-    print(f"🔍 DEBUG: Días de cobertura calculados")
-    print(f"   min={df_resultado['dias_cobertura'].min():.2f}, max={df_resultado['dias_cobertura'].max():.2f}")
-    print(f"   Artículos con cobertura > 0: {(df_resultado['dias_cobertura'] > 0).sum()}")
-    print(f"   Artículos con stock = 0: {(df_resultado['STK_TOTAL'] == 0).sum()}\n")
     
     # Clasificar estado de stock
     df_resultado['estado_stock'] = df_resultado.apply(
@@ -191,14 +173,19 @@ def consolidar_con_stock(df_periodo, df_stock, df_presupuesto):
             on='idarticulo',
             how='left'
         )
-        df_resultado['proveedor'] = df_resultado['proveedor'].fillna('N/D').str.strip().str.upper()
+        df_resultado['proveedor'] = df_resultado['proveedor'].fillna('N/D')
     else:
         df_resultado['proveedor'] = 'N/D'
     
-    # Filtrar solo artículos con problemas de stock
-    df_resultado = df_resultado[
-        df_resultado['estado_stock'].isin(['QUEBRADO', 'QUIEBRE SEMANAL', 'QUIEBRE QUINCENAL'])
-    ].copy()
+    # ═══ FILTRAR SEGÚN PARÁMETRO ═══
+    if filtrar_problemas:
+        articulos_antes = len(df_resultado)
+        df_resultado = df_resultado[
+            df_resultado['estado_stock'].isin(['QUEBRADO', 'QUIEBRE SEMANAL', 'QUIEBRE QUINCENAL'])
+        ].copy()
+        print(f"   🔍 Filtrado por problemas: {articulos_antes:,} → {len(df_resultado):,} artículos")
+    else:
+        print(f"   ℹ️  Sin filtro de problemas: {len(df_resultado):,} artículos totales")
     
     # Limpiar valores negativos
     df_resultado = limpiar_valores_negativos(df_resultado)
@@ -206,13 +193,13 @@ def consolidar_con_stock(df_periodo, df_stock, df_presupuesto):
     return df_resultado
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# VISUALIZACIONES MEJORADAS
+# VISUALIZACIONES MEJORADAS CON INDICADORES VISUALES
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def crear_grafica_utilidad_mejorada(df, top_n=20):
     """
-    Gráfica de barras de utilidad con margen en la misma barra
-    Formato: $392.66M | 88.0%
+    Gráfica de utilidad con colores según estado de stock
+    Formato: $392,663,452 | 88.0%
     """
     
     df_top = df.nlargest(top_n, 'utilidad').iloc[::-1].copy()
@@ -223,42 +210,59 @@ def crear_grafica_utilidad_mejorada(df, top_n=20):
     labels = df_top['descripcion'].tolist()
     utilidades = df_top['utilidad'].tolist()
     margenes = df_top['margen_real'].tolist()
+    estados = df_top['estado_stock'].tolist()
     
-    # Formatear utilidad en millones
-    utilidades_m = [u / 1_000_000 for u in utilidades]
+    # Formatear texto con separador de miles argentino
+    texto_barras = [
+        f"${u:,.0f} | {m*100:.1f}%"
+        .replace(".", "#")
+        .replace(",", ".")
+        .replace("#", ",")
+        for u, m in zip(utilidades, margenes)
+    ]
     
-    # Texto combinado: Utilidad | Margen
-    texto_barras = [f"${u/1_000_000:.2f}M | {m*100:.1f}%" 
-                    for u, m in zip(utilidades, margenes)]
+    # Asignar colores según estado
+    def get_color_estado(estado):
+        if estado == 'QUEBRADO':
+            return '#e74c3c'  # Rojo
+        elif estado == 'QUIEBRE SEMANAL':
+            return '#f39c12'  # Naranja
+        elif estado == 'QUIEBRE QUINCENAL':
+            return '#f1c40f'  # Amarillo
+        else:
+            return '#3498db'  # Azul (OK)
     
-    # Crear hover text personalizado
+    colores = [get_color_estado(e) for e in estados]
+    
+    # Crear hover text
     hover_texts = []
     for i in range(len(df_top)):
         texto = f"<b>{labels[i]}</b><br>"
-        texto += f"Utilidad: ${utilidades[i]/1_000_000:.2f}M<br>"
-        texto += f"Margen: {margenes[i]*100:.1f}%"
+        texto += f"Utilidad: ${utilidades[i]:,.0f}<br>"
+        texto += f"Margen: {margenes[i]*100:.1f}%<br>"
+        texto += f"Estado: {estados[i]}"
         hover_texts.append(texto)
     
     fig = go.Figure(go.Bar(
         y=labels,
-        x=utilidades_m,
+        x=utilidades,
         orientation='h',
         text=texto_barras,
         textposition='outside',
         cliponaxis=False,
-        marker_color='#3498db',
+        marker_color=colores,
         hovertemplate='%{customdata}<extra></extra>',
         customdata=hover_texts
     ))
     
-    max_val = max(utilidades_m)
+    max_val = max(utilidades)
     
     fig.update_layout(
         height=max(400, top_n * 25),
-        margin=dict(t=20, b=25, l=10, r=120),  # Más margen para texto combinado
+        margin=dict(t=20, b=25, l=10, r=160),
         xaxis=dict(
             visible=False,
-            range=[0, max_val * 1.35]  # Más espacio para texto
+            range=[0, max_val * 1.40]
         ),
         yaxis=dict(
             visible=True,
@@ -273,8 +277,8 @@ def crear_grafica_utilidad_mejorada(df, top_n=20):
 
 def crear_grafica_margen_mejorada(df, top_n=20):
     """
-    Gráfica de barras de margen con utilidad en la misma barra
-    Formato: 88.0% | $392.66M
+    Gráfica de margen con colores según estado de stock
+    Formato: 88.0% | $392,663,452
     """
     
     df_top = df.nlargest(top_n, 'margen_real').iloc[::-1].copy()
@@ -285,20 +289,39 @@ def crear_grafica_margen_mejorada(df, top_n=20):
     labels = df_top['descripcion'].tolist()
     margenes = df_top['margen_real'].tolist()
     utilidades = df_top['utilidad'].tolist()
+    estados = df_top['estado_stock'].tolist()
     
-    # Formatear valores
     margenes_pct = [m * 100 for m in margenes]
     
-    # Texto combinado: Margen | Utilidad
-    texto_barras = [f"{m*100:.1f}% | ${u/1_000_000:.2f}M" 
-                    for m, u in zip(margenes, utilidades)]
+    # Formatear texto con separador argentino
+    texto_barras = [
+        f"{m*100:.1f}% | ${u:,.0f}"
+        .replace(".", "#")
+        .replace(",", ".")
+        .replace("#", ",")
+        for m, u in zip(margenes, utilidades)
+    ]
     
-    # Crear hover text personalizado
+    # Asignar colores según estado
+    def get_color_estado(estado):
+        if estado == 'QUEBRADO':
+            return '#e74c3c'
+        elif estado == 'QUIEBRE SEMANAL':
+            return '#f39c12'
+        elif estado == 'QUIEBRE QUINCENAL':
+            return '#f1c40f'
+        else:
+            return '#27ae60'  # Verde (OK)
+    
+    colores = [get_color_estado(e) for e in estados]
+    
+    # Crear hover text
     hover_texts = []
     for i in range(len(df_top)):
         texto = f"<b>{labels[i]}</b><br>"
         texto += f"Margen: {margenes[i]*100:.1f}%<br>"
-        texto += f"Utilidad: ${utilidades[i]/1_000_000:.2f}M"
+        texto += f"Utilidad: ${utilidades[i]:,.0f}<br>"
+        texto += f"Estado: {estados[i]}"
         hover_texts.append(texto)
     
     fig = go.Figure(go.Bar(
@@ -308,7 +331,7 @@ def crear_grafica_margen_mejorada(df, top_n=20):
         text=texto_barras,
         textposition='outside',
         cliponaxis=False,
-        marker_color='#27ae60',
+        marker_color=colores,
         hovertemplate='%{customdata}<extra></extra>',
         customdata=hover_texts
     ))
@@ -317,10 +340,10 @@ def crear_grafica_margen_mejorada(df, top_n=20):
     
     fig.update_layout(
         height=max(400, top_n * 25),
-        margin=dict(t=20, b=25, l=10, r=120),  # Más margen para texto combinado
+        margin=dict(t=20, b=25, l=10, r=160),
         xaxis=dict(
             visible=False,
-            range=[0, max_val * 1.30]  # Más espacio para texto
+            range=[0, max_val * 1.35]
         ),
         yaxis=dict(
             visible=True,
@@ -333,35 +356,15 @@ def crear_grafica_margen_mejorada(df, top_n=20):
     
     return fig
 
-# def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31):
-#     """
-#     Gráfica de días de cobertura con colores según clasificación
-#     Incluye líneas verticales de referencia
-#     """
-    
-#     df_top = df.nlargest(top_n, 'utilidad').iloc[::-1].copy()
-    
-#     if len(df_top) == 0:
-#         return None
-
-def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31, ordenar_por='utilidad'):
+def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31, usar_orden_original=False):
     """
     Gráfica de días de cobertura con colores según clasificación
-    Incluye líneas verticales de referencia
-    
-    Args:
-        df: DataFrame con los datos
-        top_n: Cantidad de artículos a mostrar
-        cap_dias: Límite de días para visualización
-        ordenar_por: Columna para ordenar ('utilidad', 'margen_real', None=no reordenar)
     """
     
-    # ✅ CORRECCIÓN: Solo ordenar si se especifica
-    if ordenar_por is not None and ordenar_por in df.columns:
-        df_top = df.nlargest(top_n, ordenar_por).iloc[::-1].copy()
-    else:
-        # Si ya viene ordenado, tomar los primeros top_n
+    if usar_orden_original:
         df_top = df.head(top_n).iloc[::-1].copy()
+    else:
+        df_top = df.nlargest(top_n, 'utilidad').iloc[::-1].copy()
     
     if len(df_top) == 0:
         return None
@@ -387,7 +390,7 @@ def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31, ordenar_por='uti
     
     colores = [get_color_estado(e) for e in estados]
     
-    # Crear hover text personalizado
+    # Crear hover text
     hover_texts = []
     for i in range(len(df_top)):
         texto = f"<b>{labels[i]}</b><br>"
@@ -398,7 +401,6 @@ def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31, ordenar_por='uti
     
     fig = go.Figure()
     
-    # Agregar barras
     fig.add_trace(go.Bar(
         y=labels,
         x=dias_visual,
@@ -414,7 +416,7 @@ def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31, ordenar_por='uti
         customdata=hover_texts
     ))
     
-    # Agregar líneas verticales de referencia
+    # Líneas de referencia
     lineas_config = [
         (7, '#e74c3c', '7d'),
         (14, '#e67e22', '14d'),
@@ -537,15 +539,14 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
     Función principal para renderizar el análisis en Streamlit
     """
     
-    # st.header("📦 Análisis de Stock - Artículos Rentables")
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # SELECTORES DE CONFIGURACIÓN
     # ═══════════════════════════════════════════════════════════════════════════
+
     container = st.container(border=True)
 
     with container:
-
+            
         st.subheader("⚙️ Configuración de Análisis")
         
         # FILA 1: Período, Tipo Margen, Margen Mínimo
@@ -576,7 +577,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
             tipo_margen = st.radio(
                 "📊 Base de cálculo de margen:",
                 ["Margen Anual", "Margen del Período"],
-                help="**Margen Anual**: Artículos rentables todo el año\n**Margen del Período**: Artículos rentables en el trimestre seleccionado"
+                help="**Margen Anual**: Artículos rentables todo el año\n\n**Margen del Período**: Artículos rentables en el trimestre seleccionado"
             )
         
         with col3:
@@ -589,9 +590,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
                 help="Porcentaje mínimo de margen para considerar rentable"
             )
         
-        # FILA 2: Filtros de Proveedor, Familia, Subfamilia con botones de control
-        
-        # Procesar datos preliminares para obtener opciones de filtros
+        # FILA 2: Filtros
         with st.spinner("🔄 Cargando opciones de filtros..."):
             df_temp = filtrar_por_periodo(
                 df_ventas_agregadas, 
@@ -600,49 +599,40 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
                 margen_min / 100
             )
             
-            df_temp_stock = consolidar_con_stock(df_temp, df_stock, df_presupuesto)
+            # ✅ CAMBIO CLAVE: filtrar_problemas=False para obtener TODOS los artículos
+            df_temp_stock = consolidar_con_stock(df_temp, df_stock, df_presupuesto, filtrar_problemas=False)
         
         # Obtener listas únicas
-        proveedores_disponibles = sorted(df_temp_stock['proveedor'].unique().tolist())
-        familias_disponibles = sorted(df_temp_stock['familia'].unique().tolist()) if 'familia' in df_temp_stock.columns else []
-        subfamilias_disponibles = sorted(df_temp_stock['subfamilia'].unique().tolist()) if 'subfamilia' in df_temp_stock.columns else []
+        proveedores_disponibles = sorted([str(p).strip() for p in df_temp_stock['proveedor'].unique().tolist() if pd.notna(p)])
+        familias_disponibles = sorted([str(f).strip() for f in df_temp_stock['familia'].unique().tolist() if pd.notna(f)]) if 'familia' in df_temp_stock.columns else []
+        subfamilias_disponibles = sorted([str(s).strip() for s in df_temp_stock['subfamilia'].unique().tolist() if pd.notna(s)]) if 'subfamilia' in df_temp_stock.columns else []
         
-        # Inicializar session_state si no existe
-        # ✅ CORRECCIÓN: Intersectar con opciones disponibles para evitar errores
+        # Session state
         if 'proveedores_selected' not in st.session_state:
             st.session_state.proveedores_selected = proveedores_disponibles
-        else:
-            # Intersectar: mantener solo proveedores que están en ambas listas
-            st.session_state.proveedores_selected = list(
-                set(st.session_state.proveedores_selected) & set(proveedores_disponibles)
-            )
-            # Si quedó vacía, usar todas las disponibles
-            if not st.session_state.proveedores_selected:
-                st.session_state.proveedores_selected = proveedores_disponibles
-        
         if 'familias_selected' not in st.session_state:
             st.session_state.familias_selected = familias_disponibles
-        else:
-            st.session_state.familias_selected = list(
-                set(st.session_state.familias_selected) & set(familias_disponibles)
-            )
-            if not st.session_state.familias_selected:
-                st.session_state.familias_selected = familias_disponibles
-        
         if 'subfamilias_selected' not in st.session_state:
             st.session_state.subfamilias_selected = subfamilias_disponibles
-        else:
-            st.session_state.subfamilias_selected = list(
-                set(st.session_state.subfamilias_selected) & set(subfamilias_disponibles)
-            )
-            if not st.session_state.subfamilias_selected:
-                st.session_state.subfamilias_selected = subfamilias_disponibles
         
+        # Validar session state
+        st.session_state.proveedores_selected = [p for p in st.session_state.proveedores_selected if p in proveedores_disponibles]
+        st.session_state.familias_selected = [f for f in st.session_state.familias_selected if f in familias_disponibles]
+        st.session_state.subfamilias_selected = [s for s in st.session_state.subfamilias_selected if s in subfamilias_disponibles]
+        
+        # Resetear si vacío
+        if not st.session_state.proveedores_selected and proveedores_disponibles:
+            st.session_state.proveedores_selected = proveedores_disponibles
+        if not st.session_state.familias_selected and familias_disponibles:
+            st.session_state.familias_selected = familias_disponibles
+        if not st.session_state.subfamilias_selected and subfamilias_disponibles:
+            st.session_state.subfamilias_selected = subfamilias_disponibles
+        
+        # Multiselects
         col4, col5, col6 = st.columns(3)
         
-        # FILTRO PROVEEDORES
         with col4:
- 
+            st.markdown("**🏢 Proveedores:**")
             proveedores_seleccionados = st.multiselect(
                 "Seleccione proveedores:",
                 options=proveedores_disponibles,
@@ -652,9 +642,8 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
             )
             st.session_state.proveedores_selected = proveedores_seleccionados
         
-        # FILTRO FAMILIAS
         with col5:
-
+            st.markdown("**📦 Familias:**")
             familias_seleccionadas = st.multiselect(
                 "Seleccione familias:",
                 options=familias_disponibles,
@@ -664,9 +653,8 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
             )
             st.session_state.familias_selected = familias_seleccionadas
         
-        # FILTRO SUBFAMILIAS
         with col6:
-            
+            st.markdown("**📋 Subfamilias:**")
             subfamilias_seleccionadas = st.multiselect(
                 "Seleccione subfamilias:",
                 options=subfamilias_disponibles,
@@ -676,64 +664,64 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
             )
             st.session_state.subfamilias_selected = subfamilias_seleccionadas
     
-    # st.markdown("---")
+    st.markdown("---")
     
     # ═══════════════════════════════════════════════════════════════════════════
-    # PROCESAR DATOS CON FILTROS
+    # PROCESAR DATOS - DOS DATAFRAMES SEPARADOS
     # ═══════════════════════════════════════════════════════════════════════════
     
-    # Usar datos ya filtrados preliminarmente
-    df_resultado = df_temp_stock.copy()
+    # df_completo: TODOS los artículos rentables (para gráficas de ranking)
+    df_completo = df_temp_stock.copy()
     
-    # Aplicar filtros adicionales (solo si hay selecciones)
-    if proveedores_seleccionados:  # Si lista NO está vacía
-        df_resultado = df_resultado[df_resultado['proveedor'].isin(proveedores_seleccionados)]
-        print(f"   🔍 Filtro proveedores: {len(proveedores_seleccionados)} seleccionados → {len(df_resultado):,} artículos")
+    # Aplicar filtros de proveedor/familia/subfamilia
+    if proveedores_seleccionados:
+        df_completo = df_completo[df_completo['proveedor'].isin(proveedores_seleccionados)]
     else:
-        print(f"   ⚠️  Sin proveedores seleccionados → 0 artículos")
-        df_resultado = df_resultado[df_resultado['proveedor'].isin([])]  # Ninguno
+        df_completo = df_completo[df_completo['proveedor'].isin([])]
     
-    if familias_seleccionadas:  # Si lista NO está vacía
-        df_resultado = df_resultado[df_resultado['familia'].isin(familias_seleccionadas)]
-        print(f"   🔍 Filtro familias: {len(familias_seleccionadas)} seleccionadas → {len(df_resultado):,} artículos")
+    if familias_seleccionadas:
+        df_completo = df_completo[df_completo['familia'].isin(familias_seleccionadas)]
     else:
-        print(f"   ⚠️  Sin familias seleccionadas → 0 artículos")
-        df_resultado = df_resultado[df_resultado['familia'].isin([])]  # Ninguno
+        df_completo = df_completo[df_completo['familia'].isin([])]
     
-    if subfamilias_seleccionadas:  # Si lista NO está vacía
-        df_resultado = df_resultado[df_resultado['subfamilia'].isin(subfamilias_seleccionadas)]
-        print(f"   🔍 Filtro subfamilias: {len(subfamilias_seleccionadas)} seleccionadas → {len(df_resultado):,} artículos")
+    if subfamilias_seleccionadas:
+        df_completo = df_completo[df_completo['subfamilia'].isin(subfamilias_seleccionadas)]
     else:
-        print(f"   ⚠️  Sin subfamilias seleccionadas → 0 artículos")
-        df_resultado = df_resultado[df_resultado['subfamilia'].isin([])]  # Ninguno
+        df_completo = df_completo[df_completo['subfamilia'].isin([])]
     
-    print(f"   ✅ Total artículos después de filtros: {len(df_resultado):,}\n")
+    print(f"   ✅ Artículos rentables (completo): {len(df_completo):,}")
     
-    if len(df_resultado) == 0:
-        st.info(f"✅ No hay artículos rentables con problemas de stock en {get_nombre_trimestre(periodo_seleccionado)}")
+    # df_problemas: Solo artículos CON PROBLEMAS (para métricas de pérdida)
+    df_problemas = df_completo[
+        df_completo['estado_stock'].isin(['QUEBRADO', 'QUIEBRE SEMANAL', 'QUIEBRE QUINCENAL'])
+    ].copy()
+    
+    print(f"   ⚠️  Artículos con problemas: {len(df_problemas):,}\n")
+    
+    if len(df_completo) == 0:
+        st.info(f"✅ No hay artículos rentables en {get_nombre_trimestre(periodo_seleccionado)} con los filtros seleccionados")
         return
     
     # ═══════════════════════════════════════════════════════════════════════════
-    # MÉTRICAS RESUMEN
+    # MÉTRICAS RESUMEN (usando df_problemas)
     # ═══════════════════════════════════════════════════════════════════════════
-
+    
     container = st.container(border=True)
 
     with container:
         st.subheader("📊 Resumen")
         
-        # FILA 1: Contadores de artículos
         col1, col2, col3, col4, col_margen = st.columns(5)
 
         with col1:
             st.metric(
                 "Artículos con Problema", 
-                f"{len(df_resultado):,}",
+                f"{len(df_problemas):,}",
                 help="Total de artículos rentables con stock insuficiente"
             )
         
         with col2:
-            quebrados = len(df_resultado[df_resultado['estado_stock'] == 'QUEBRADO'])
+            quebrados = len(df_problemas[df_problemas['estado_stock'] == 'QUEBRADO'])
             st.metric(
                 "🔴 Quebrados", 
                 f"{quebrados:,}",
@@ -741,7 +729,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
             )
         
         with col3:
-            quiebre_semanal = len(df_resultado[df_resultado['estado_stock'] == 'QUIEBRE SEMANAL'])
+            quiebre_semanal = len(df_problemas[df_problemas['estado_stock'] == 'QUIEBRE SEMANAL'])
             st.metric(
                 "🟠 Quiebre Semanal", 
                 f"{quiebre_semanal:,}",
@@ -749,125 +737,74 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
             )
         
         with col4:
-            quiebre_quincenal = len(df_resultado[df_resultado['estado_stock'] == 'QUIEBRE QUINCENAL'])
+            quiebre_quincenal = len(df_problemas[df_problemas['estado_stock'] == 'QUIEBRE QUINCENAL'])
             st.metric(
                 "🟡 Quiebre Quincenal", 
                 f"{quiebre_quincenal:,}",
                 help="Artículos con cobertura de 8-15 días"
             )
-        
+
         with col_margen:
             st.metric(
                 "📈 Margen mínimo", 
                 f"{margen_min:.1f}%",
-                help="Margen mín promedio de los artículos considerados en el análisis"
+                help="Margen mínimo considerado en el análisis"
             )
 
         st.markdown("---")
         
-        # FILA 2: Estimación de pérdidas
-        col_selector, col_spacer, col5, col6 = st.columns([1.5, 0.5, 2, 2])
-        
-        with col_selector:
-            dias_estimacion = st.select_slider(
-                "⏱️ Horizonte de estimación:",
-                options=[7, 14, 21, 30],
-                value=14,
-                format_func=lambda x: f"{x} días",
-                help="Período para calcular pérdida potencial basado en velocidad de venta histórica"
-            )
-        
-        # Calcular métricas diarias
-        df_resultado['precio_unitario'] = df_resultado['precio_total'] / df_resultado['cantidad_total']
-        df_resultado['venta_diaria_$'] = df_resultado['velocidad_venta_diaria'] * df_resultado['precio_unitario']
-        df_resultado['utilidad_diaria_$'] = df_resultado['venta_diaria_$'] * df_resultado['margen_real']
-
-        # Estimar pérdida
-        venta_perdida = (df_resultado['venta_diaria_$'] * dias_estimacion).sum()
-        utilidad_perdida = (df_resultado['utilidad_diaria_$'] * dias_estimacion).sum()
-        
-        # Calcular pérdida diaria promedio para el delta
-        venta_diaria_total = df_resultado['venta_diaria_$'].sum()
-        utilidad_diaria_total = df_resultado['utilidad_diaria_$'].sum()
-
-        with col5:
-            st.metric(
-                f"💰 Venta Perdida ({dias_estimacion} días)", 
-                f"${venta_perdida:,.0f}",
-                delta=f"${venta_diaria_total:,.0f}/día",
-                delta_color="off",
-                help=f"Estimación de venta no realizada en {dias_estimacion} días si no se repone stock. Calculado como: Velocidad de venta diaria × Precio unitario × {dias_estimacion} días."
-            )
-        
-        with col6:
-            st.metric(
-                f"💵 Utilidad Perdida ({dias_estimacion} días)", 
-                f"${utilidad_perdida:,.0f}",
-                delta=f"${utilidad_diaria_total:,.0f}/día",
-                delta_color="off",
-                help=f"Estimación de ganancia no obtenida en {dias_estimacion} días si no se repone stock. Calculado como: Venta diaria estimada × Margen real × {dias_estimacion} días."
-            )
-    
-#     container = st.container(border=True)
-
-#     with container:
-
-#         st.subheader("📊 Resumen")
-        
-#         col1, col2, col3, col4 = st.columns(4)
-
-#         with col1:
-#             st.metric("Artículos con Problema", f"{len(df_resultado):,}")
-        
-#         with col2:
-#             quebrados = len(df_resultado[df_resultado['estado_stock'] == 'QUEBRADO'])
-#             st.metric("🔴 Quebrados", f"{quebrados:,}")
-        
-#         with col3:
-#             quiebre_semanal = len(df_resultado[df_resultado['estado_stock'] == 'QUIEBRE SEMANAL'])
-#             st.metric("🟠 Quiebre Semanal", f"{quiebre_semanal:,}")
-        
-#         with col4:
-#             quiebre_quincenal = len(df_resultado[df_resultado['estado_stock'] == 'QUIEBRE QUINCENAL'])
-#             st.metric("🟡 Quiebre Quincenal", f"{quiebre_quincenal:,}")
-        
-#         col_selector, col5, col6 = st.columns([1,2,2])
-        
-#         with col_selector:
-#             dias_estimacion = st.select_slider(
-#                 "Estimación de pérdida:",
-#                 options=[7, 14, 21, 30],
-#                 value=14,
-#                 format_func=lambda x: f"{x} días")        # Calcular métricas diarias
+        # Estimación de pérdidas (solo si hay problemas)
+        if len(df_problemas) > 0:
+            col_selector, col_spacer, col5, col6 = st.columns([1.5, 0.5, 2, 2])
             
-#             df_resultado['precio_unitario'] = df_resultado['precio_total'] / df_resultado['cantidad_total']
-#             df_resultado['venta_diaria_$'] = df_resultado['velocidad_venta_diaria'] * df_resultado['precio_unitario']
-#             df_resultado['utilidad_diaria_$'] = df_resultado['venta_diaria_$'] * df_resultado['margen_real']
+            with col_selector:
+                dias_estimacion = st.select_slider(
+                    "⏱️ Horizonte de estimación:",
+                    options=[7, 14, 21, 30],
+                    value=14,
+                    format_func=lambda x: f"{x} días",
+                    help="Período para calcular pérdida potencial basado en velocidad de venta histórica"
+                )
+            
+            # Calcular métricas diarias
+            df_problemas['precio_unitario'] = df_problemas['precio_total'] / df_problemas['cantidad_total']
+            df_problemas['venta_diaria_$'] = df_problemas['velocidad_venta_diaria'] * df_problemas['precio_unitario']
+            df_problemas['utilidad_diaria_$'] = df_problemas['venta_diaria_$'] * df_problemas['margen_real']
 
-#             # Estimar pérdida (14 días por default)
-#             venta_perdida = (df_resultado['venta_diaria_$'] * dias_estimacion).sum()
-#             utilidad_perdida = (df_resultado['utilidad_diaria_$'] * dias_estimacion).sum()
+            venta_perdida = (df_problemas['venta_diaria_$'] * dias_estimacion).sum()
+            utilidad_perdida = (df_problemas['utilidad_diaria_$'] * dias_estimacion).sum()
+            
+            venta_diaria_total = df_problemas['venta_diaria_$'].sum()
+            utilidad_diaria_total = df_problemas['utilidad_diaria_$'].sum()
 
-#         with col5:
-#             # venta_perdida = df_resultado['precio_total'].sum()
-#             st.metric(f"💰 Venta Potencial Perdida en {dias_estimacion} días por falta de stock", f"${venta_perdida:,.0f}",
-#             help="Suma de ventas del período de artículos rentables con problemas de stock (quebrados, quiebre semanal/quincenal)"
-# )
-        
-#         with col6:
-#             # utilidad_perdida = df_resultado['utilidad'].sum()
-#             st.metric(f"💵 Utilidad Potencial Perdida en {dias_estimacion} días por falta de stock", f"${utilidad_perdida:,.0f}",
-#             help="Suma de utilidades del período de artículos rentables con problemas de stock (quebrados, quiebre semanal/quincenal)")
+            with col5:
+                st.metric(
+                    f"💰 Venta Perdida ({dias_estimacion} días)", 
+                    f"${venta_perdida:,.0f}",
+                    delta=f"${venta_diaria_total:,.0f}/día",
+                    delta_color="off",
+                    help=f"Estimación de venta no realizada en {dias_estimacion} días si no se repone stock. Calculado como: Velocidad de venta diaria × Precio unitario × {dias_estimacion} días."
+                )
+            
+            with col6:
+                st.metric(
+                    f"💵 Utilidad Perdida ({dias_estimacion} días)", 
+                    f"${utilidad_perdida:,.0f}",
+                    delta=f"${utilidad_diaria_total:,.0f}/día",
+                    delta_color="off",
+                    help=f"Estimación de ganancia no obtenida en {dias_estimacion} días si no se repone stock. Calculado como: Venta diaria estimada × Margen real × {dias_estimacion} días."
+                )
+        else:
+            st.success("✅ No hay artículos con problemas de stock")
     
-    # st.markdown("---")
+    st.markdown("---")
     
     # ═══════════════════════════════════════════════════════════════════════════
-    # GRÁFICAS - ANÁLISIS POR UTILIDAD
+    # GRÁFICAS - ANÁLISIS POR UTILIDAD (usando df_completo)
     # ═══════════════════════════════════════════════════════════════════════════
     
     st.subheader("📈 Análisis por Utilidad")
     
-    # Slider para Top Utilidad
     top_utilidad = st.slider(
         "Cantidad de artículos (Utilidad):", 
         min_value=5, 
@@ -881,25 +818,25 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
     
     with col1:
         st.markdown(f"#### 💰 Top {top_utilidad} Artículos por Utilidad")
-        fig1 = crear_grafica_utilidad_mejorada(df_resultado, top_n=top_utilidad)
+        fig1 = crear_grafica_utilidad_mejorada(df_completo, top_n=top_utilidad)
         if fig1:
             st.plotly_chart(fig1, width='content')
+        st.caption("🔴 Rojo: Quebrado | 🟠 Naranja: Quiebre Semanal | 🟡 Amarillo: Quiebre Quincenal | 🔵 Azul: OK")
     
     with col2:
         st.markdown("#### ⏱️ Días de Cobertura (Cap: 31 días)")
-        fig2 = crear_grafica_cobertura_mejorada(df_resultado, top_n=top_utilidad, cap_dias=31)
+        fig2 = crear_grafica_cobertura_mejorada(df_completo, top_n=top_utilidad, cap_dias=31)
         if fig2:
             st.plotly_chart(fig2, width='content')
     
     st.markdown("---")
     
     # ═══════════════════════════════════════════════════════════════════════════
-    # GRÁFICAS - ANÁLISIS POR MARGEN
+    # GRÁFICAS - ANÁLISIS POR MARGEN (usando df_completo)
     # ═══════════════════════════════════════════════════════════════════════════
     
     st.subheader("📈 Análisis por Margen Real")
     
-    # Slider para Top Margen
     top_margen = st.slider(
         "Cantidad de artículos (Margen):", 
         min_value=5, 
@@ -913,82 +850,60 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
     
     with col3:
         st.markdown(f"#### 💹 Top {top_margen} Artículos por Margen %")
-        fig3 = crear_grafica_margen_mejorada(df_resultado, top_n=top_margen)
+        fig3 = crear_grafica_margen_mejorada(df_completo, top_n=top_margen)
         if fig3:
             st.plotly_chart(fig3, width='content')
+        st.caption("🔴 Rojo: Quebrado | 🟠 Naranja: Quiebre Semanal | 🟡 Amarillo: Quiebre Quincenal | 🟢 Verde: OK")
     
     with col4:
         st.markdown("#### ⏱️ Días de Cobertura (Top Margen)")
-        df_top_margen = df_resultado.nlargest(top_margen, 'margen_real')
-        # fig4 = crear_grafica_cobertura_mejorada(df_top_margen, top_n=top_margen, cap_dias=31)
-        fig4 = crear_grafica_cobertura_mejorada(df_top_margen, top_n=top_margen, cap_dias=31, ordenar_por=None)
-
+        df_top_margen = df_completo.nlargest(top_margen, 'margen_real')
+        fig4 = crear_grafica_cobertura_mejorada(
+            df_top_margen, 
+            top_n=top_margen, 
+            cap_dias=31,
+            usar_orden_original=True
+        )
         if fig4:
             st.plotly_chart(fig4, width='content')
     
     st.markdown("---")
     
     # ═══════════════════════════════════════════════════════════════════════════
-    # TABLA Y DESCARGA
+    # TABLA Y DESCARGA (mostrar solo problemas)
     # ═══════════════════════════════════════════════════════════════════════════
     
-    st.subheader("📋 Detalle de Artículos")
-
-    df_resultado['margen_real_100'] = df_resultado['margen_real'] * 100  # Convertir a porcentaje
-
-    st.dataframe(
-        df_resultado.sort_values(by="utilidad", ascending=False)[[
-            'idarticulo', 'descripcion', 'proveedor', 'familia', 'subfamilia',
-            'cantidad_total', 'precio_total', 'costo_total', 'utilidad',
-            'margen_real_100', 'STK_TOTAL', 'dias_cobertura', 'estado_stock'
-        ]],
-        hide_index=True,
-        column_config={
-            "precio_total": st.column_config.NumberColumn("Precio Total", format="$%d"),
-            "costo_total": st.column_config.NumberColumn("Costo Total", format="$%d"),
-            "utilidad": st.column_config.NumberColumn("Utilidad", format="$%d"),
-            "margen_real_100": st.column_config.NumberColumn("Margen %", format="%.2f%%"),
-            "dias_cobertura": st.column_config.NumberColumn("Días Cobertura", format="%d"),
-            "cantidad_total": st.column_config.NumberColumn("Cantidad Total", format="%d"),
-        }
-    )
-
-
-    # st.dataframe(
-    #     df_resultado[[
-    #         'idarticulo', 'descripcion', 'proveedor', 'familia', 'subfamilia',
-    #         'cantidad_total', 'precio_total', 'costo_total', 'utilidad',
-    #         'margen_real', 'STK_TOTAL', 'dias_cobertura', 'estado_stock'
-    #     ]],
-    #     hide_index=True,
-    #     column_config={
-    #         "precio_total": st.column_config.NumberColumn("Precio Total", format="$%d"),
-    #         "costo_total": st.column_config.NumberColumn("Costo Total", format="$%d"),
-    #         "utilidad": st.column_config.NumberColumn("Utilidad", format="$%d"),
-    #         "margen_real": st.column_config.NumberColumn("Margen %", format="%.2f%%"),
-    #         "dias_cobertura": st.column_config.NumberColumn("Días Cobertura", format="%d"),
-    #     }
-    # )
-    
-    st.subheader("💾 Descargar Reporte")
-    
-    nombre_archivo = f"Stock_Rentables_{periodo_seleccionado}_{datetime.now().strftime('%d%B%Y_%Hhs%Mmin')}.xlsx"
-    
-    # ✅ FILTRAR POR MARGEN ANTES DE DESCARGAR
-    df_descarga = df_resultado[df_resultado['margen_real'] >= (margen_min / 100)].copy()
-
-    print(f"   📥 Descarga: {len(df_resultado):,} → {len(df_descarga):,} artículos (margen >= {margen_min:.1f}%)")
-
-
-        # ✅ df_resultado ya tiene aplicado el filtro de margen (líneas 116-124 en filtrar_por_periodo)
-    excel_bytes = generar_excel_con_formato(df_descarga, periodo_seleccionado)
-    
-    st.download_button(
-        label="📥 Descargar Excel",
-        data=excel_bytes,
-        file_name=nombre_archivo,
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    if len(df_problemas) > 0:
+        st.subheader("📋 Detalle de Artículos con Problemas")
+        
+        st.dataframe(
+            df_problemas[[
+                'idarticulo', 'descripcion', 'proveedor', 'familia', 'subfamilia',
+                'cantidad_total', 'precio_total', 'costo_total', 'utilidad',
+                'margen_real', 'STK_TOTAL', 'dias_cobertura', 'estado_stock'
+            ]],
+            hide_index=True,
+            column_config={
+                "precio_total": st.column_config.NumberColumn("Precio Total", format="$%d"),
+                "costo_total": st.column_config.NumberColumn("Costo Total", format="$%d"),
+                "utilidad": st.column_config.NumberColumn("Utilidad", format="$%d"),
+                "margen_real": st.column_config.NumberColumn("Margen %", format="%.2f%%"),
+                "dias_cobertura": st.column_config.NumberColumn("Días Cobertura", format="%d"),
+            }
+        )
+        
+        st.subheader("💾 Descargar Reporte")
+        
+        nombre_archivo = f"Stock_Rentables_{periodo_seleccionado}_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+        
+        excel_bytes = generar_excel_con_formato(df_problemas, periodo_seleccionado)
+        
+        st.download_button(
+            label="📥 Descargar Excel",
+            data=excel_bytes,
+            file_name=nombre_archivo,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
     
     st.markdown("---")
     st.caption("💡 **Clasificación de alertas:**")

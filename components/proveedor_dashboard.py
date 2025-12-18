@@ -114,9 +114,8 @@ class ProveedorDashboard:
                 """
                 <div style='
                     position: absolute;
-                    top: -4.2rem;
+                    top: -3.2rem;
                     text-align: center;
-                    padding: .5rem 0px;
                     margin-bottom: 1rem;
                     font-size: 2.2rem;
                     color: #646060;

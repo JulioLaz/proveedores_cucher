@@ -93,10 +93,11 @@ def filtrar_por_periodo(df_ventas_agregadas, periodo, tipo_margen, margen_min):
         df_periodo['costo_total'] = df_periodo['costo_total_anual']
         df_periodo['utilidad'] = df_periodo['utilidad_anual']
         
-        # ✅ CORRECCIÓN: Eliminado filtro dias_activo >= 270
-        # Motivo: Causaba que ANUAL tuviera MENOS artículos que Q4 (lógicamente incorrecto)
-        # Un producto estacional (ej: navideño) que vende solo en Q4 es rentable y necesita análisis de stock
-        print(f"   ✅ Período ANUAL: {len(df_periodo):,} artículos (sin filtro de días activos)")
+        # Filtrar por días activos SOLO para ANUAL
+        articulos_antes = len(df_periodo)
+        df_periodo = df_periodo[df_periodo['dias_activo'] >= 270].copy()
+        articulos_despues = len(df_periodo)
+        print(f"   🔍 Filtro días activos >= 270: {articulos_antes:,} → {articulos_despues:,} (-{articulos_antes - articulos_despues:,})")
     else:
         # Usar datos del trimestre específico
         q_num = periodo[1]  # 'Q1' → '1'
@@ -191,7 +192,7 @@ def consolidar_con_stock(df_periodo, df_stock, df_presupuesto):
             on='idarticulo',
             how='left'
         )
-        df_resultado['proveedor'] = df_resultado['proveedor'].fillna('N/D').str.strip().str.upper()
+        df_resultado['proveedor'] = df_resultado['proveedor'].fillna('N/D')
     else:
         df_resultado['proveedor'] = 'N/D'
     
@@ -228,9 +229,16 @@ def crear_grafica_utilidad_mejorada(df, top_n=20):
     utilidades_m = [u / 1_000_000 for u in utilidades]
     
     # Texto combinado: Utilidad | Margen
-    texto_barras = [f"${u/1_000_000:.2f}M | {m*100:.1f}%" 
-                    for u, m in zip(utilidades, margenes)]
-    
+   #  texto_barras = [f"${u/1_000_000:.2f}M | {m*100:.1f}%" 
+   #                  for u, m in zip(utilidades, margenes)]
+    texto_barras = [
+    f"${u:,.0f} | {m*100:.1f}%"
+        .replace(".", "#")
+        .replace(",", ".")
+        .replace("#", ",")
+    for u, m in zip(utilidades, margenes)
+]
+
     # Crear hover text personalizado
     hover_texts = []
     for i in range(len(df_top)):
@@ -290,9 +298,14 @@ def crear_grafica_margen_mejorada(df, top_n=20):
     margenes_pct = [m * 100 for m in margenes]
     
     # Texto combinado: Margen | Utilidad
-    texto_barras = [f"{m*100:.1f}% | ${u/1_000_000:.2f}M" 
-                    for m, u in zip(margenes, utilidades)]
-    
+   #  texto_barras = [f"{m*100:.1f}% | ${u/1_000_000:.2f}M" 
+   #  texto_barras = [f"{m*100:.1f}% | ${u:,.0f}" 
+   #                  for m, u in zip(margenes, utilidades)]
+    texto_barras = [
+    f"{m*100:.1f}% | ${u:,.0f}".replace(".", "#").replace(",", ".").replace("#", ",")
+    for m, u in zip(margenes, utilidades)
+]
+
     # Crear hover text personalizado
     hover_texts = []
     for i in range(len(df_top)):
@@ -333,35 +346,24 @@ def crear_grafica_margen_mejorada(df, top_n=20):
     
     return fig
 
+def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31, usar_orden_original=False):
 # def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31):
-#     """
-#     Gráfica de días de cobertura con colores según clasificación
-#     Incluye líneas verticales de referencia
-#     """
-    
-#     df_top = df.nlargest(top_n, 'utilidad').iloc[::-1].copy()
-    
-#     if len(df_top) == 0:
-#         return None
-
-def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31, ordenar_por='utilidad'):
     """
     Gráfica de días de cobertura con colores según clasificación
-    Incluye líneas verticales de referencia
     
     Args:
-        df: DataFrame con los datos
-        top_n: Cantidad de artículos a mostrar
-        cap_dias: Límite de días para visualización
-        ordenar_por: Columna para ordenar ('utilidad', 'margen_real', None=no reordenar)
+        df: DataFrame con datos
+        top_n: Cantidad de artículos
+        cap_dias: Días máximos a mostrar
+        usar_orden_original: Si True, usa orden del df (no reordena por utilidad)
     """
     
-    # ✅ CORRECCIÓN: Solo ordenar si se especifica
-    if ordenar_por is not None and ordenar_por in df.columns:
-        df_top = df.nlargest(top_n, ordenar_por).iloc[::-1].copy()
-    else:
-        # Si ya viene ordenado, tomar los primeros top_n
+    # Si debe usar orden original, tomar top_n sin reordenar
+    if usar_orden_original:
         df_top = df.head(top_n).iloc[::-1].copy()
+    else:
+        # Comportamiento default: ordenar por utilidad
+        df_top = df.nlargest(top_n, 'utilidad').iloc[::-1].copy()
     
     if len(df_top) == 0:
         return None
@@ -537,146 +539,151 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
     Función principal para renderizar el análisis en Streamlit
     """
     
-    # st.header("📦 Análisis de Stock - Artículos Rentables")
+   #  st.header("📦 Análisis de Stock - Artículos Rentables")
     
     # ═══════════════════════════════════════════════════════════════════════════
     # SELECTORES DE CONFIGURACIÓN
     # ═══════════════════════════════════════════════════════════════════════════
+
     container = st.container(border=True)
 
     with container:
+            
+      st.subheader("⚙️ Configuración de Análisis")
+      
+      # FILA 1: Período, Tipo Margen, Margen Mínimo
+      col1, col2, col3 = st.columns([2, 1.5, 1])
+      
+      with col1:
+         mes_actual = datetime.now().month
+         if mes_actual <= 3:
+               trimestre_default = 'Q1'
+         elif mes_actual <= 6:
+               trimestre_default = 'Q2'
+         elif mes_actual <= 9:
+               trimestre_default = 'Q3'
+         else:
+               trimestre_default = 'Q4'
+         
+         periodos = ['ANUAL', 'Q1', 'Q2', 'Q3', 'Q4']
+         indice_default = periodos.index(trimestre_default)
+         
+         periodo_seleccionado = st.selectbox(
+               "📅 Período a analizar:",
+               periodos,
+               format_func=lambda x: get_nombre_trimestre(x),
+               index=indice_default
+         )
+      
+      with col2:
+         tipo_margen = st.radio(
+               "📊 Base de cálculo de margen:",
+               ["Margen Anual", "Margen del Período"],
+               help="**Margen Anual**: Artículos rentables todo el año\n\n**Margen del Período**: Artículos rentables en el trimestre seleccionado"
+         )
+      
+      with col3:
+         margen_min = st.number_input(
+               "💰 Margen mínimo (%):",
+               min_value=10.0,
+               max_value=50.0,
+               value=25.0,
+               step=5.0,
+               help="Porcentaje mínimo de margen para considerar rentable"
+         )
+      
+      # FILA 2: Filtros de Proveedor, Familia, Subfamilia con botones de control
+      
+      # Procesar datos preliminares para obtener opciones de filtros
+      with st.spinner("🔄 Cargando opciones de filtros..."):
+         df_temp = filtrar_por_periodo(
+               df_ventas_agregadas, 
+               periodo_seleccionado,
+               tipo_margen,
+               margen_min / 100
+         )
+         
+         df_temp_stock = consolidar_con_stock(df_temp, df_stock, df_presupuesto)
+      
+      # Obtener listas únicas y LIMPIAR espacios en blanco
+      proveedores_disponibles = sorted([str(p).strip() for p in df_temp_stock['proveedor'].unique().tolist() if pd.notna(p)])
+      familias_disponibles = sorted([str(f).strip() for f in df_temp_stock['familia'].unique().tolist() if pd.notna(f)]) if 'familia' in df_temp_stock.columns else []
+      subfamilias_disponibles = sorted([str(s).strip() for s in df_temp_stock['subfamilia'].unique().tolist() if pd.notna(s)]) if 'subfamilia' in df_temp_stock.columns else []
+      
+      # Inicializar session_state si no existe
+      if 'proveedores_selected' not in st.session_state:
+         st.session_state.proveedores_selected = proveedores_disponibles
+      if 'familias_selected' not in st.session_state:
+         st.session_state.familias_selected = familias_disponibles
+      if 'subfamilias_selected' not in st.session_state:
+         st.session_state.subfamilias_selected = subfamilias_disponibles
+      
+      # ✅ VALIDAR que valores en session_state existan en opciones actuales
+      # Esto previene error cuando cambias filtros y las opciones cambian
+      st.session_state.proveedores_selected = [
+         p for p in st.session_state.proveedores_selected 
+         if p in proveedores_disponibles
+      ]
+      st.session_state.familias_selected = [
+         f for f in st.session_state.familias_selected 
+         if f in familias_disponibles
+      ]
+      st.session_state.subfamilias_selected = [
+         s for s in st.session_state.subfamilias_selected 
+         if s in subfamilias_disponibles
+      ]
+      
+      # Si después de validar quedó vacío, seleccionar todos (comportamiento default)
+      if not st.session_state.proveedores_selected and proveedores_disponibles:
+         st.session_state.proveedores_selected = proveedores_disponibles
+      if not st.session_state.familias_selected and familias_disponibles:
+         st.session_state.familias_selected = familias_disponibles
+      if not st.session_state.subfamilias_selected and subfamilias_disponibles:
+         st.session_state.subfamilias_selected = subfamilias_disponibles
+      
+      # Crear columnas para filtros
+      col4, col5, col6 = st.columns(3)
+      
+      # FILTRO PROVEEDORES
+      with col4:
 
-        st.subheader("⚙️ Configuración de Análisis")
-        
-        # FILA 1: Período, Tipo Margen, Margen Mínimo
-        col1, col2, col3 = st.columns([2, 1.5, 1])
-        
-        with col1:
-            mes_actual = datetime.now().month
-            if mes_actual <= 3:
-                trimestre_default = 'Q1'
-            elif mes_actual <= 6:
-                trimestre_default = 'Q2'
-            elif mes_actual <= 9:
-                trimestre_default = 'Q3'
-            else:
-                trimestre_default = 'Q4'
-            
-            periodos = ['ANUAL', 'Q1', 'Q2', 'Q3', 'Q4']
-            indice_default = periodos.index(trimestre_default)
-            
-            periodo_seleccionado = st.selectbox(
-                "📅 Período a analizar:",
-                periodos,
-                format_func=lambda x: get_nombre_trimestre(x),
-                index=indice_default
-            )
-        
-        with col2:
-            tipo_margen = st.radio(
-                "📊 Base de cálculo de margen:",
-                ["Margen Anual", "Margen del Período"],
-                help="**Margen Anual**: Artículos rentables todo el año\n**Margen del Período**: Artículos rentables en el trimestre seleccionado"
-            )
-        
-        with col3:
-            margen_min = st.number_input(
-                "💰 Margen mínimo (%):",
-                min_value=10.0,
-                max_value=50.0,
-                value=25.0,
-                step=5.0,
-                help="Porcentaje mínimo de margen para considerar rentable"
-            )
-        
-        # FILA 2: Filtros de Proveedor, Familia, Subfamilia con botones de control
-        
-        # Procesar datos preliminares para obtener opciones de filtros
-        with st.spinner("🔄 Cargando opciones de filtros..."):
-            df_temp = filtrar_por_periodo(
-                df_ventas_agregadas, 
-                periodo_seleccionado,
-                tipo_margen,
-                margen_min / 100
-            )
-            
-            df_temp_stock = consolidar_con_stock(df_temp, df_stock, df_presupuesto)
-        
-        # Obtener listas únicas
-        proveedores_disponibles = sorted(df_temp_stock['proveedor'].unique().tolist())
-        familias_disponibles = sorted(df_temp_stock['familia'].unique().tolist()) if 'familia' in df_temp_stock.columns else []
-        subfamilias_disponibles = sorted(df_temp_stock['subfamilia'].unique().tolist()) if 'subfamilia' in df_temp_stock.columns else []
-        
-        # Inicializar session_state si no existe
-        # ✅ CORRECCIÓN: Intersectar con opciones disponibles para evitar errores
-        if 'proveedores_selected' not in st.session_state:
-            st.session_state.proveedores_selected = proveedores_disponibles
-        else:
-            # Intersectar: mantener solo proveedores que están en ambas listas
-            st.session_state.proveedores_selected = list(
-                set(st.session_state.proveedores_selected) & set(proveedores_disponibles)
-            )
-            # Si quedó vacía, usar todas las disponibles
-            if not st.session_state.proveedores_selected:
-                st.session_state.proveedores_selected = proveedores_disponibles
-        
-        if 'familias_selected' not in st.session_state:
-            st.session_state.familias_selected = familias_disponibles
-        else:
-            st.session_state.familias_selected = list(
-                set(st.session_state.familias_selected) & set(familias_disponibles)
-            )
-            if not st.session_state.familias_selected:
-                st.session_state.familias_selected = familias_disponibles
-        
-        if 'subfamilias_selected' not in st.session_state:
-            st.session_state.subfamilias_selected = subfamilias_disponibles
-        else:
-            st.session_state.subfamilias_selected = list(
-                set(st.session_state.subfamilias_selected) & set(subfamilias_disponibles)
-            )
-            if not st.session_state.subfamilias_selected:
-                st.session_state.subfamilias_selected = subfamilias_disponibles
-        
-        col4, col5, col6 = st.columns(3)
-        
-        # FILTRO PROVEEDORES
-        with col4:
- 
-            proveedores_seleccionados = st.multiselect(
-                "Seleccione proveedores:",
-                options=proveedores_disponibles,
-                default=st.session_state.proveedores_selected,
-                key='multiselect_prov',
-                label_visibility='collapsed'
-            )
-            st.session_state.proveedores_selected = proveedores_seleccionados
-        
-        # FILTRO FAMILIAS
-        with col5:
+         st.markdown("**🏢 Proveedores:**")
+         proveedores_seleccionados = st.multiselect(
+               "Seleccione proveedores:",
+               options=proveedores_disponibles,
+               default=st.session_state.proveedores_selected,
+               key='multiselect_prov',
+               label_visibility='collapsed'
+         )
+         st.session_state.proveedores_selected = proveedores_seleccionados
+      
+      # FILTRO FAMILIAS
+      with col5:
 
-            familias_seleccionadas = st.multiselect(
-                "Seleccione familias:",
-                options=familias_disponibles,
-                default=st.session_state.familias_selected,
-                key='multiselect_fam',
-                label_visibility='collapsed'
-            )
-            st.session_state.familias_selected = familias_seleccionadas
-        
-        # FILTRO SUBFAMILIAS
-        with col6:
-            
-            subfamilias_seleccionadas = st.multiselect(
-                "Seleccione subfamilias:",
-                options=subfamilias_disponibles,
-                default=st.session_state.subfamilias_selected,
-                key='multiselect_sub',
-                label_visibility='collapsed'
-            )
-            st.session_state.subfamilias_selected = subfamilias_seleccionadas
-    
-    # st.markdown("---")
+         st.markdown("**📦 Familias:**")
+         familias_seleccionadas = st.multiselect(
+               "Seleccione familias:",
+               options=familias_disponibles,
+               default=st.session_state.familias_selected,
+               key='multiselect_fam',
+               label_visibility='collapsed'
+         )
+         st.session_state.familias_selected = familias_seleccionadas
+      
+      # FILTRO SUBFAMILIAS
+      with col6:
+
+         st.markdown("**📋 Subfamilias:**")
+         subfamilias_seleccionadas = st.multiselect(
+               "Seleccione subfamilias:",
+               options=subfamilias_disponibles,
+               default=st.session_state.subfamilias_selected,
+               key='multiselect_sub',
+               label_visibility='collapsed'
+         )
+         st.session_state.subfamilias_selected = subfamilias_seleccionadas
+      
+    st.markdown("---")
     
     # ═══════════════════════════════════════════════════════════════════════════
     # PROCESAR DATOS CON FILTROS
@@ -716,7 +723,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
     # ═══════════════════════════════════════════════════════════════════════════
     # MÉTRICAS RESUMEN
     # ═══════════════════════════════════════════════════════════════════════════
-
+    
     container = st.container(border=True)
 
     with container:
@@ -755,7 +762,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
                 f"{quiebre_quincenal:,}",
                 help="Artículos con cobertura de 8-15 días"
             )
-        
+
         with col_margen:
             st.metric(
                 "📈 Margen mínimo", 
@@ -808,58 +815,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
                 help=f"Estimación de ganancia no obtenida en {dias_estimacion} días si no se repone stock. Calculado como: Venta diaria estimada × Margen real × {dias_estimacion} días."
             )
     
-#     container = st.container(border=True)
-
-#     with container:
-
-#         st.subheader("📊 Resumen")
-        
-#         col1, col2, col3, col4 = st.columns(4)
-
-#         with col1:
-#             st.metric("Artículos con Problema", f"{len(df_resultado):,}")
-        
-#         with col2:
-#             quebrados = len(df_resultado[df_resultado['estado_stock'] == 'QUEBRADO'])
-#             st.metric("🔴 Quebrados", f"{quebrados:,}")
-        
-#         with col3:
-#             quiebre_semanal = len(df_resultado[df_resultado['estado_stock'] == 'QUIEBRE SEMANAL'])
-#             st.metric("🟠 Quiebre Semanal", f"{quiebre_semanal:,}")
-        
-#         with col4:
-#             quiebre_quincenal = len(df_resultado[df_resultado['estado_stock'] == 'QUIEBRE QUINCENAL'])
-#             st.metric("🟡 Quiebre Quincenal", f"{quiebre_quincenal:,}")
-        
-#         col_selector, col5, col6 = st.columns([1,2,2])
-        
-#         with col_selector:
-#             dias_estimacion = st.select_slider(
-#                 "Estimación de pérdida:",
-#                 options=[7, 14, 21, 30],
-#                 value=14,
-#                 format_func=lambda x: f"{x} días")        # Calcular métricas diarias
-            
-#             df_resultado['precio_unitario'] = df_resultado['precio_total'] / df_resultado['cantidad_total']
-#             df_resultado['venta_diaria_$'] = df_resultado['velocidad_venta_diaria'] * df_resultado['precio_unitario']
-#             df_resultado['utilidad_diaria_$'] = df_resultado['venta_diaria_$'] * df_resultado['margen_real']
-
-#             # Estimar pérdida (14 días por default)
-#             venta_perdida = (df_resultado['venta_diaria_$'] * dias_estimacion).sum()
-#             utilidad_perdida = (df_resultado['utilidad_diaria_$'] * dias_estimacion).sum()
-
-#         with col5:
-#             # venta_perdida = df_resultado['precio_total'].sum()
-#             st.metric(f"💰 Venta Potencial Perdida en {dias_estimacion} días por falta de stock", f"${venta_perdida:,.0f}",
-#             help="Suma de ventas del período de artículos rentables con problemas de stock (quebrados, quiebre semanal/quincenal)"
-# )
-        
-#         with col6:
-#             # utilidad_perdida = df_resultado['utilidad'].sum()
-#             st.metric(f"💵 Utilidad Potencial Perdida en {dias_estimacion} días por falta de stock", f"${utilidad_perdida:,.0f}",
-#             help="Suma de utilidades del período de artículos rentables con problemas de stock (quebrados, quiebre semanal/quincenal)")
-    
-    # st.markdown("---")
+    st.markdown("---")
     
     # ═══════════════════════════════════════════════════════════════════════════
     # GRÁFICAS - ANÁLISIS POR UTILIDAD
@@ -916,16 +872,20 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
         fig3 = crear_grafica_margen_mejorada(df_resultado, top_n=top_margen)
         if fig3:
             st.plotly_chart(fig3, width='content')
-    
+   
     with col4:
-        st.markdown("#### ⏱️ Días de Cobertura (Top Margen)")
-        df_top_margen = df_resultado.nlargest(top_margen, 'margen_real')
-        # fig4 = crear_grafica_cobertura_mejorada(df_top_margen, top_n=top_margen, cap_dias=31)
-        fig4 = crear_grafica_cobertura_mejorada(df_top_margen, top_n=top_margen, cap_dias=31, ordenar_por=None)
-
-        if fig4:
-            st.plotly_chart(fig4, width='content')
-    
+      st.markdown("#### ⏱️ Días de Cobertura (Top Margen)")
+      df_top_margen = df_resultado.nlargest(top_margen, 'margen_real')
+      # ✅ Usar orden del df (ya ordenado por margen)
+      fig4 = crear_grafica_cobertura_mejorada(
+         df_top_margen, 
+         top_n=top_margen, 
+         cap_dias=31,
+         usar_orden_original=True  # ← Nuevo parámetro
+      )
+      if fig4:
+         st.plotly_chart(fig4, width='content')
+   
     st.markdown("---")
     
     # ═══════════════════════════════════════════════════════════════════════════
@@ -933,55 +893,28 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
     # ═══════════════════════════════════════════════════════════════════════════
     
     st.subheader("📋 Detalle de Artículos")
-
-    df_resultado['margen_real_100'] = df_resultado['margen_real'] * 100  # Convertir a porcentaje
-
+    
     st.dataframe(
-        df_resultado.sort_values(by="utilidad", ascending=False)[[
+        df_resultado[[
             'idarticulo', 'descripcion', 'proveedor', 'familia', 'subfamilia',
             'cantidad_total', 'precio_total', 'costo_total', 'utilidad',
-            'margen_real_100', 'STK_TOTAL', 'dias_cobertura', 'estado_stock'
+            'margen_real', 'STK_TOTAL', 'dias_cobertura', 'estado_stock'
         ]],
         hide_index=True,
         column_config={
             "precio_total": st.column_config.NumberColumn("Precio Total", format="$%d"),
             "costo_total": st.column_config.NumberColumn("Costo Total", format="$%d"),
             "utilidad": st.column_config.NumberColumn("Utilidad", format="$%d"),
-            "margen_real_100": st.column_config.NumberColumn("Margen %", format="%.2f%%"),
+            "margen_real": st.column_config.NumberColumn("Margen %", format="%.2f%%"),
             "dias_cobertura": st.column_config.NumberColumn("Días Cobertura", format="%d"),
-            "cantidad_total": st.column_config.NumberColumn("Cantidad Total", format="%d"),
         }
     )
-
-
-    # st.dataframe(
-    #     df_resultado[[
-    #         'idarticulo', 'descripcion', 'proveedor', 'familia', 'subfamilia',
-    #         'cantidad_total', 'precio_total', 'costo_total', 'utilidad',
-    #         'margen_real', 'STK_TOTAL', 'dias_cobertura', 'estado_stock'
-    #     ]],
-    #     hide_index=True,
-    #     column_config={
-    #         "precio_total": st.column_config.NumberColumn("Precio Total", format="$%d"),
-    #         "costo_total": st.column_config.NumberColumn("Costo Total", format="$%d"),
-    #         "utilidad": st.column_config.NumberColumn("Utilidad", format="$%d"),
-    #         "margen_real": st.column_config.NumberColumn("Margen %", format="%.2f%%"),
-    #         "dias_cobertura": st.column_config.NumberColumn("Días Cobertura", format="%d"),
-    #     }
-    # )
     
     st.subheader("💾 Descargar Reporte")
     
-    nombre_archivo = f"Stock_Rentables_{periodo_seleccionado}_{datetime.now().strftime('%d%B%Y_%Hhs%Mmin')}.xlsx"
+    nombre_archivo = f"Stock_Rentables_{periodo_seleccionado}_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
     
-    # ✅ FILTRAR POR MARGEN ANTES DE DESCARGAR
-    df_descarga = df_resultado[df_resultado['margen_real'] >= (margen_min / 100)].copy()
-
-    print(f"   📥 Descarga: {len(df_resultado):,} → {len(df_descarga):,} artículos (margen >= {margen_min:.1f}%)")
-
-
-        # ✅ df_resultado ya tiene aplicado el filtro de margen (líneas 116-124 en filtrar_por_periodo)
-    excel_bytes = generar_excel_con_formato(df_descarga, periodo_seleccionado)
+    excel_bytes = generar_excel_con_formato(df_resultado, periodo_seleccionado)
     
     st.download_button(
         label="📥 Descargar Excel",

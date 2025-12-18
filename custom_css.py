@@ -251,7 +251,7 @@ def custom_sidebar():
                 font-weight: bold;
                 border-radius: 8px;
                 border: none;
-                padding: 0.6rem 1rem;
+                padding: 0.5rem 1rem;
             }
 
             .stButton > button:hover {

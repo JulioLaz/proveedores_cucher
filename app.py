@@ -107,7 +107,7 @@ if st.session_state["authentication_status"]:
         # Footer
         st.markdown("""
         <hr style="margin: 0; border: none; border-top: 2px solid #ccc;" />
-        <div style="text-align: center; color: #666; font-size: 0.8em; margin-top: 20px;">
+        <div style="text-align: center; color: #666; font-size: 0.9em; margin-top: 20px;margin-bottom: 10px;">
             Julio A. Lazarte | Científico de Datos & BI | Cucher Mercados
         </div>
         """, unsafe_allow_html=True)

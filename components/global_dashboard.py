@@ -1040,9 +1040,11 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             
     with tab4:
         st.markdown(
-            "<h3 style='text-align:center; color:rgb(30, 60, 114);font-weight: bold;'>📦 Análisis de Stock - Artículos Rentables</h3>",
-            unsafe_allow_html=True
-        )
+            "<h3 style='text-align:center; color:rgb(30, 60, 114);font-weight: bold;'>📦 Artículos Rentables - Análisis de Stock</h3>",
+            unsafe_allow_html=True)
+        st.markdown(
+            "<h4 style='text-align:center; color:#555;font-weight: bold;'>⚠️ Los filtros principales no aplican en esta sección!</h4>",
+            unsafe_allow_html=True)
         
         # ═══════════════════════════════════════════════════════════════════════════
         # CARGAR DATOS (con spinner visible)
