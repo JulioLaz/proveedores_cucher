@@ -213,7 +213,7 @@ def process_ranking_data(df_proveedores, df_ventas, df_presupuesto, df_familias)
     
     # ✅ RENOMBRAR COLUMNAS (necesario para global_dashboard.py)
     ranking.columns = [
-        'Proveedor', 'ID', 'Venta Total', 'Costo Total', 'Cantidad Vendida', 
+        'Proveedor', 'ID Proveedor', 'Venta Total', 'Costo Total', 'Cantidad Vendida', 
         'Artículos', 'Presupuesto', 'Art. con Exceso', 
         'Costo Exceso', 'Art. Sin Stock'
     ]
@@ -229,7 +229,10 @@ def process_ranking_data(df_proveedores, df_ventas, df_presupuesto, df_familias)
     
     tiempo = time.time() - inicio
     print(f"✅ Ranking procesado: {len(ranking)} proveedores en {tiempo:.2f}s")
-    
+    print("@"*200)
+    print("Columnas del RANKING:", list(ranking.columns))
+    print("Columnas del RANKING:", ranking.head(5))
+    print("@"*200)
     return ranking
 
 """

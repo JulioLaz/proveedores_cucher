@@ -35,7 +35,7 @@ def aplicar_formato_excel(workbook):
             'border': 1
         }),
         'porcentaje': workbook.add_format({
-            'num_format': '0.00"%"',  # CORREGIDO: No multiplica por 100, solo agrega símbolo %
+            'num_format': '0.00%',
             'align': 'center',
             'border': 1
         }),
@@ -88,11 +88,9 @@ def limpiar_dataframe_export(df):
     
     # Convertir tipos de datos
     conversiones = 0
-    columnas_moneda = ['Venta Total', 'Costo Total', 'Utilidad', 'Presupuesto', 'Costo Exceso', 'Presupuesto Total']
-    columnas_entero = ['Artículos', 'Art. con Exceso', 'Art. Sin Stock', 'Ranking', 'Cantidad Vendida', 
-                       'ID Proveedor', 'idproveedor']  # AGREGADO: ID Proveedor
-    columnas_decimal = ['Rentabilidad %', '% Participación Presupuesto', '% Participación Ventas',
-                       'Participación %', 'Participación Acumulada %']  # AGREGADO: más variantes de %
+    columnas_moneda = ['Venta Total', 'Costo Total', 'Utilidad', 'Presupuesto', 'Costo Exceso']
+    columnas_entero = ['Artículos', 'Art. con Exceso', 'Art. Sin Stock', 'Ranking', 'Cantidad Vendida']
+    columnas_decimal = ['Rentabilidad %', '% Participación Presupuesto', '% Participación Ventas']
     
     for col in columnas_moneda:
         if col in df_clean.columns:
@@ -170,7 +168,7 @@ def crear_excel_ranking(df, fecha_desde=None, fecha_hasta=None,
         num_columnas = len(df_export.columns)
         worksheet.set_row(0, 30)  # Altura del header
         
-        print(f"\n   📝 Configurando formato de columnas...")
+        print(f"\n   📐 Configurando formato de columnas...")
         for i in range(num_columnas):
             worksheet.write(0, i, df_export.columns[i], formatos['header'])
         
@@ -183,23 +181,16 @@ def crear_excel_ranking(df, fecha_desde=None, fecha_hasta=None,
         for i, col in enumerate(df_export.columns):
             max_len = max(len(str(col)), 12) + 2
             
-            if col in ['Venta Total', 'Costo Total', 'Utilidad', 'Presupuesto', 'Costo Exceso', 'Presupuesto Total']:
+            if col in ['Venta Total', 'Costo Total', 'Utilidad', 'Presupuesto', 'Costo Exceso']:
                 worksheet.set_column(i, i, max(max_len, 15), formatos['moneda'])
                 columnas_formateadas += 1
                 
             elif col in ['Artículos', 'Art. con Exceso', 'Art. Sin Stock', 'Ranking', 'Cantidad Vendida']:
                 worksheet.set_column(i, i, max_len, formatos['entero'])
                 columnas_formateadas += 1
-            
-            # AGREGADO: Formato para ID Proveedor
-            elif col in ['ID Proveedor', 'idproveedor']:
-                worksheet.set_column(i, i, 12, formatos['entero'])
-                columnas_formateadas += 1
                 
-            # ACTUALIZADO: Todas las variantes de columnas de porcentaje
-            elif col in ['Rentabilidad %', '% Participación Presupuesto', '% Participación Ventas',
-                        'Participación %', 'Participación Acumulada %']:
-                worksheet.set_column(i, i, max(max_len, 15), formatos['porcentaje'])
+            elif col in ['Rentabilidad %', '% Participación Presupuesto', '% Participación Ventas']:
+                worksheet.set_column(i, i, max_len, formatos['porcentaje'])
                 columnas_formateadas += 1
                 
             elif col == 'Proveedor':
@@ -212,7 +203,7 @@ def crear_excel_ranking(df, fecha_desde=None, fecha_hasta=None,
         print(f"   ✅ {columnas_formateadas} columnas formateadas")
         
         # === AGREGAR METADATA ===
-        print(f"\n   📋 Agregando metadata al archivo...")
+        print(f"\n   📝 Agregando metadata al archivo...")
         fila_metadata = 1000
         
         # Fecha de generación
@@ -226,7 +217,7 @@ def crear_excel_ranking(df, fecha_desde=None, fecha_hasta=None,
         # Información de filtros
         if filtros_aplicados:
             fila_metadata += 1
-            worksheet.write(f'A{fila_metadata}', '─'*60)
+            worksheet.write(f'A{fila_metadata}', '═══════════════════════════════════════')
             
             fila_metadata += 1
             worksheet.write(f'A{fila_metadata}', '🎯 FILTROS APLICADOS:')
@@ -254,7 +245,7 @@ def crear_excel_ranking(df, fecha_desde=None, fecha_hasta=None,
             
         else:
             fila_metadata += 1
-            worksheet.write(f'A{fila_metadata}', '─'*60)
+            worksheet.write(f'A{fila_metadata}', '═══════════════════════════════════════')
             
             fila_metadata += 1
             worksheet.write(f'A{fila_metadata}', '📊 RANKING COMPLETO (SIN FILTROS)')
@@ -276,7 +267,7 @@ def crear_excel_ranking(df, fecha_desde=None, fecha_hasta=None,
     print(f"\n   {'─'*76}")
     print(f"   ✅ EXCEL GENERADO EXITOSAMENTE")
     print(f"   {'─'*76}")
-    print(f"   📄 Filas exportadas: {len(df_export):,}")
+    print(f"   📏 Filas exportadas: {len(df_export):,}")
     print(f"   📊 Columnas: {num_columnas}")
     print(f"   💰 Venta total: ${venta_total:,.0f}")
     print(f"   💵 Presupuesto total: ${presupuesto_total:,.0f}")

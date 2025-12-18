@@ -82,7 +82,7 @@ def show_ranking_section(df_prov_con_familias, df_ventas, df_presupuesto, df_fam
         print(f"{'='*80}\n")
         
         df_export_completo = ranking_completo[[
-            'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total',
+            'Ranking', 'ID Proveedor', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total',
             'Utilidad', 'Rentabilidad %', '% Participación Presupuesto', 'Presupuesto',
             'Artículos', 'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
         ]].copy()
@@ -130,7 +130,7 @@ def show_ranking_section(df_prov_con_familias, df_ventas, df_presupuesto, df_fam
         print(f"{'='*80}\n")
         
         df_export_filtrado = ranking[[
-            'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total',
+            'Ranking', 'ID Proveedor', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total',
             'Utilidad', 'Rentabilidad %', '% Participación Presupuesto', 'Presupuesto',
             'Artículos', 'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
         ]].copy()
