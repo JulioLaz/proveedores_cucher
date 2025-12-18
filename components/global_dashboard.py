@@ -1024,7 +1024,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         df_presupuesto_con_ventas['venta_total_articulo'].fillna(0, inplace=True)
         
         print(f"   ✅ Presupuesto enriquecido con ventas: {len(df_presupuesto_con_ventas):,} artículos\n")
-        
+
         # Llamar a la sección de reportes
         show_proveedor_report_section(
             ranking=ranking,
@@ -1046,6 +1046,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             "<h4 style='text-align:center; color:#555;font-weight: bold;'>⚠️ Los filtros principales no aplican en esta sección!</h4>",
             unsafe_allow_html=True)
         
+
         # ═══════════════════════════════════════════════════════════════════════════
         # CARGAR DATOS (con spinner visible)
         # ═══════════════════════════════════════════════════════════════════════════
@@ -1097,7 +1098,55 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             
             print(f"   ✅ Stock cargado: {len(df_stock):,} artículos")
             print(f"{'='*80}\n")
-        
+
+       # Explicación clara del análisis
+        with st.expander("ℹ️ ¿Qué hace este análisis y qué contiene?", expanded=False):
+            st.markdown("""
+            ### 📊 **Este análisis identifica:**
+            
+            **🎯 Artículos rentables con análisis de inventario**
+            - Analiza **todos los artículos del año o por trimestre** con sus ventas y utilidades
+            - Calcula el **margen de utilidad** de cada artículo
+            - Evalúa la **velocidad de venta** y **días de actividad**
+            - Compara **stock actual vs velocidad de venta**
+            
+            ### 📈 **Filtros y criterios aplicados:**
+            
+            - **Margen mínimo**: Solo artículos con margen >= 25%
+            - **Actividad mínima**: Artículos activos >= 270 días en el año
+            - **Datos del año actual**: {año_actual}
+            - **⚠️ No aplican los filtros de familia/subfamilia de la pantalla principal**
+            
+            ### 📋 **El análisis muestra:**
+            
+            1. **💰 Top artículos por utilidad** generada en el año
+            2. **📦 Stock actual** de cada artículo
+            3. **⏱️ Días de cobertura** según velocidad de venta
+            4. **🚦 Clasificación de riesgo de quiebre:**
+            - 🔴 **Crítico**: Stock agotándose en < 15 días
+            - 🟠 **Bajo**: 15-30 días de cobertura
+            - 🟢 **Óptimo**: 30-60 días de cobertura
+            - 🔵 **Alto**: 60-90 días de cobertura
+            - ⚫ **Exceso**: > 90 días de cobertura
+            5. **📊 Métricas trimestrales** (Q1, Q2, Q3, Q4) de ventas
+            6. **🎯 Velocidad de venta diaria** promedio
+            
+            ### 🎯 **Utilidad del análisis:**
+            - Identificar artículos más rentables que necesitan reposición urgente
+            - Priorizar compras según rentabilidad + riesgo de quiebre
+            - Detectar productos rentables con exceso de stock
+            - Optimizar capital enfocándose en lo que más utilidad genera
+            - Análisis histórico completo del año para mejor toma de decisiones
+            
+            ### 📥 **Descarga disponible:**
+            El reporte exportable incluye todos los artículos filtrados con:
+            - Datos completos de ventas por trimestre
+            - Análisis de stock y cobertura
+            - Métricas de rentabilidad y velocidad de venta
+            - Clasificación de riesgo y recomendaciones
+            """.replace("{año_actual}", str(año_actual)))
+
+
         # ═══════════════════════════════════════════════════════════════════════════
         # ANÁLISIS Y VISUALIZACIÓN
         # ═══════════════════════════════════════════════════════════════════════════

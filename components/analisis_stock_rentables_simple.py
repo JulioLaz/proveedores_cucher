@@ -220,7 +220,8 @@ def crear_grafica_utilidad_mejorada(df, top_n=20):
     if len(df_top) == 0:
         return None
     
-    labels = df_top['descripcion'].tolist()
+    # labels = df_top['descripcion'].tolist()
+    labels = [f"{idarticulo} - {desc}" for idarticulo, desc in zip(df_top['idarticulo'], df_top['descripcion'])]
     utilidades = df_top['utilidad'].tolist()
     margenes = df_top['margen_real'].tolist()
     
@@ -228,14 +229,16 @@ def crear_grafica_utilidad_mejorada(df, top_n=20):
     utilidades_m = [u / 1_000_000 for u in utilidades]
     
     # Texto combinado: Utilidad | Margen
-    texto_barras = [f"${u/1_000_000:.2f}M | {m*100:.1f}%" 
-                    for u, m in zip(utilidades, margenes)]
-    
+    # texto_barras = [f"${u/1_000_000:.2f}M | {m*100:.1f}%" 
+    #                 for u, m in zip(utilidades, margenes)]
+    texto_barras = [ f"{m*100:.1f}% | ${u:,.0f}".replace(",", ".") for u, m in zip(utilidades, margenes) ]
+
     # Crear hover text personalizado
     hover_texts = []
     for i in range(len(df_top)):
-        texto = f"<b>{labels[i]}</b><br>"
-        texto += f"Utilidad: ${utilidades[i]/1_000_000:.2f}M<br>"
+        texto = f"<b>id {labels[i]}</b><br>"
+        texto += f"Utilidad: ${utilidades[i]:,}".replace(",", ".")
+        # texto += f"Utilidad: ${utilidades[i]/1_000_000:.2f}M<br>"
         texto += f"Margen: {margenes[i]*100:.1f}%"
         hover_texts.append(texto)
     
@@ -282,23 +285,26 @@ def crear_grafica_margen_mejorada(df, top_n=20):
     if len(df_top) == 0:
         return None
     
-    labels = df_top['descripcion'].tolist()
+    # labels = df_top['descripcion'].tolist()
+    labels = [f"{idarticulo} - {desc}" for idarticulo, desc in zip(df_top['idarticulo'], df_top['descripcion'])]
     margenes = df_top['margen_real'].tolist()
+    df_top['utilidad'] = df_top['utilidad'].astype(int)
     utilidades = df_top['utilidad'].tolist()
     
     # Formatear valores
     margenes_pct = [m * 100 for m in margenes]
     
     # Texto combinado: Margen | Utilidad
-    texto_barras = [f"{m*100:.1f}% | ${u/1_000_000:.2f}M" 
-                    for m, u in zip(margenes, utilidades)]
-    
+    # texto_barras = [f"{m*100:.1f}% | ${u/1_000_000:.2f}M" for m, u in zip(margenes, utilidades)]
+    # Texto combinado: Margen | Utilidad (con miles y punto) 
+    texto_barras = [ f"{m*100:.1f}% | ${u:,.0f}".replace(",", ".") for m, u in zip(margenes, utilidades) ]
     # Crear hover text personalizado
     hover_texts = []
     for i in range(len(df_top)):
-        texto = f"<b>{labels[i]}</b><br>"
+        texto = f"<b>id {labels[i]}</b><br>"
         texto += f"Margen: {margenes[i]*100:.1f}%<br>"
-        texto += f"Utilidad: ${utilidades[i]/1_000_000:.2f}M"
+        # texto += f"Utilidad: ${utilidades[i]/1_000_000:.2f}M"
+        texto += f"Utilidad: ${utilidades[i]:,}".replace(",", ".")
         hover_texts.append(texto)
     
     fig = go.Figure(go.Bar(
@@ -546,8 +552,12 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
 
     with container:
 
-        st.subheader("⚙️ Configuración de Análisis - Selecciona los Parámetros y filtros para el análisis de stock de artículos rentables.")
-        
+        # st.subheader("⚙️ Configuración de Análisis - Selecciona los Parámetros y filtros para el análisis de stock de artículos rentables.")
+        st.markdown(
+        "<h5 style='font-weight:600;'>⚙️ Configuración de Análisis - Selecciona los Parámetros y filtros para el análisis de stock de artículos rentables.</h5>",
+        unsafe_allow_html=True
+    )
+
         # FILA 1: Período, Tipo Margen, Margen Mínimo
         col1, col2, col3 = st.columns([2, 1.5, 1])
         
@@ -642,38 +652,45 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
         
         # FILTRO PROVEEDORES
         with col4:
- 
             proveedores_seleccionados = st.multiselect(
-                "Seleccione proveedores:",
+                "🏢 Filtrar por Proveedor:",
                 options=proveedores_disponibles,
                 default=st.session_state.proveedores_selected,
                 key='multiselect_prov',
-                label_visibility='collapsed'
+                placeholder="Deselecciona los proveedores que NO quieres ver"
             )
+ 
+            # proveedores_seleccionados = st.multiselect(
+            #     "Seleccione proveedores:",
+            #     options=proveedores_disponibles,
+            #     default=st.session_state.proveedores_selected,
+            #     key='multiselect_prov',
+            #     label_visibility='collapsed'
+            # )
             st.session_state.proveedores_selected = proveedores_seleccionados
         
         # FILTRO FAMILIAS
         with col5:
-
-            familias_seleccionadas = st.multiselect(
-                "Seleccione familias:",
-                options=familias_disponibles,
-                default=st.session_state.familias_selected,
-                key='multiselect_fam',
-                label_visibility='collapsed'
-            )
+            familias_seleccionadas = st.multiselect( "🏷️ Filtrar por Familia:", options=familias_disponibles, default=st.session_state.familias_selected, key='multiselect_fam', placeholder="Deselecciona las familias que NO quieres ver" )
+            # familias_seleccionadas = st.multiselect(
+            #     "Seleccione familias:",
+            #     options=familias_disponibles,
+            #     default=st.session_state.familias_selected,
+            #     key='multiselect_fam',
+            #     label_visibility='collapsed'
+            # )
             st.session_state.familias_selected = familias_seleccionadas
         
         # FILTRO SUBFAMILIAS
         with col6:
-            
-            subfamilias_seleccionadas = st.multiselect(
-                "Seleccione subfamilias:",
-                options=subfamilias_disponibles,
-                default=st.session_state.subfamilias_selected,
-                key='multiselect_sub',
-                label_visibility='collapsed'
-            )
+            subfamilias_seleccionadas = st.multiselect( "📂 Filtrar por Subfamilia:", options=subfamilias_disponibles, default=st.session_state.subfamilias_selected, key='multiselect_sub', placeholder="Deselecciona las subfamilias que NO quieres ver" )
+            # subfamilias_seleccionadas = st.multiselect(
+            #     "Seleccione subfamilias:",
+            #     options=subfamilias_disponibles,
+            #     default=st.session_state.subfamilias_selected,
+            #     key='multiselect_sub',
+            #     label_visibility='collapsed'
+            # )
             st.session_state.subfamilias_selected = subfamilias_seleccionadas
     
     # st.markdown("---")

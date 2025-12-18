@@ -39,7 +39,7 @@ def show_cobertura_section(df_para_cobertura, fecha_desde, fecha_hasta,
     st.markdown(
         """
         <div style="font-size:28px; font-weight:bold; color:#1e3c72; margin-bottom:4px; text-align: center;">
-            💰 Utilidad vs Stock
+            💰 Utilidad vs Stock & Días de cobertura
         <div style="font-size:22px; color:#555;">
             Análisis detallado de inventario vs utilidad
         </div>
@@ -47,8 +47,40 @@ def show_cobertura_section(df_para_cobertura, fecha_desde, fecha_hasta,
         """,
         unsafe_allow_html=True
     )
+    
+    # Explicación clara del análisis
+    with st.expander("ℹ️ ¿Qué hace este análisis y qué contiene la descarga?", expanded=False):
+        st.markdown("""
+        ### 📊 **Este análisis identifica:**
+        
+        **🎯 Artículos más rentables con problemas de stock**
+        - Calcula la **utilidad total** de cada artículo en el período seleccionado
+        - Filtra solo artículos con utilidad **superior al monto mínimo** configurado
+        - Analiza cuántos **días de cobertura** tiene cada artículo según su stock actual
+        
+        ### 📥 **La descarga Excel incluye:**
+        
+        1. **📋 Listado completo de artículos** ordenados por utilidad (mayor a menor)
+        2. **📦 Stock actual** de cada artículo
+        3. **⏱️ Días de cobertura** calculados como: `Stock actual / Velocidad de venta diaria`
+        4. **🚦 Clasificación de stock:**
+           - 🔴 **Crítico** (< 15 días): ¡Riesgo de quiebre!
+           - 🟠 **Bajo** (15-30 días): Requiere atención
+           - 🟢 **Óptimo** (30-60 días): Nivel ideal
+           - 🔵 **Alto** (60-90 días): Sobrestock moderado
+           - ⚫ **Exceso** (> 90 días): Sobrestock crítico
+        5. **💰 Utilidad generada** por cada artículo en el período
+        6. **📊 Velocidad de venta** diaria promedio
+        
+        ### 🎯 **Utilidad del reporte:**
+        - Identifica productos rentables que necesitan reposición urgente
+        - Detecta artículos con exceso de inventario que generan utilidad baja
+        - Prioriza compras según utilidad vs riesgo de quiebre
+        - Optimiza capital de trabajo enfocándose en productos rentables
+        """)
+    
 
-    col_btn_UTILIDAD, col_btn_REPORTE = st.columns([1, 3])
+    col_btn_UTILIDAD, col_btn_REPORTE, desde_hasta = st.columns([1, 3,1])
 
     with col_btn_UTILIDAD:
         # Selector de utilidad mínima
@@ -105,6 +137,25 @@ def show_cobertura_section(df_para_cobertura, fecha_desde, fecha_hasta,
                     )
                 else:
                     st.error("❌ Error generando reporte de cobertura")
+
+    with desde_hasta:
+        st.markdown(
+            f"""
+            <div style="
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                padding: 10px;
+                background-color: #f9f9f9;
+                font-size: 14px;
+            ">
+                <b>📅 Período:</b> 
+                <div>Desde: {fecha_desde.strftime('%d/%B/%Y')}</div>
+                <div>Hasta: {fecha_hasta.strftime('%d/%B/%Y')}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
 
     if 'df_cobertura_viz' not in st.session_state or st.session_state['df_cobertura_viz'] is None:
         # Crear un contenedor con estilo similar a st.info

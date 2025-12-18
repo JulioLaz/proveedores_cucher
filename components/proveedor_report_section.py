@@ -89,7 +89,53 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
         """,
         unsafe_allow_html=True
     )
-    
+
+    # Explicación clara del análisis
+    with st.expander("ℹ️ ¿Qué hace este análisis y qué contiene la descarga?", expanded=False):
+            st.markdown("""
+            ### 📊 **Este análisis permite:**
+            
+            **🎯 Generar reportes individuales detallados por proveedor**
+            - Selecciona un proveedor del ranking para análisis profundo
+            - Compara **ventas reales vs presupuesto asignado** por artículo
+            - Analiza **cobertura de stock** actual de cada producto
+            - Identifica artículos con quiebre o exceso de inventario
+            
+            ### 📈 **Datos incluidos en el análisis:**
+            
+            - **Ventas por artículo**: Del período seleccionado en filtros principales
+            - **Presupuesto asignado**: Proyección de compra por artículo
+            - **Stock actual**: Inventario disponible en tiempo real
+            - **Días de cobertura**: Stock actual / velocidad de venta
+            - **Familia y subfamilia**: Clasificación de cada producto
+            
+            ### 📥 **El reporte Excel descargable incluye:**
+            
+            1. **📋 Listado completo de artículos** del proveedor seleccionado
+            2. **💰 Venta real vs presupuesto** con desviaciones
+            3. **📦 Stock actual y cobertura** en días por producto
+            4. **🚦 Clasificación de stock:**
+            - 🔴 **Sin stock**: Requiere compra urgente
+            - 🟠 **Stock bajo**: Cobertura < 30 días
+            - 🟢 **Stock óptimo**: Cobertura 30-60 días
+            - 🟡 **Exceso moderado**: Cobertura > 60 días
+            - ⚫ **Exceso crítico**: Inversión inmovilizada
+            5. **📊 Análisis de rotación** por producto
+            6. **💵 Costo de exceso** de inventario identificado
+            
+            ### 🎯 **Utilidad del reporte:**
+            - **Negociación con proveedores**: Datos concretos de ventas y stock
+            - **Optimización de compras**: Priorizar qué y cuánto comprar
+            - **Gestión de inventario**: Detectar productos estancados
+            - **Control presupuestario**: Comparar ejecutado vs proyectado
+            - **Decisiones tácticas**: Foco en artículos rentables del proveedor
+            
+            ### ⚙️ **Filtros aplicados:**
+            - ✅ Respeta los filtros de familia/subfamilia seleccionados arriba
+            - ✅ Usa el período de fechas configurado
+            - ✅ Incluye solo artículos del proveedor seleccionado
+            """)
+
     # Obtener lista de proveedores con sus datos
     proveedores_list = ranking[['Proveedor']].copy()
     proveedores_list['id_temp'] = range(len(proveedores_list))
