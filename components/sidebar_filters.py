@@ -46,6 +46,8 @@ def show_sidebar_filters(df_proveedores, df_proveedor_ids, query_bigquery_functi
             st.session_state['authenticator'].logout(button_name=saliendo, location='sidebar')
             # st.session_state['authenticator'].logout(button_name='Salir', location='sidebar')
 
+
+
     # Lista de proveedores
     proveedores = sorted(df_proveedores['proveedor'].dropna().unique())
     proveedor_actual = st.session_state.get("selected_proveedor")

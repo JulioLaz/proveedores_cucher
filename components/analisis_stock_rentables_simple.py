@@ -780,7 +780,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
                 help="Margen mín promedio de los artículos considerados en el análisis"
             )
 
-        st.markdown("---")
+        # st.markdown("---")
         
         # FILA 2: Estimación de pérdidas
         col_selector, col_spacer, col5, col6 = st.columns([1.5, 0.5, 2, 2])

@@ -31,7 +31,6 @@ def show_cobertura_section(df_para_cobertura, fecha_desde, fecha_hasta,
         familias_seleccionadas (list): Familias seleccionadas
         subfamilias_seleccionadas (list): Subfamilias seleccionadas
     """
-    
     print(f"\n{'='*80}")
     print("💰 SECCIÓN: ANÁLISIS DE COBERTURA VS UTILIDAD")
     print(f"{'='*80}\n")
@@ -79,82 +78,86 @@ def show_cobertura_section(df_para_cobertura, fecha_desde, fecha_hasta,
         - Optimiza capital de trabajo enfocándose en productos rentables
         """)
     
+    container_01 = st.container(border=True)
 
-    col_btn_UTILIDAD, col_btn_REPORTE, desde_hasta = st.columns([1, 3,1])
+    with container_01:
+        col_btn_UTILIDAD, col_btn_REPORTE, desde_hasta = st.columns([1.5, 2.5,1])
 
-    with col_btn_UTILIDAD:
-        # Selector de utilidad mínima
-        utilidad_minima = st.number_input(
-            "💵 Utilidad mínima a considerar ($):",
-            min_value=0,
-            max_value=10_000_000,
-            value=10_000,
-            step=50_000,
-            format="%d",
-            help=f"Solo se incluirán artículos con utilidad superior a este monto. "
-                f"Ref: $10.000",
-            key='utilidad_minima_cobertura'
-        )
+        with col_btn_UTILIDAD:
+            # Selector de utilidad mínima
+            utilidad_minima = st.number_input(
+                "💵 Utilidad mínima a considerar ($):",
+                min_value=0,
+                max_value=10_000_000,
+                value=10_000,
+                step=50_000,
+                format="%d",
+                help=f"Solo se incluirán artículos con utilidad superior a este monto. "
+                    f"Ref: $10.000",
+                key='utilidad_minima_cobertura'
+            )
 
-    with col_btn_REPORTE:
-        if st.button("🔄 Generar Análisis y Reporte para descarga: Top Artículos x Utilidad vs días de cobertura", 
-                     width='content', type="primary"):
-            with st.spinner("📊 Generando reporte..."):
-                print(f"\n{'='*80}")
-                print("📦 GENERANDO REPORTE DE COBERTURA")
-                print(f"{'='*80}")
-                inicio_cobertura = time.time()
+        with col_btn_REPORTE:
+            if st.button(f"🔄 Generar Análisis y Reporte para descarga:\n\nTop Artículos x Utilidad vs días de cobertura", 
+                        width="stretch", type="primary"):
+                with st.spinner("📊 Generando reporte..."):
+                    print(f"\n{'='*80}")
+                    print("📦 GENERANDO REPORTE DE COBERTURA")
+                    print(f"{'='*80}")
+                    inicio_cobertura = time.time()
 
-                # Generar reporte (devuelve Excel Y DataFrame)
-                excel_cobertura, df_cobertura_completo = generar_reporte_cobertura(
-                    df_para_cobertura,
-                    fecha_desde,
-                    fecha_hasta,
-                    credentials_path,
-                    project_id,
-                    utilidad_minima
-                )
-
-                tiempo_cobertura = time.time() - inicio_cobertura
-                print(f"   ⏱️  Tiempo generación: {tiempo_cobertura:.2f}s")
-                print(f"{'='*80}\n")
-
-                if excel_cobertura and df_cobertura_completo is not None:
-                    # Guardar en session_state para visualización
-                    st.session_state['df_cobertura_viz'] = df_cobertura_completo
-                    st.session_state['excel_generado'] = True
-
-                    fecha_inicio_str = fecha_desde.strftime('%d%b%Y')
-                    fecha_fin_str = fecha_hasta.strftime('%d%b%Y')
-                    nombre_archivo_cobertura = f"utilidad_stock_cobertura_{fecha_inicio_str}_{fecha_fin_str}.xlsx"
-
-                    st.download_button(
-                        label="📥 Descargar Análisis de Cobertura",
-                        data=excel_cobertura,
-                        file_name=nombre_archivo_cobertura,
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        width='content'
+                    # Generar reporte (devuelve Excel Y DataFrame)
+                    excel_cobertura, df_cobertura_completo = generar_reporte_cobertura(
+                        df_para_cobertura,
+                        fecha_desde,
+                        fecha_hasta,
+                        credentials_path,
+                        project_id,
+                        utilidad_minima
                     )
-                else:
-                    st.error("❌ Error generando reporte de cobertura")
 
-    with desde_hasta:
-        st.markdown(
-            f"""
-            <div style="
-                border: 1px solid #ccc;
-                border-radius: 8px;
-                padding: 10px;
-                background-color: #f9f9f9;
-                font-size: 14px;
-            ">
-                <b>📅 Período:</b> 
-                <div>Desde: {fecha_desde.strftime('%d/%B/%Y')}</div>
-                <div>Hasta: {fecha_hasta.strftime('%d/%B/%Y')}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+                    tiempo_cobertura = time.time() - inicio_cobertura
+                    print(f"   ⏱️  Tiempo generación: {tiempo_cobertura:.2f}s")
+                    print(f"{'='*80}\n")
+
+                    if excel_cobertura and df_cobertura_completo is not None:
+                        # Guardar en session_state para visualización
+                        st.session_state['df_cobertura_viz'] = df_cobertura_completo
+                        st.session_state['excel_generado'] = True
+
+                        fecha_inicio_str = fecha_desde.strftime('%d%b%Y')
+                        fecha_fin_str = fecha_hasta.strftime('%d%b%Y')
+                        nombre_archivo_cobertura = f"utilidad_stock_cobertura_{fecha_inicio_str}_{fecha_fin_str}.xlsx"
+
+                        st.download_button(
+                            label="📥 Descargar Análisis de Cobertura",
+                            data=excel_cobertura,
+                            file_name=nombre_archivo_cobertura,
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            width='stretch',
+                        )
+                    else:
+                        st.error("❌ Error generando reporte de cobertura")
+
+        with desde_hasta:
+            st.markdown(
+                f"""
+                <div style="
+                    border: 1px solid #ccc;
+                    border-radius: 8px;
+                    padding: 0px;
+                    background-color: #f9f9f9;
+                    font-size: 14px;
+                    margin-bottom: 3px;
+                    text-align: center;
+                ">
+                    <b>📅 Período:</b> 
+                    <div>Desde: {fecha_desde.strftime('%d/%B/%Y')}</div>
+                    <div>Hasta: {fecha_hasta.strftime('%d/%B/%Y')}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
 
     if 'df_cobertura_viz' not in st.session_state or st.session_state['df_cobertura_viz'] is None:
@@ -208,49 +211,52 @@ def show_cobertura_section(df_para_cobertura, fecha_desde, fecha_hasta,
         print(f"   Memoria: {df_viz.memory_usage(deep=True).sum() / 1024**2:.2f} MB")
         print(f"{'='*80}\n")
         
-        # === VISUALIZACIÓN DE TOP ARTÍCULOS POR UTILIDAD ===
-        st.markdown("### 📊 Análisis Detallado por Artículo")
-        
-        # Crear columna con formato: "1234 - Descripción"
-        df_viz['articulo_label'] = (
-            df_viz['idarticulo'].astype(str) + ' - ' + 
-            df_viz['descripcion'].str.slice(0, 50)
-        )
-        
-        # Ordenar por utilidad
-        df_viz = df_viz.sort_values('utilidad_total', ascending=False)
-        
-        # Slider para cantidad de artículos
-        col_slider, col_info, col_info_01 = st.columns([3, 1, 1])
-        
-        with col_slider:
-            top_articulos = st.slider(
-                "📦 Cantidad de artículos a mostrar:",
-                min_value=5,
-                max_value=min(100, len(df_viz)),
-                value=min(20, len(df_viz)),
-                step=5,
-                key='slider_articulos_cobertura'
+        container_02 = st.container(border=True)
+        with container_02:
+            # === VISUALIZACIÓN DE TOP ARTÍCULOS POR UTILIDAD ===
+            st.markdown("### 📊 Análisis Detallado por Artículo")
+            
+            # Crear columna con formato: "1234 - Descripción"
+            df_viz['articulo_label'] = (
+                df_viz['idarticulo'].astype(str) + ' - ' + 
+                df_viz['descripcion'].str.slice(0, 50)
             )
-        
-        with col_info:
-            st.metric(
-                "Total Artículos",
-                f"{len(df_viz):,}".replace(",", "."),
-                delta=f"{df_viz.proveedor.nunique()} proveedores"
-            )
-        
-        with col_info_01:
-            utilidad_minima = st.session_state.get('utilidad_minima_cobertura', 10000)
-            st.metric(
-                "Sólo Utilidad Mayor a:",
-                f"${utilidad_minima:,.0f}".replace(",", "."))
-        
-        # Filtrar top artículos
-        df_top = df_viz.head(top_articulos).copy()
-        
-        print(f"\n🔍 DEBUG - Columnas en df_top: {df_top.columns.tolist()}")
-        print(f"   ¿Tiene stk_total?: {'stk_total' in df_top.columns}")
+            
+            # Ordenar por utilidad
+            df_viz = df_viz.sort_values('utilidad_total', ascending=False)
+            
+            # Slider para cantidad de artículos
+            col_slider, col_info, col_info_01 = st.columns([3, 1, 1])
+            
+            with col_slider:
+                top_articulos = st.slider(
+                    "📦 Cantidad de artículos a mostrar:",
+                    min_value=5,
+                    max_value=min(100, len(df_viz)),
+                    value=min(20, len(df_viz)),
+                    step=5,
+                    key='slider_articulos_cobertura'
+                )
+
+            with col_info:
+                st.metric(
+                    "Total Artículos",
+                    f"{len(df_viz):,}".replace(",", "."),
+                    delta=f"{df_viz.proveedor.nunique()} proveedores"
+                )
+            
+            with col_info_01:
+                utilidad_minima = st.session_state.get('utilidad_minima_cobertura', 10000)
+                st.metric(
+                    "Sólo Utilidad Mayor a:",
+                    f"${utilidad_minima:,.0f}".replace(",", "."),
+                    delta=f"${int(df_viz.utilidad_total.max()):,}".replace(",", ".") +"Util. máx.")
+            
+            # Filtrar top artículos
+            df_top = df_viz.head(top_articulos).copy()
+            
+            print(f"\n🔍 DEBUG - Columnas en df_top: {df_top.columns.tolist()}")
+            print(f"   ¿Tiene stk_total?: {'stk_total' in df_top.columns}")
         
         # === GRÁFICOS ===
         col_graf1, col_graf2 = st.columns(2)

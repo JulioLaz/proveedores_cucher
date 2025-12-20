@@ -54,6 +54,52 @@
 #         box-shadow: 0 2px 3px rgba(0, 0, 0, 0.04);
 #     }
 
+#     /* ═══════════════════════════════════════════════════════════ */
+#     /* ESTILOS PARA EXPANDERS */
+#     /* ═══════════════════════════════════════════════════════════ */
+    
+#     /* Background del expander */
+#     div[data-testid="stExpander"] {
+#         background: linear-gradient(135deg, #f5f7fa 0%, #e8f4fd 100%);
+#         border-radius: 8px;
+#         border: 2px solid #1e3c72;
+#         padding: 5px;
+#         margin-bottom: 15px;
+#         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+#     }
+    
+#     /* Header del expander (clickeable) */
+#     div[data-testid="stExpander"] summary {
+#         background-color: rgba(30, 60, 114, 0.1);
+#         border-radius: 5px;
+#         padding: 10px 15px;
+#         font-weight: 600;
+#         color: #1e3c72;
+#         font-size: 1rem;
+#     }
+    
+#     /* Hover effect en el header */
+#     div[data-testid="stExpander"] summary:hover {
+#         background-color: rgba(30, 60, 114, 0.18);
+#         cursor: pointer;
+#         transform: translateX(3px);
+#         transition: all 0.2s ease;
+#     }
+    
+#     /* Contenido del expander cuando está expandido */
+#     div[data-testid="stExpander"] details[open] {
+#         background-color: #ffffff;
+#         border-radius: 5px;
+#         padding: 15px;
+#         margin-top: 8px;
+#         box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+#     }
+    
+#     /* Efecto de transición suave al abrir/cerrar */
+#     div[data-testid="stExpander"] details {
+#         transition: all 0.3s ease-in-out;
+#     }
+
 #     .sidebar .sidebar-content {
 #         background: #f1f3f4;
 #         background: black;
@@ -196,6 +242,18 @@
 #             padding-top: 0 !important;
 #         }            
 
+#                         div[data-testid="stMetric"] {
+#                             border: 2px solid #2196F3;
+#                             border-radius: 10px;
+#                             padding: 5px;
+#                         }
+#                         div[data-testid="stMetricValue"] {
+#                             text-align: center;
+#                             justify-content: center;
+#                             align-items: center;
+#                             font-size: 1.5rem;
+#                         }
+                               
 # </style>
 # """
 
@@ -268,6 +326,7 @@
 #                 <img src="https://raw.githubusercontent.com/JulioLaz/proveedores_cucher/main/img/cucher_mercados.webp" alt="Cucher Mercados Logo">
 #             </div>
 #         """
+
 # === CSS PERSONALIZADO ===
 def custom_css():
     return """
@@ -322,6 +381,51 @@ def custom_css():
         font-size: 0.93rem;
         line-height: 1.4;
         box-shadow: 0 2px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    /* ═══════════════════════════════════════════════════════════ */
+    /* ESTILOS PARA MÉTRICAS (st.metric) */
+    /* ═══════════════════════════════════════════════════════════ */
+    
+    /* Contenedor de la métrica */
+    div[data-testid="stMetric"] {
+        background: linear-gradient(135deg, #ffffff 0%, #f3e3a3 100%);
+        border: 2px solid #f3c221;
+        border-radius: 10px;
+        padding: 5px;
+        box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
+        transition: all 0.3s ease;
+    }
+    
+    /* Hover effect en métricas */
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(33, 150, 243, 0.25);
+        border-color: #1976D2;
+    }
+    
+    /* Valor de la métrica */
+    div[data-testid="stMetricValue"] {
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #1e3c72;
+    }
+    
+    /* Label de la métrica */
+    div[data-testid="stMetricLabel"] {
+        text-align: center;
+        font-weight: 600;
+        color: #555;
+        font-size: 0.95rem;
+    }
+    
+    /* Delta (variación) de la métrica */
+    div[data-testid="stMetricDelta"] {
+        text-align: center;
+        justify-content: center;
     }
 
     /* ═══════════════════════════════════════════════════════════ */

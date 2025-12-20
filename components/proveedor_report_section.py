@@ -16,6 +16,7 @@ import streamlit as st
 import plotly.graph_objects as go
 from utils.proveedor_exporter import generar_reporte_proveedor, obtener_ids_originales
 from utils.telegram_notifier import send_telegram_alert  # ← AGREGAR
+from components.proveedor_panel import mostrar_panel_proveedor
 
 def format_millones(valor):
     """Formatea valores grandes en millones o miles"""
@@ -149,227 +150,291 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
         if id_prov:
             proveedores_dict[nombre_prov] = int(id_prov)
     
-    col_selector, col_btns = st.columns([1, 2])
-    
-    with col_selector:
-        proveedor_seleccionado = st.selectbox(
-            "🏢 Seleccionar Proveedor:",
-            options=list(proveedores_dict.keys()),
-            help="Selecciona el proveedor para generar su reporte detallado"
-        )
+    container_03 = st.container(border=True)
+    with container_03:
+
+        col_selector, col_btns, col_desde_hasta = st.columns([1, 3,1])
         
+        with col_selector:
+            proveedor_seleccionado = st.selectbox(
+                "🏢 Seleccionar Proveedor:",
+                options=list(proveedores_dict.keys()),
+                help="Selecciona el proveedor para generar su reporte detallado"
+            )
+            
+            if proveedor_seleccionado:
+                id_proveedor = proveedores_dict[proveedor_seleccionado]
+                
+                # Obtener info del proveedor del ranking
+                info_prov = ranking[ranking['Proveedor'] == proveedor_seleccionado].iloc[0]
+                
+                # st.markdown(f"""
+                # **Información del Proveedor:**
+                # - 📊 Ranking: #{info_prov['Ranking']}
+                # - 💰 Venta Total: ${format_millones(info_prov['Venta Total'])}
+                # - 💵 Presupuesto: ${format_millones(info_prov['Presupuesto'])}
+                # - 📦 Artículos: {info_prov['Artículos']}
+                # """)
+        
+        with col_btns:
+            # Verificar si hay filtros aplicados
+            filtros_aplicados = (
+                len(familias_seleccionadas) < len(familias_disponibles) or 
+                len(subfamilias_seleccionadas) < len(subfamilias_disponibles)
+            )
+            if not filtros_aplicados:
+                # BOTÓN 1: GENERAR 📊 Análisis Completo
+                st.markdown("""
+                    <div style="display: flex; align-items: center;">
+                        <h4 style="margin: 0;">📊 Análisis Completo</h4>
+                        <span style="color: gray; margin-left: 10px; font-size: 0.9em;">
+                            Sin filtros de familia/subfamilia
+                        </span>
+                    </div>
+                """, unsafe_allow_html=True)
+
+                if st.button("🔄 Generar Análisis Completo", key="btn_generar_sin_filtro", 
+                            width='stretch', type="secondary"):
+                    with st.spinner(f"📊 Generando análisis de {proveedor_seleccionado}..."):
+                        print(f"\n{'='*80}")
+                        print(f"📦 GENERANDO ANÁLISIS SIN FILTROS: {proveedor_seleccionado}")
+                        print(f"{'='*80}")
+                        
+                        # Obtener IDs originales (maneja proveedores unificados)
+                        ids_a_buscar = obtener_ids_originales(id_proveedor)
+
+                        print(f"   🔍 IDs a buscar: {ids_a_buscar}")
+                        if len(ids_a_buscar) > 1:
+                            print(f"   ⚠️ Proveedor UNIFICADO - Buscando {len(ids_a_buscar)} IDs")
+
+                        # Filtrar datos del proveedor
+                        df_prov = df_presupuesto_con_ventas[
+                            df_presupuesto_con_ventas['idproveedor'].isin(ids_a_buscar)
+                        ].copy()
+
+                        # Filtrar solo artículos con PRESUPUESTO > 0
+                        df_prov = df_prov[df_prov['PRESUPUESTO'] > 0].copy()
+                        
+                        print(f"   ✅ Artículos con presupuesto > 0: {len(df_prov):,}")
+                        
+                        if len(df_prov) > 0:
+                            # Guardar en session_state
+                            st.session_state['df_prov_viz'] = df_prov
+                            st.session_state['prov_con_filtros'] = False
+                            st.session_state['prov_nombre'] = proveedor_seleccionado
+                            st.session_state['prov_id'] = id_proveedor
+                            # ✅ NOTIFICACIÓN TELEGRAM
+                            usuario = st.session_state.get('username', 'Usuario desconocido')
+                            # mensaje = f"""<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>
+                            # 🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}
+                            # """
+                            mensaje = (
+                                f"<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>\n"
+                                f"🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}"
+                            )
+                            send_telegram_alert(mensaje, tipo="SUCCESS")
+                            
+                            st.toast("🎉 ¡Análisis generado exitosamente!", icon="✅")
+                            # st.balloons()
+                            # st.success("✅ Análisis generado exitosamente!")
+                        else:
+                            st.warning(f"⚠️ No hay artículos con presupuesto > 0 para {proveedor_seleccionado}")
+ 
+
+                # if proveedor_seleccionado:
+                #     id_proveedor = proveedores_dict[proveedor_seleccionado]
+                #     info_prov = ranking[ranking['Proveedor'] == proveedor_seleccionado].iloc[0]
+                    
+                #     # Llamar al módulo del panel
+                #     mostrar_panel_proveedor(
+                #         proveedor_seleccionado=proveedor_seleccionado,
+                #         id_proveedor=id_proveedor,
+                #         info_prov=info_prov,
+                #         df_presupuesto_con_ventas=df_presupuesto_con_ventas
+                #     )
+
+###############################################################################################
+################################### PANEL CON FILTROS APLICADOS ###################################
+            
+                # if proveedor_seleccionado:
+                #     id_proveedor = proveedores_dict[proveedor_seleccionado]
+                    
+                #     # Obtener info del proveedor del ranking
+                #     info_prov = ranking[ranking['Proveedor'] == proveedor_seleccionado].iloc[0]
+                    
+                #     st.markdown(f"""
+                #     **Información del Proveedor:**
+                #     - 📊 Ranking: #{info_prov['Ranking']}
+                #     - 💰 Venta Total: ${format_millones(info_prov['Venta Total'])}
+                #     - 💵 Presupuesto: ${format_millones(info_prov['Presupuesto'])}
+                #     - 📦 Artículos: {info_prov['Artículos']}
+                #     """)
+            else:
+
+    # BOTÓN 1: GENERAR 📊 Análisis Completo
+                st.markdown("""
+                    <div style="display: flex; align-items: center;">
+                        <h4 style="margin: 0;">📊 Análisis Completo</h4>
+                        <span style="color: gray; margin-left: 10px; font-size: 1rem;">
+                            Sin filtros de familia/subfamilia
+                        </span>
+                    </div>
+                """, unsafe_allow_html=True)
+
+                if st.button("🔄 Generar Análisis Completo", key="btn_generar_sin_filtro", 
+                            width='stretch', type="secondary"):
+                    with st.spinner(f"📊 Generando análisis de {proveedor_seleccionado}..."):
+                        print(f"\n{'='*80}")
+                        print(f"📦 GENERANDO ANÁLISIS SIN FILTROS: {proveedor_seleccionado}")
+                        print(f"{'='*80}")
+                        
+                        # Obtener IDs originales (maneja proveedores unificados)
+                        ids_a_buscar = obtener_ids_originales(id_proveedor)
+
+                        print(f"   🔍 IDs a buscar: {ids_a_buscar}")
+
+                        if len(ids_a_buscar) > 1:
+                            print(f"   ⚠️ Proveedor UNIFICADO - Buscando {len(ids_a_buscar)} IDs")
+
+                        # Filtrar datos del proveedor
+                        df_prov = df_presupuesto_con_ventas[
+                            df_presupuesto_con_ventas['idproveedor'].isin(ids_a_buscar)
+                        ].copy()
+
+                        # Filtrar solo artículos con PRESUPUESTO > 0
+                        df_prov = df_prov[df_prov['PRESUPUESTO'] > 0].copy()
+                        
+                        print(f"   ✅ Artículos con presupuesto > 0: {len(df_prov):,}")
+                        
+                        if len(df_prov) > 0:
+                            # Guardar en session_state
+                            st.session_state['df_prov_viz'] = df_prov
+                            st.session_state['prov_con_filtros'] = False
+                            st.session_state['prov_nombre'] = proveedor_seleccionado
+                            st.session_state['prov_id'] = id_proveedor
+                            # ✅ NOTIFICACIÓN TELEGRAM
+                            usuario = st.session_state.get('username', 'Usuario desconocido')
+                            # mensaje = f"""<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>
+                            #              🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}
+                            #             """
+                            mensaje = (
+                                f"<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>\n"
+                                f"🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}"
+                            )
+
+                            send_telegram_alert(mensaje, tipo="SUCCESS")
+                            
+                            st.toast("🎉 ¡Análisis generado exitosamente!", icon="✅")
+                            # st.success("✅ Análisis generado exitosamente!")
+                        else:
+                            st.warning(f"⚠️ No hay artículos con presupuesto > 0 para {proveedor_seleccionado}")            
+
+                # BOTÓN 2: GENERAR ANÁLISIS CON FILTROS
+                st.markdown("""
+                    <div style="display: flex; align-items: center;">
+                        <h4 style="margin: 0;">🎯 Análisis Filtrado</h4>
+                        <span style="color: gray; margin-left: 10px; font-size: 1rem;">
+                            Con filtros de familia/subfamilia aplicados
+                        </span>
+                    </div>
+                """, unsafe_allow_html=True)
+
+                
+                if st.button("🔄 Generar Análisis Filtrado", key="btn_generar_con_filtro", 
+                            width='stretch', type="primary"):
+                    with st.spinner(f"📊 Generando análisis filtrado de {proveedor_seleccionado}..."):
+                        print(f"\n{'='*80}")
+                        print(f"🎯 GENERANDO ANÁLISIS CON FILTROS: {proveedor_seleccionado}")
+                        print(f"{'='*80}")
+                        
+                        # Filtrar presupuesto por familias/subfamilias seleccionadas
+                        df_presupuesto_filtrado = df_presupuesto_con_ventas.copy()
+                        
+                        # Aplicar filtros de familia y subfamilia
+                        if 'familia' in df_presupuesto_filtrado.columns:
+                            df_presupuesto_filtrado = df_presupuesto_filtrado[
+                                df_presupuesto_filtrado['familia'].isin(familias_seleccionadas)
+                            ]
+                        
+                        if 'subfamilia' in df_presupuesto_filtrado.columns:
+                            df_presupuesto_filtrado = df_presupuesto_filtrado[
+                                df_presupuesto_filtrado['subfamilia'].isin(subfamilias_seleccionadas)
+                            ]
+                        
+                        # Obtener IDs originales (maneja proveedores unificados)
+                        ids_a_buscar = obtener_ids_originales(id_proveedor)
+
+                        print(f"   🔍 IDs a buscar: {ids_a_buscar}")
+
+                        # Filtrar por proveedor
+                        df_prov = df_presupuesto_filtrado[
+                            df_presupuesto_filtrado['idproveedor'].isin(ids_a_buscar)
+                        ].copy()
+
+                        # Filtrar solo artículos con PRESUPUESTO > 0
+                        df_prov = df_prov[df_prov['PRESUPUESTO'] > 0].copy()
+                        
+                        print(f"   📦 Artículos después de filtros: {len(df_prov):,}")
+                        
+                        if len(df_prov) > 0:
+                            # Guardar en session_state
+                            st.session_state['df_prov_viz'] = df_prov
+                            st.session_state['prov_con_filtros'] = True
+                            st.session_state['prov_nombre'] = proveedor_seleccionado
+                            st.session_state['prov_id'] = id_proveedor
+
+                            # ✅ NOTIFICACIÓN TELEGRAM
+                            usuario = st.session_state.get('username', 'Usuario desconocido')
+                            mensaje = (
+                                f"<b>👤 USUARIO:</b> {usuario} - <b>🎯 ANÁLISIS GENERADO - FILTRADO</b>\n"
+                                f"🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}\n"
+                                f"🏷️ <b>Familias:</b> {len(familias_seleccionadas)} - 📂 <b>Subfamilias:</b> {len(subfamilias_seleccionadas)}"
+                            )
+
+                            send_telegram_alert(mensaje, tipo="SUCCESS")
+                            
+                            st.toast("🎉 ¡Análisis filtrado generado!", icon="✅")
+                            st.success(f"""
+                            ✅ Análisis generado exitosamente!
+                            
+                            **Filtros aplicados:**
+                            - 🏷️ {len(familias_seleccionadas)} familias
+                            - 📂 {len(subfamilias_seleccionadas)} subfamilias
+                            """)
+                        else:
+                            st.warning("⚠️ No hay artículos con presupuesto > 0 después de aplicar filtros")
+
         if proveedor_seleccionado:
-            id_proveedor = proveedores_dict[proveedor_seleccionado]
-            
-            # Obtener info del proveedor del ranking
-            info_prov = ranking[ranking['Proveedor'] == proveedor_seleccionado].iloc[0]
-            
-            st.markdown(f"""
-            **Información del Proveedor:**
-            - 📊 Ranking: #{info_prov['Ranking']}
-            - 💰 Venta Total: ${format_millones(info_prov['Venta Total'])}
-            - 💵 Presupuesto: ${format_millones(info_prov['Presupuesto'])}
-            - 📦 Artículos: {info_prov['Artículos']}
-            """)
-    
-    # with col_btns:
-    with col_btns:
-        # Verificar si hay filtros aplicados
-        filtros_aplicados = (
-            len(familias_seleccionadas) < len(familias_disponibles) or 
-            len(subfamilias_seleccionadas) < len(subfamilias_disponibles)
-        )
-        if not filtros_aplicados:
-            # BOTÓN 1: GENERAR 📊 Análisis Completo
-            st.markdown("""
-                <div style="display: flex; align-items: center;">
-                    <h4 style="margin: 0;">📊 Análisis Completo</h4>
-                    <span style="color: gray; margin-left: 10px; font-size: 0.9em;">
-                        Sin filtros de familia/subfamilia
-                    </span>
+                    id_proveedor = proveedores_dict[proveedor_seleccionado]
+                    info_prov = ranking[ranking['Proveedor'] == proveedor_seleccionado].iloc[0]
+                    
+                    # Llamar al módulo del panel
+                    mostrar_panel_proveedor(
+                        proveedor_seleccionado=proveedor_seleccionado,
+                        id_proveedor=id_proveedor,
+                        info_prov=info_prov,
+                        df_presupuesto_con_ventas=df_presupuesto_con_ventas
+                    )
+        with col_desde_hasta:
+            # Calcular la cantidad de días en el período 
+            dias = (fecha_hasta - fecha_desde).days
+            st.markdown(
+                f"""
+                <div style="
+                    border: 1px solid #ccc;
+                    border-radius: 8px;
+                    padding: 8px;
+                    background-color: #f9f9f9;
+                    font-size: 14px;
+                    margin-bottom: 5px;
+                ">
+                    <b>📅 Período: {dias} días</b> 
+                    <div>Desde: {fecha_desde.strftime('%d/%B/%Y')}</div>
+                    <div>Hasta: {fecha_hasta.strftime('%d/%B/%Y')}</div>
                 </div>
-            """, unsafe_allow_html=True)
-
-            if st.button("🔄 Generar Análisis Completo", key="btn_generar_sin_filtro", 
-                        width='content', type="secondary"):
-                with st.spinner(f"📊 Generando análisis de {proveedor_seleccionado}..."):
-                    print(f"\n{'='*80}")
-                    print(f"📦 GENERANDO ANÁLISIS SIN FILTROS: {proveedor_seleccionado}")
-                    print(f"{'='*80}")
-                    
-                    # Obtener IDs originales (maneja proveedores unificados)
-                    ids_a_buscar = obtener_ids_originales(id_proveedor)
-
-                    print(f"   🔍 IDs a buscar: {ids_a_buscar}")
-                    if len(ids_a_buscar) > 1:
-                        print(f"   ⚠️ Proveedor UNIFICADO - Buscando {len(ids_a_buscar)} IDs")
-
-                    # Filtrar datos del proveedor
-                    df_prov = df_presupuesto_con_ventas[
-                        df_presupuesto_con_ventas['idproveedor'].isin(ids_a_buscar)
-                    ].copy()
-
-                    # Filtrar solo artículos con PRESUPUESTO > 0
-                    df_prov = df_prov[df_prov['PRESUPUESTO'] > 0].copy()
-                    
-                    print(f"   ✅ Artículos con presupuesto > 0: {len(df_prov):,}")
-                    
-                    if len(df_prov) > 0:
-                        # Guardar en session_state
-                        st.session_state['df_prov_viz'] = df_prov
-                        st.session_state['prov_con_filtros'] = False
-                        st.session_state['prov_nombre'] = proveedor_seleccionado
-                        st.session_state['prov_id'] = id_proveedor
-                        # ✅ NOTIFICACIÓN TELEGRAM
-                        usuario = st.session_state.get('username', 'Usuario desconocido')
-                        # mensaje = f"""<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>
-                        # 🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}
-                        # """
-                        mensaje = (
-                            f"<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>\n"
-                            f"🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}"
-                        )
-                        send_telegram_alert(mensaje, tipo="SUCCESS")
-                        
-                        st.toast("🎉 ¡Análisis generado exitosamente!", icon="✅")
-                        # st.balloons()
-                        # st.success("✅ Análisis generado exitosamente!")
-                    else:
-                        st.warning(f"⚠️ No hay artículos con presupuesto > 0 para {proveedor_seleccionado}")
-        else:
-
-# BOTÓN 1: GENERAR 📊 Análisis Completo
-            st.markdown("""
-                <div style="display: flex; align-items: center;">
-                    <h4 style="margin: 0;">📊 Análisis Completo</h4>
-                    <span style="color: gray; margin-left: 10px; font-size: 1rem;">
-                        Sin filtros de familia/subfamilia
-                    </span>
-                </div>
-            """, unsafe_allow_html=True)
-
-            if st.button("🔄 Generar Análisis Completo", key="btn_generar_sin_filtro", 
-                        width='content', type="secondary"):
-                with st.spinner(f"📊 Generando análisis de {proveedor_seleccionado}..."):
-                    print(f"\n{'='*80}")
-                    print(f"📦 GENERANDO ANÁLISIS SIN FILTROS: {proveedor_seleccionado}")
-                    print(f"{'='*80}")
-                    
-                    # Obtener IDs originales (maneja proveedores unificados)
-                    ids_a_buscar = obtener_ids_originales(id_proveedor)
-
-                    print(f"   🔍 IDs a buscar: {ids_a_buscar}")
-
-                    if len(ids_a_buscar) > 1:
-                        print(f"   ⚠️ Proveedor UNIFICADO - Buscando {len(ids_a_buscar)} IDs")
-
-                    # Filtrar datos del proveedor
-                    df_prov = df_presupuesto_con_ventas[
-                        df_presupuesto_con_ventas['idproveedor'].isin(ids_a_buscar)
-                    ].copy()
-
-                    # Filtrar solo artículos con PRESUPUESTO > 0
-                    df_prov = df_prov[df_prov['PRESUPUESTO'] > 0].copy()
-                    
-                    print(f"   ✅ Artículos con presupuesto > 0: {len(df_prov):,}")
-                    
-                    if len(df_prov) > 0:
-                        # Guardar en session_state
-                        st.session_state['df_prov_viz'] = df_prov
-                        st.session_state['prov_con_filtros'] = False
-                        st.session_state['prov_nombre'] = proveedor_seleccionado
-                        st.session_state['prov_id'] = id_proveedor
-                        # ✅ NOTIFICACIÓN TELEGRAM
-                        usuario = st.session_state.get('username', 'Usuario desconocido')
-                        # mensaje = f"""<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>
-                        #              🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}
-                        #             """
-                        mensaje = (
-                            f"<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>\n"
-                            f"🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}"
-                        )
-
-                        send_telegram_alert(mensaje, tipo="SUCCESS")
-                        
-                        st.toast("🎉 ¡Análisis generado exitosamente!", icon="✅")
-                        # st.success("✅ Análisis generado exitosamente!")
-                    else:
-                        st.warning(f"⚠️ No hay artículos con presupuesto > 0 para {proveedor_seleccionado}")            
-
-            # BOTÓN 2: GENERAR ANÁLISIS CON FILTROS
-            st.markdown("""
-                <div style="display: flex; align-items: center;">
-                    <h4 style="margin: 0;">🎯 Análisis Filtrado</h4>
-                    <span style="color: gray; margin-left: 10px; font-size: 1rem;">
-                        Con filtros de familia/subfamilia aplicados
-                    </span>
-                </div>
-            """, unsafe_allow_html=True)
-
-            
-            if st.button("🔄 Generar Análisis Filtrado", key="btn_generar_con_filtro", 
-                        width='content', type="primary"):
-                with st.spinner(f"📊 Generando análisis filtrado de {proveedor_seleccionado}..."):
-                    print(f"\n{'='*80}")
-                    print(f"🎯 GENERANDO ANÁLISIS CON FILTROS: {proveedor_seleccionado}")
-                    print(f"{'='*80}")
-                    
-                    # Filtrar presupuesto por familias/subfamilias seleccionadas
-                    df_presupuesto_filtrado = df_presupuesto_con_ventas.copy()
-                    
-                    # Aplicar filtros de familia y subfamilia
-                    if 'familia' in df_presupuesto_filtrado.columns:
-                        df_presupuesto_filtrado = df_presupuesto_filtrado[
-                            df_presupuesto_filtrado['familia'].isin(familias_seleccionadas)
-                        ]
-                    
-                    if 'subfamilia' in df_presupuesto_filtrado.columns:
-                        df_presupuesto_filtrado = df_presupuesto_filtrado[
-                            df_presupuesto_filtrado['subfamilia'].isin(subfamilias_seleccionadas)
-                        ]
-                    
-                    # Obtener IDs originales (maneja proveedores unificados)
-                    ids_a_buscar = obtener_ids_originales(id_proveedor)
-
-                    print(f"   🔍 IDs a buscar: {ids_a_buscar}")
-
-                    # Filtrar por proveedor
-                    df_prov = df_presupuesto_filtrado[
-                        df_presupuesto_filtrado['idproveedor'].isin(ids_a_buscar)
-                    ].copy()
-
-                    # Filtrar solo artículos con PRESUPUESTO > 0
-                    df_prov = df_prov[df_prov['PRESUPUESTO'] > 0].copy()
-                    
-                    print(f"   📦 Artículos después de filtros: {len(df_prov):,}")
-                    
-                    if len(df_prov) > 0:
-                        # Guardar en session_state
-                        st.session_state['df_prov_viz'] = df_prov
-                        st.session_state['prov_con_filtros'] = True
-                        st.session_state['prov_nombre'] = proveedor_seleccionado
-                        st.session_state['prov_id'] = id_proveedor
-
-                        # ✅ NOTIFICACIÓN TELEGRAM
-                        usuario = st.session_state.get('username', 'Usuario desconocido')
-                        mensaje = (
-                            f"<b>👤 USUARIO:</b> {usuario} - <b>🎯 ANÁLISIS GENERADO - FILTRADO</b>\n"
-                            f"🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}\n"
-                            f"🏷️ <b>Familias:</b> {len(familias_seleccionadas)} - 📂 <b>Subfamilias:</b> {len(subfamilias_seleccionadas)}"
-                        )
-
-                        send_telegram_alert(mensaje, tipo="SUCCESS")
-                        
-                        st.toast("🎉 ¡Análisis filtrado generado!", icon="✅")
-                        st.success(f"""
-                        ✅ Análisis generado exitosamente!
-                        
-                        **Filtros aplicados:**
-                        - 🏷️ {len(familias_seleccionadas)} familias
-                        - 📂 {len(subfamilias_seleccionadas)} subfamilias
-                        """)
-                    else:
-                        st.warning("⚠️ No hay artículos con presupuesto > 0 después de aplicar filtros")
+                """,
+                unsafe_allow_html=True
+            )        
 
     # ═══════════════════════════════════════════════════════════════════
     # VISUALIZACIÓN DE ANÁLISIS DEL PROVEEDOR
@@ -504,8 +569,8 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
             df_plot = df_top.iloc[::-1].copy()
             
             df_plot['Presupuesto_M'] = df_plot['PRESUPUESTO'] / 1_000_000
-            df_plot['Texto'] = df_plot['PRESUPUESTO'].apply(lambda x: f"${x/1_000_000:.2f}M")
-            
+            # df_plot['Texto'] = df_plot['PRESUPUESTO'].apply(lambda x: f"${x:.0f}")
+            df_plot['Texto'] = df_plot['PRESUPUESTO'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
             # Asignar colores por nivel_riesgo
             df_plot['color_barra'] = df_plot['nivel_riesgo'].apply(get_color_nivel_riesgo)
             
