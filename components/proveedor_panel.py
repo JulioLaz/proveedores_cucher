@@ -345,12 +345,17 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
     art_con_exceso = int(info_prov.get('Art. con Exceso', 0))
     costo_exceso = info_prov.get('Costo Exceso', 0)
     
+    # Contar artículos con margen negativo
+    art_margen_negativo = len(articulos_prov[articulos_prov['margen_articulo'] < 0])
+    
     # Agregar alertas para artículos sin clasificar si existen
     alertas_activas = []
     if art_sin_stock > 0:
         alertas_activas.append('sin_stock')
     if art_con_exceso > 0:
         alertas_activas.append('con_exceso')
+    if art_margen_negativo > 0:
+        alertas_activas.append('margen_negativo')
     if len(arts_sin_familia) > 0:
         alertas_activas.append('sin_familia')
     if len(arts_sin_subfamilia) > 0 and len(arts_sin_subfamilia) != len(arts_sin_familia):
@@ -365,7 +370,7 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
         # Crear columnas dinámicamente
         cols_alertas = st.columns(min(num_alertas, 4))  # Máximo 4 columnas
         col_idx = 0
-        
+
         # ALERTA 1: Sin Stock
         if 'sin_stock' in alertas_activas:
             with cols_alertas[col_idx]:
@@ -608,3 +613,69 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
                         util_sin_subfam = arts_ssf['utilidad_articulo'].sum()
                         margen_sin_subfam = (util_sin_subfam / venta_sin_subfam * 100) if venta_sin_subfam > 0 else 0
                         st.info(f"📊 Venta: ${venta_sin_subfam:,.0f} | Utilidad: ${util_sin_subfam:,.0f} | Margen: {margen_sin_subfam:.1f}%")
+                    
+        # ALERTA: Artículos con Margen Negativo
+        if 'margen_negativo' in alertas_activas:
+            with cols_alertas[col_idx]:
+                st.markdown(f"""
+                <div style='background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%);
+                            border-left: 5px solid #c0392b;
+                            border-radius: 8px;
+                            padding: 12px;
+                            box-shadow: 0 2px 4px rgba(192, 57, 43, 0.15);
+                            cursor: pointer;'
+                            title='Artículos con rentabilidad negativa'>
+                    <div style='display: flex; align-items: center; gap: 10px;'>
+                        <div style='font-size: 2rem;'>📉</div>
+                        <div style='flex: 1;'>
+                            <div style='font-size: 0.75rem; color: #a93226; font-weight: 600;'>
+                                Margen Negativo
+                            </div>
+                            <div style='font-size: 1.3rem; font-weight: bold; color: #c0392b;'>
+                                {art_margen_negativo} artículos
+                            </div>
+                            <div style='font-size: 0.7rem; color: #999;'>
+                                💸 Generan pérdidas
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Expander con TODOS los artículos con margen negativo
+                with st.expander(f"🔍 Ver artículos con margen negativo ({art_margen_negativo})", expanded=False):
+                    # Filtrar artículos con margen < 0
+                    arts_margen_neg = articulos_prov[articulos_prov['margen_articulo'] < 0].copy()
+                    
+                    if len(arts_margen_neg) > 0:
+                        # Ordenar por venta descendente
+                        arts_margen_neg = arts_margen_neg.sort_values('venta_total_articulo', ascending=False)
+                        
+                        # Crear DataFrame para mostrar
+                        df_margen_neg = arts_margen_neg[['idarticulo', 'descripcion', 'familia', 'subfamilia', 'venta_total_articulo', 'utilidad_articulo', 'margen_articulo']].copy()
+                        df_margen_neg.columns = ['Código', 'Descripción', 'Familia', 'Subfamilia', 'Venta', 'Utilidad', 'Margen %']
+                        df_margen_neg['Ranking'] = range(1, len(df_margen_neg) + 1)
+                        df_margen_neg = df_margen_neg[['Ranking', 'Código', 'Descripción', 'Familia', 'Subfamilia', 'Venta', 'Utilidad', 'Margen %']]
+                        
+                        # Formatear valores
+                        df_margen_neg['Venta'] = df_margen_neg['Venta'].apply(lambda x: f"${x:,.0f}")
+                        df_margen_neg['Utilidad'] = df_margen_neg['Utilidad'].apply(lambda x: f"${x:,.0f}")
+                        df_margen_neg['Margen %'] = df_margen_neg['Margen %'].apply(lambda x: f"{x:.2f}%")
+                        
+                        # Mostrar tabla con scroll
+                        st.dataframe(
+                            df_margen_neg,
+                            hide_index=True,
+                            height=300,
+                            use_container_width=True
+                        )
+                        
+                        # Resumen
+                        venta_total_neg = arts_margen_neg['venta_total_articulo'].sum()
+                        perdida_total = arts_margen_neg['utilidad_articulo'].sum()
+                        margen_prom = arts_margen_neg['margen_articulo'].mean()
+                        st.error(f"📉 Venta total: ${venta_total_neg:,.0f} | Pérdida total: ${perdida_total:,.0f} | Margen promedio: {margen_prom:.2f}%")
+                    else:
+                        st.success("✅ No hay artículos con margen negativo")
+            
+            col_idx += 1
