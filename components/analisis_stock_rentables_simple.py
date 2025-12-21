@@ -231,7 +231,8 @@ def crear_grafica_utilidad_mejorada(df, top_n=20):
     # Texto combinado: Utilidad | Margen
     # texto_barras = [f"${u/1_000_000:.2f}M | {m*100:.1f}%" 
     #                 for u, m in zip(utilidades, margenes)]
-    texto_barras = [ f"{m*100:.1f}% | ${u:,.0f}".replace(",", ".") for u, m in zip(utilidades, margenes) ]
+    texto_barras = [ f"${u:,.0f} | {m*100:.1f}%".replace(",", ".") for u, m in zip(utilidades, margenes) ]
+    # texto_barras = [ f"{m*100:.1f}% | ${u:,.0f}".replace(",", ".") for u, m in zip(utilidades, margenes) ]
 
     # Crear hover text personalizado
     hover_texts = []
@@ -258,10 +259,10 @@ def crear_grafica_utilidad_mejorada(df, top_n=20):
     
     fig.update_layout(
         height=max(400, top_n * 25),
-        margin=dict(t=20, b=25, l=10, r=120),  # Más margen para texto combinado
+        margin=dict(t=20, b=25, l=10, r=40),  # Más margen para texto combinado
         xaxis=dict(
             visible=False,
-            range=[0, max_val * 1.35]  # Más espacio para texto
+            range=[0, max_val * 1.25]  # Más espacio para texto
         ),
         yaxis=dict(
             visible=True,
@@ -323,7 +324,7 @@ def crear_grafica_margen_mejorada(df, top_n=20):
     
     fig.update_layout(
         height=max(400, top_n * 25),
-        margin=dict(t=20, b=25, l=10, r=120),  # Más margen para texto combinado
+        margin=dict(t=20, b=25, l=10, r=50),  # Más margen para texto combinado
         xaxis=dict(
             visible=False,
             range=[0, max_val * 1.30]  # Más espacio para texto
@@ -443,7 +444,7 @@ def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31, ordenar_por='uti
     
     fig.update_layout(
         height=max(400, top_n * 25),
-        margin=dict(t=20, b=5, l=30, r=80),
+        margin=dict(t=20, b=5, l=30, r=40),
         xaxis=dict(
             visible=True,
             range=[0, cap_dias + 2],
@@ -897,7 +898,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown(f"#### 💰 Top {top_utilidad} Artículos por Utilidad")
+        st.markdown(f"#### 💰 Top {top_utilidad} Artículos por Utilidad con margen")
         fig1 = crear_grafica_utilidad_mejorada(df_resultado, top_n=top_utilidad)
         if fig1:
             st.plotly_chart(fig1, width='content')
@@ -929,7 +930,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
     col3, col4 = st.columns(2)
     
     with col3:
-        st.markdown(f"#### 💹 Top {top_margen} Artículos por Margen %")
+        st.markdown(f"#### 💹 Top {top_margen} Artículos por Margen % con utilidad")
         fig3 = crear_grafica_margen_mejorada(df_resultado, top_n=top_margen)
         if fig3:
             st.plotly_chart(fig3, width='content')

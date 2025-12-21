@@ -80,12 +80,26 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
     
     with col2:
         margen = info_prov['Rentabilidad %']
+        utilidad = info_prov['Utilidad']
+        
         st.metric(
             "📊 Rentabilidad",
             f"{margen:.1f}%",
-            delta=f"${format_millones(info_prov['Utilidad'])} utilidad"
+            delta=f"${format_millones(utilidad)} {'utilidad' if utilidad >= 0 else 'pérdida (utilidad)'}",
+            delta_color="normal" if utilidad >= 0 else "inverse"
         )
-    
+
+    # with col2:
+    #     margen = info_prov['Rentabilidad %']
+    #     utilidad = info_prov['Utilidad']
+        
+    #     st.metric(
+    #         "📊 Rentabilidad",
+    #         f"{margen:.1f}%",
+    #         delta=f"${format_millones(utilidad)} {'utilidad' if utilidad >= 0 else 'pérdida'}",
+    #         delta_color="normal" if utilidad >= 0 else "inverse"
+    #     )
+
     with col3:
         st.metric(
             "💵 Presupuesto",
