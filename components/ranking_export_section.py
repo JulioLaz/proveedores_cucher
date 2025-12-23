@@ -13,7 +13,7 @@ Fecha: Diciembre 2024
 import streamlit as st
 import time
 from utils.ranking_proveedores import crear_excel_ranking, generar_nombre_archivo
-from components.global_dashboard_cache import process_ranking_data
+from components.global_dashboard_cache import process_ranking_data, process_ranking_detallado_alimentos
 
 
 def format_millones(valor):
@@ -52,7 +52,7 @@ def show_ranking_section(df_prov_con_familias, df_ventas, df_presupuesto, df_fam
     print("📊 SECCIÓN: EXPORTACIÓN DE RANKINGS")
     print(f"{'='*80}\n")
     
-    col_btn1, col_btn2 = st.columns(2)
+    col_btn1, col_btn2, col_btn3 = st.columns(3)
 
     # ===============================================================
     # BOTÓN 1: DESCARGAR RANKING COMPLETO (SIN FILTROS)
@@ -74,12 +74,17 @@ def show_ranking_section(df_prov_con_familias, df_ventas, df_presupuesto, df_fam
         )
         
         tiempo_completo = time.time() - inicio_completo
+        print(f"{'='*80}\n")
+        print('&'*150)
         print(f"   ✅ Ranking completo generado")
         print(f"   📦 Proveedores: {len(ranking_completo):,}")
         print(f"   💰 Venta total: ${ranking_completo['Venta Total'].sum():,.0f}")
         print(f"   💵 Presupuesto total: ${ranking_completo['Presupuesto'].sum():,.0f}")
         print(f"   ⏱️  Tiempo: {tiempo_completo:.2f}s")
+        print('columnas: ',ranking_completo.columns)
+        print('columnas: ',ranking_completo.head())
         print(f"{'='*80}\n")
+        print('&'*150)
         
         df_export_completo = ranking_completo[[
             'Ranking', 'ID Proveedor', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total',
@@ -163,3 +168,70 @@ def show_ranking_section(df_prov_con_familias, df_ventas, df_presupuesto, df_fam
         - 💰 ${format_millones(ranking['Venta Total'].sum())} en ventas
         - 💵 ${format_millones(ranking['Presupuesto'].sum())} en presupuesto
         """)
+
+    # ===============================================================
+    # BOTÓN 2: DESCARGAR RANKING DETALLADO ALIMENTOS (POR ARTÍCULO)
+    # ===============================================================
+   # ===============================================================
+    # BOTÓN 2: DESCARGAR RANKING DETALLADO ALIMENTOS (POR ARTÍCULO)
+    # ===============================================================
+    with col_btn3:
+        st.markdown("#### 🥗 Ranking Detallado Alimentos")
+        st.caption("Detalle por artículo (familia 'Alimentos')")
+        
+        print(f"{'='*80}")
+        print("🥗 GENERANDO RANKING DETALLADO ALIMENTOS")
+        print(f"{'='*80}")
+        inicio_detallado = time.time()
+        
+        ranking_detallado_alimentos = process_ranking_detallado_alimentos(
+            df_prov_con_familias,
+            df_ventas,
+            df_presupuesto,
+            df_familias
+        )
+        
+        tiempo_detallado = time.time() - inicio_detallado
+        
+        # === VALIDAR SI HAY DATOS ===
+        if ranking_detallado_alimentos.empty:
+            st.warning("⚠️ No se encontraron datos de la familia 'Alimentos' en el período seleccionado.")
+            print(f"   ⚠️ DataFrame vacío retornado")
+            print(f"{'='*80}\n")
+        else:
+            print(f"   ✅ Ranking detallado generado")
+            print(f"   📦 Artículos: {len(ranking_detallado_alimentos):,}")
+            print(f"   👥 Proveedores: {ranking_detallado_alimentos['Proveedor'].nunique()}")
+            print(f"   💰 Venta total: ${ranking_detallado_alimentos['Venta Artículo'].sum():,.0f}")
+            print(f"   ⏱️  Tiempo: {tiempo_detallado:.2f}s")
+            print(f"   📋 Columnas: {list(ranking_detallado_alimentos.columns)}")
+            print(f"{'='*80}\n")
+            
+            # Crear Excel
+            output_detallado = crear_excel_ranking(
+                ranking_detallado_alimentos,
+                str(fecha_desde),
+                str(fecha_hasta),
+                filtros_aplicados=True
+                # titulo_personalizado="Ranking Detallado Alimentos"
+            )
+            nombre_archivo_detallado = generar_nombre_archivo("ranking_detallado_alimentos")
+            
+            st.download_button(
+                label=f"📥 Descargar Detalle Alimentos ({len(ranking_detallado_alimentos):,} artículos)",
+                data=output_detallado,
+                file_name=nombre_archivo_detallado,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+                type="primary"
+            )
+            
+            st.success(f"""
+            **Incluye:**
+            - 🥗 Solo familia: **Alimentos**
+            - 📊 Detalle por artículo
+            - 👥 {ranking_detallado_alimentos['Proveedor'].nunique()} proveedores
+            - 📦 {len(ranking_detallado_alimentos):,} artículos
+            - 📅 Período: {fecha_desde.strftime('%d/%m/%Y')} - {fecha_hasta.strftime('%d/%m/%Y')}
+            - 💰 ${format_millones(ranking_detallado_alimentos['Venta Artículo'].sum())} en ventas
+            """)

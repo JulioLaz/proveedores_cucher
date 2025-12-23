@@ -126,8 +126,131 @@ def get_familias_data(credentials_path, project_id, bigquery_table):
         print("="*60 + "\n")
         return pd.DataFrame(columns=['idarticulo', 'familia', 'subfamilia'])
 
+# ============================================================================
+# CORRECCIÓN EN process_ranking_data
+# ============================================================================
+
 @st.cache_data(ttl=300, show_spinner=False)
 def process_ranking_data(df_proveedores, df_ventas, df_presupuesto, df_familias):
+    """
+    Procesa y genera el ranking (CACHEADO)
+    """
+    print(f"\n🔧 PROCESANDO RANKING (sin caché)")
+    import time
+    inicio = time.time()
+
+    # === VERIFICAR QUE df_familias TENGA LAS COLUMNAS ===
+    print(f"   🔍 Verificando df_familias...")
+    print(f"      Columnas en df_familias: {list(df_familias.columns)}")
+    print(f"      Registros en df_familias: {len(df_familias):,}")
+
+    # === LIMPIAR COLUMNAS DUPLICADAS EN df_proveedores ===
+    columnas_a_eliminar = []
+    if 'familia' in df_proveedores.columns:
+        columnas_a_eliminar.append('familia')
+    if 'subfamilia' in df_proveedores.columns:
+        columnas_a_eliminar.append('subfamilia')
+    
+    if columnas_a_eliminar:
+        print(f"   🧹 Eliminando columnas duplicadas de df_proveedores: {columnas_a_eliminar}")
+        df_proveedores = df_proveedores.drop(columns=columnas_a_eliminar)
+
+    # === AGREGAR FAMILIA/SUBFAMILIA desde df_familias ===
+    print(f"   🔗 Agregando familia/subfamilia...")
+    
+    # Verificar qué columnas están disponibles
+    columnas_merge = ['idarticulo']
+    if 'familia' in df_familias.columns:
+        columnas_merge.append('familia')
+    if 'subfamilia' in df_familias.columns:
+        columnas_merge.append('subfamilia')
+
+    print(f"      Columnas a mergear: {columnas_merge}")
+
+    # Hacer merge solo con las columnas que existen
+    df_proveedores_completo = df_proveedores.merge(
+        df_familias[columnas_merge],
+        on='idarticulo',
+        how='left'
+    )
+
+    print(f"   ✅ Artículos con info: {len(df_proveedores_completo):,}")
+    print(f"      Columnas después del merge: {list(df_proveedores_completo.columns)}")
+
+    # Prints condicionales
+    if 'familia' in df_proveedores_completo.columns:
+        print(f"   🏷️  Familias: {df_proveedores_completo['familia'].nunique()}")
+    else:
+        print(f"   ⚠️  Columna 'familia' no encontrada después del merge")
+
+    if 'subfamilia' in df_proveedores_completo.columns:
+        print(f"   📂 Subfamilias: {df_proveedores_completo['subfamilia'].nunique()}")
+    else:
+        print(f"   ⚠️  Columna 'subfamilia' no encontrada después del merge")
+
+    # === MERGE PRINCIPAL ===
+    # Preparar columnas para el merge (solo las que existen)
+    columnas_para_merge = ['idarticulo', 'proveedor', 'idproveedor']
+    if 'familia' in df_proveedores_completo.columns:
+        columnas_para_merge.append('familia')
+    if 'subfamilia' in df_proveedores_completo.columns:
+        columnas_para_merge.append('subfamilia')
+
+    df_merge = df_proveedores_completo[columnas_para_merge].merge(
+        df_ventas,
+        on='idarticulo',
+        how='left'
+    ).merge(
+        df_presupuesto[['idarticulo', 'PRESUPUESTO', 'exceso_STK', 'costo_exceso_STK', 'STK_TOTAL']],
+        on='idarticulo',
+        how='left'
+    )
+
+    # Fillna
+    df_merge['venta_total'] = df_merge['venta_total'].fillna(0)
+    df_merge['costo_total'] = df_merge['costo_total'].fillna(0)
+    df_merge['cantidad_vendida'] = df_merge['cantidad_vendida'].fillna(0)
+    df_merge['PRESUPUESTO'] = df_merge['PRESUPUESTO'].fillna(0)
+    df_merge['exceso_STK'] = df_merge['exceso_STK'].fillna(0)
+    df_merge['costo_exceso_STK'] = df_merge['costo_exceso_STK'].fillna(0)
+    df_merge['STK_TOTAL'] = df_merge['STK_TOTAL'].fillna(0)
+
+    # Agregación
+    ranking = df_merge.groupby(['proveedor', 'idproveedor']).agg({
+        'venta_total': 'sum',
+        'costo_total': 'sum',
+        'cantidad_vendida': 'sum',
+        'idarticulo': 'count',
+        'PRESUPUESTO': 'sum',
+        'exceso_STK': lambda x: (x > 0).sum(),
+        'costo_exceso_STK': 'sum',
+        'STK_TOTAL': lambda x: (x == 0).sum()
+    }).reset_index()
+
+    # ✅ RENOMBRAR COLUMNAS (necesario para global_dashboard.py)
+    ranking.columns = [
+        'Proveedor', 'ID Proveedor', 'Venta Total', 'Costo Total',
+        'Cantidad Vendida', 'Artículos', 'Presupuesto',
+        'Art. con Exceso', 'Costo Exceso', 'Art. Sin Stock'
+    ]
+
+    # Cálculos adicionales
+    ranking['Utilidad'] = (ranking['Venta Total'] - ranking['Costo Total']).round(0).astype(int)
+    ranking['Rentabilidad %'] = ((ranking['Utilidad'] / ranking['Venta Total']) * 100).round(2)
+    ranking['% Participación Presupuesto'] = (ranking['Presupuesto'] / ranking['Presupuesto'].sum() * 100).round(2)
+    ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(2)
+    ranking['% Participación Utilidad'] = (ranking['Utilidad'] / ranking['Utilidad'].sum() * 100).round(2)
+
+    ranking = ranking.sort_values('Venta Total', ascending=False).reset_index(drop=True)
+    ranking['Ranking'] = range(1, len(ranking) + 1)
+
+    tiempo = time.time() - inicio
+    print(f"   ✅ Ranking procesado: {len(ranking)} proveedores en {tiempo:.2f}s")
+
+    return ranking
+
+@st.cache_data(ttl=300, show_spinner=False)
+def process_ranking_data00(df_proveedores, df_ventas, df_presupuesto, df_familias):
     """
     Procesa y genera el ranking (CACHEADO)
     """
@@ -539,3 +662,196 @@ def get_ventas_agregadas_stock(credentials_path, project_id, bigquery_table, añ
         print(f"   ❌ Error ejecutando query: {str(e)}")
         print(f"{'='*80}\n")
         return None
+    
+
+# ============================================================================
+# AGREGAR ESTA FUNCIÓN EN global_dashboard_cache.py
+# ============================================================================
+
+# ============================================================================
+# CORRECCIÓN EN process_ranking_detallado_alimentos
+# ============================================================================
+
+@st.cache_data(ttl=300, show_spinner=False)
+def process_ranking_detallado_alimentos(df_proveedores, df_ventas, df_presupuesto, df_familias):
+    """
+    Procesa y genera el ranking DETALLADO por artículo (solo familia 'Alimentos')
+    """
+    print(f"\n🔧 PROCESANDO RANKING DETALLADO ALIMENTOS (sin caché)")
+    import time
+    inicio = time.time()
+    
+    # === LIMPIAR COLUMNAS DUPLICADAS EN df_proveedores ===
+    columnas_a_eliminar = []
+    if 'familia' in df_proveedores.columns:
+        columnas_a_eliminar.append('familia')
+    if 'subfamilia' in df_proveedores.columns:
+        columnas_a_eliminar.append('subfamilia')
+    if 'descripcion' in df_proveedores.columns:
+        columnas_a_eliminar.append('descripcion')
+    
+    if columnas_a_eliminar:
+        print(f"   🧹 Eliminando columnas duplicadas de df_proveedores: {columnas_a_eliminar}")
+        df_proveedores = df_proveedores.drop(columns=columnas_a_eliminar)
+    
+    # === VERIFICAR QUE df_familias TENGA LAS COLUMNAS ===
+    print(f"   🔍 Verificando df_familias...")
+    columnas_merge = ['idarticulo']
+    if 'familia' in df_familias.columns:
+        columnas_merge.append('familia')
+    if 'subfamilia' in df_familias.columns:
+        columnas_merge.append('subfamilia')
+    if 'descripcion' in df_familias.columns:
+        columnas_merge.append('descripcion')
+    
+    # === AGREGAR FAMILIA/SUBFAMILIA/DESCRIPCION ===
+    df_proveedores_completo = df_proveedores.merge(
+        df_familias[columnas_merge],
+        on='idarticulo',
+        how='left'
+    )
+    
+    # === FILTRAR SOLO FAMILIA = 'Alimentos' ===
+    if 'familia' not in df_proveedores_completo.columns:
+        print(f"   ⚠️ No se encontró columna 'familia', retornando DataFrame vacío")
+        return pd.DataFrame()
+    
+    # Mostrar familias disponibles
+    print(f"   📊 Familias disponibles: {df_proveedores_completo['familia'].unique()}")
+    
+    # Filtro case-insensitive
+    df_proveedores_alimentos = df_proveedores_completo[
+        df_proveedores_completo['familia'].str.strip().str.lower() == 'alimentos'
+    ].copy()
+    
+    print(f"   ✅ Artículos de Alimentos: {len(df_proveedores_alimentos):,}")
+    
+    if len(df_proveedores_alimentos) == 0:
+        print(f"   ⚠️ NO SE ENCONTRARON ARTÍCULOS DE 'Alimentos'")
+        return pd.DataFrame()
+        
+    # === MERGE COMPLETO (DETALLE POR ARTÍCULO) ===
+    columnas_para_merge = ['idarticulo', 'proveedor', 'idproveedor', 'familia']
+    if 'subfamilia' in df_proveedores_alimentos.columns:
+        columnas_para_merge.append('subfamilia')
+    if 'descripcion' in df_proveedores_alimentos.columns:
+        columnas_para_merge.append('descripcion')
+    
+    df_detalle = df_proveedores_alimentos[columnas_para_merge].merge(
+        df_ventas,
+        on='idarticulo',
+        how='left'
+    ).merge(
+        df_presupuesto[['idarticulo', 'PRESUPUESTO', 'exceso_STK', 'costo_exceso_STK', 'STK_TOTAL']],
+        on='idarticulo',
+        how='left'
+    )
+    
+    # Fillna
+    df_detalle['venta_total'] = df_detalle['venta_total'].fillna(0)
+    df_detalle['costo_total'] = df_detalle['costo_total'].fillna(0)
+    df_detalle['cantidad_vendida'] = df_detalle['cantidad_vendida'].fillna(0)
+    df_detalle['PRESUPUESTO'] = df_detalle['PRESUPUESTO'].fillna(0)
+    df_detalle['exceso_STK'] = df_detalle['exceso_STK'].fillna(0)
+    df_detalle['costo_exceso_STK'] = df_detalle['costo_exceso_STK'].fillna(0)
+    df_detalle['STK_TOTAL'] = df_detalle['STK_TOTAL'].fillna(0)
+    
+    # === CALCULAR TOTALES POR PROVEEDOR (AGREGADOS) ===
+    ranking_proveedores = df_detalle.groupby(['proveedor', 'idproveedor']).agg({
+        'venta_total': 'sum',
+        'costo_total': 'sum',
+        'cantidad_vendida': 'sum',
+        'idarticulo': 'count',
+        'PRESUPUESTO': 'sum',
+        'exceso_STK': lambda x: (x > 0).sum(),
+        'costo_exceso_STK': 'sum',
+        'STK_TOTAL': lambda x: (x == 0).sum()
+    }).reset_index()
+    
+    ranking_proveedores.columns = [
+        'Proveedor', 'ID Proveedor', 'Venta Total Proveedor', 'Costo Total Proveedor',
+        'Cantidad Vendida Proveedor', 'Artículos Proveedor', 'Presupuesto Proveedor',
+        'Art. con Exceso Proveedor', 'Costo Exceso Proveedor', 'Art. Sin Stock Proveedor'
+    ]
+    
+    # Cálculos proveedor
+    ranking_proveedores['Utilidad Proveedor'] = (
+        ranking_proveedores['Venta Total Proveedor'] - ranking_proveedores['Costo Total Proveedor']
+    ).round(0).astype(int)
+    
+    ranking_proveedores['Rentabilidad % Proveedor'] = (
+        (ranking_proveedores['Utilidad Proveedor'] / ranking_proveedores['Venta Total Proveedor']) * 100
+    ).round(2)
+    
+    ranking_proveedores['% Participación Ventas'] = (
+        ranking_proveedores['Venta Total Proveedor'] / ranking_proveedores['Venta Total Proveedor'].sum() * 100
+    ).round(2)
+    
+    ranking_proveedores['% Participación Presupuesto'] = (
+        ranking_proveedores['Presupuesto Proveedor'] / ranking_proveedores['Presupuesto Proveedor'].sum() * 100
+    ).round(2)
+    
+    ranking_proveedores = ranking_proveedores.sort_values('Venta Total Proveedor', ascending=False).reset_index(drop=True)
+    ranking_proveedores['Ranking'] = range(1, len(ranking_proveedores) + 1)
+    
+    # === MERGE: DETALLE ARTÍCULOS + TOTALES PROVEEDOR ===
+    df_final = df_detalle.merge(
+        ranking_proveedores,
+        left_on=['proveedor', 'idproveedor'],
+        right_on=['Proveedor', 'ID Proveedor'],
+        how='left'
+    )
+    
+    # === CALCULAR MÉTRICAS INDIVIDUALES DEL ARTÍCULO ===
+    df_final['Utilidad Artículo'] = (df_final['venta_total'] - df_final['costo_total']).round(0).astype(int)
+    df_final['Rentabilidad % Artículo'] = (
+        (df_final['Utilidad Artículo'] / df_final['venta_total']) * 100
+    ).round(2)
+    df_final['Tiene Exceso'] = (df_final['exceso_STK'] > 0).map({True: 'Sí', False: 'No'})
+    df_final['Sin Stock'] = (df_final['STK_TOTAL'] == 0).map({True: 'Sí', False: 'No'})
+    
+    # === RENOMBRAR COLUMNAS DE ARTÍCULO ===
+    df_final = df_final.rename(columns={
+        'venta_total': 'Venta Artículo',
+        'costo_total': 'Costo Artículo',
+        'cantidad_vendida': 'Cantidad Vendida',
+        'PRESUPUESTO': 'Presupuesto Artículo',
+        'costo_exceso_STK': 'Costo Exceso Artículo',
+        'descripcion': 'Descripción',
+        'subfamilia': 'Subfamilia'
+    })
+    
+    # === SELECCIONAR Y ORDENAR COLUMNAS FINALES ===
+    columnas_finales_renamed = [
+        'Ranking', 'ID Proveedor', 'Proveedor', '% Participación Ventas',
+        'Venta Total Proveedor', 'Costo Total Proveedor', 'Utilidad Proveedor',
+        'Rentabilidad % Proveedor', '% Participación Presupuesto', 'Presupuesto Proveedor',
+        'Artículos Proveedor', 'Art. con Exceso Proveedor', 'Costo Exceso Proveedor',
+        'Art. Sin Stock Proveedor', 'idarticulo'
+    ]
+    
+    if 'Descripción' in df_final.columns:
+        columnas_finales_renamed.append('Descripción')
+    if 'Subfamilia' in df_final.columns:
+        columnas_finales_renamed.append('Subfamilia')
+    
+    columnas_finales_renamed.extend([
+        'Venta Artículo', 'Costo Artículo', 'Cantidad Vendida',
+        'Utilidad Artículo', 'Rentabilidad % Artículo', 'Presupuesto Artículo',
+        'Tiene Exceso', 'Costo Exceso Artículo', 'Sin Stock'
+    ])
+    
+    df_final = df_final[columnas_finales_renamed]
+    
+    # Ordenar por Ranking y luego por Venta Artículo descendente
+    df_final = df_final.sort_values(
+        ['Ranking', 'Venta Artículo'],
+        ascending=[True, False]
+    ).reset_index(drop=True)
+    
+    tiempo = time.time() - inicio
+    print(f"   ✅ Ranking detallado procesado: {len(df_final):,} artículos en {tiempo:.2f}s")
+    print(f"   📊 Proveedores únicos: {df_final['Proveedor'].nunique()}")
+    print(f"   💰 Venta total: ${df_final['Venta Artículo'].sum():,.0f}")
+    
+    return df_final

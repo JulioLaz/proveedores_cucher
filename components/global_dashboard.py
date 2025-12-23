@@ -62,8 +62,21 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                 "Últimos 30 días": 30,
                 "Últimos 60 días": 60,
                 "Últimos 90 días": 90,
-                "Últimos 6 meses": 180,
-                "Último año": 365,
+                # "Últimos 6 meses": 180,
+                "Año 2025": ("2025-01-01", "2025-12-31"),
+                "Año 2024": ("2024-01-01", "2024-12-31"),
+                "Enero 2025": ("2025-01-01", "2025-01-31"),
+                "Febrero 2025": ("2025-02-01", "2025-02-28"),
+                "Marzo 2025": ("2025-03-01", "2025-03-31"),
+                "Abril 2025": ("2025-04-01", "2025-04-30"),
+                "Mayo 2025": ("2025-05-01", "2025-05-31"),
+                "Junio 2025": ("2025-06-01", "2025-06-30"),
+                "Julio 2025": ("2025-07-01", "2025-07-31"),
+                "Agosto 2025": ("2025-08-01", "2025-08-31"),
+                "Septiembre 2025": ("2025-09-01", "2025-09-30"),
+                "Octubre 2025": ("2025-10-01", "2025-10-31"),
+                "Noviembre 2025": ("2025-11-01", "2025-11-30"),
+                "Diciembre 2025": ("2025-12-01", "2025-12-31"),
                 "Personalizado": None,
             }
 
@@ -85,46 +98,125 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                     unsafe_allow_html=True
                 )
 
+        # with col1:
+        #     periodo_opciones = {
+        #         "Últimos 30 días": 30,
+        #         "Últimos 60 días": 60,
+        #         "Últimos 90 días": 90,
+        #         "Últimos 6 meses": 180,
+        #         "Último año": 365,
+        #         "Personalizado": None,
+        #     }
+
+        #     periodo_seleccionado = st.selectbox(
+        #         "📅 Período de análisis de ventas:",
+        #         options=list(periodo_opciones.keys()),
+        #         index=0,
+        #     )
+
+        #     st.markdown(
+        #             f"""
+        #             <div>
+        #                 <span style='font-weight:semi-bold;padding: 5px;font-size:1rem'>🆙 Actualizado al:</span><br>
+        #                 <div style='font-weight:300;padding-top: 5px;padding-left: 1.5rem;font-size:1rem'>
+        #                     {fecha_maxima_disponible.strftime('%d %B %Y')}
+        #                 </div>
+        #             </div>
+        #             """,
+        #             unsafe_allow_html=True
+        #         )
+
         with col2:
-            if periodo_seleccionado == "Personalizado":
-                col_a, col_b = st.columns(2)
-                fecha_desde = col_a.date_input(
-                    "Desde:",
-                    value= fecha_maxima_disponible - timedelta(days=30),
-                )
-                fecha_hasta = col_b.date_input(
-                    "Hasta:",
-                    value=fecha_maxima_disponible,  # ← CAMBIADO
-                    max_value=fecha_maxima_disponible
-                )
+                    if periodo_seleccionado == "Personalizado":
+                        col_a, col_b = st.columns(2)
+                        fecha_desde = col_a.date_input(
+                            "Desde:",
+                            value= fecha_maxima_disponible - timedelta(days=30),
+                        )
+                        fecha_hasta = col_b.date_input(
+                            "Hasta:",
+                            value=fecha_maxima_disponible,
+                            max_value=fecha_maxima_disponible
+                        )
 
-                if fecha_desde > fecha_hasta:
-                    st.error("La fecha 'Desde' no puede ser mayor que 'Hasta'.")
-                    st.stop()
+                        if fecha_desde > fecha_hasta:
+                            st.error("La fecha 'Desde' no puede ser mayor que 'Hasta'.")
+                            st.stop()
 
-                dias_periodo = (fecha_hasta - fecha_desde).days
+                        dias_periodo = (fecha_hasta - fecha_desde).days
 
-            else:
-                dias_periodo = periodo_opciones[periodo_seleccionado]
-                fecha_hasta = fecha_maxima_disponible
-                fecha_desde = fecha_maxima_disponible - timedelta(days=dias_periodo)
+                    else:
+                        valor_periodo = periodo_opciones[periodo_seleccionado]
+                        
+                        # Si es una tupla (meses completos), usar las fechas directamente
+                        if isinstance(valor_periodo, tuple):
+                            from datetime import datetime
+                            fecha_desde = datetime.strptime(valor_periodo[0], "%Y-%m-%d").date()
+                            fecha_hasta = datetime.strptime(valor_periodo[1], "%Y-%m-%d").date()
+                            dias_periodo = (fecha_hasta - fecha_desde).days + 1
+                        # Si es un número (días relativos), calcular desde fecha_maxima_disponible
+                        else:
+                            dias_periodo = valor_periodo
+                            fecha_hasta = fecha_maxima_disponible
+                            fecha_desde = fecha_maxima_disponible - timedelta(days=dias_periodo)
 
-                st.markdown(
-                    f"""
-                    <div>
-                        <span style='font-weight:semi-bold;padding: 5px;font-size:1rem'>⏳ Rango de fechas</span><br>
-                        <div style='font-weight:300;padding-top: 5px;padding-left: 1rem;font-size:1rem'>
-                            Desde: {fecha_desde.strftime('%d %b %Y')}
-                        </div>
-                        <div style='font-weight:300; padding-left: 1rem;font-size:1rem'>
-                            Hasta: {fecha_hasta.strftime('%d %b %Y')}
-                        </div>
-                        <div style='font-weight:semi-bold;padding-top: 5px;padding-left: 5px;font-size:1rem'> 📆 Días de actividad:</div>
-                        <div style='font-weight:400;margin-left:2.8rem;font-size:1.4rem'>{dias_periodo} días</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
+                        st.markdown(
+                            f"""
+                            <div>
+                                <span style='font-weight:semi-bold;padding: 5px;font-size:1rem'>⏳ Rango de fechas</span><br>
+                                <div style='font-weight:300;padding-top: 5px;padding-left: 1rem;font-size:1rem'>
+                                    Desde: {fecha_desde.strftime('%d %b %Y')}
+                                </div>
+                                <div style='font-weight:300; padding-left: 1rem;font-size:1rem'>
+                                    Hasta: {fecha_hasta.strftime('%d %b %Y')}
+                                </div>
+                                <div style='font-weight:semi-bold;padding-top: 5px;padding-left: 5px;font-size:1rem'> 📆 Días de actividad:</div>
+                                <div style='font-weight:400;margin-left:2.8rem;font-size:1.4rem'>{dias_periodo} días</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+
+        # with col2:
+        #     if periodo_seleccionado == "Personalizado":
+        #         col_a, col_b = st.columns(2)
+        #         fecha_desde = col_a.date_input(
+        #             "Desde:",
+        #             value= fecha_maxima_disponible - timedelta(days=30),
+        #         )
+        #         fecha_hasta = col_b.date_input(
+        #             "Hasta:",
+        #             value=fecha_maxima_disponible,  # ← CAMBIADO
+        #             max_value=fecha_maxima_disponible
+        #         )
+
+        #         if fecha_desde > fecha_hasta:
+        #             st.error("La fecha 'Desde' no puede ser mayor que 'Hasta'.")
+        #             st.stop()
+
+        #         dias_periodo = (fecha_hasta - fecha_desde).days
+
+        #     else:
+        #         dias_periodo = periodo_opciones[periodo_seleccionado]
+        #         fecha_hasta = fecha_maxima_disponible
+        #         fecha_desde = fecha_maxima_disponible - timedelta(days=dias_periodo)
+
+        #         st.markdown(
+        #             f"""
+        #             <div>
+        #                 <span style='font-weight:semi-bold;padding: 5px;font-size:1rem'>⏳ Rango de fechas</span><br>
+        #                 <div style='font-weight:300;padding-top: 5px;padding-left: 1rem;font-size:1rem'>
+        #                     Desde: {fecha_desde.strftime('%d %b %Y')}
+        #                 </div>
+        #                 <div style='font-weight:300; padding-left: 1rem;font-size:1rem'>
+        #                     Hasta: {fecha_hasta.strftime('%d %b %Y')}
+        #                 </div>
+        #                 <div style='font-weight:semi-bold;padding-top: 5px;padding-left: 5px;font-size:1rem'> 📆 Días de actividad:</div>
+        #                 <div style='font-weight:400;margin-left:2.8rem;font-size:1.4rem'>{dias_periodo} días</div>
+        #             </div>
+        #             """,
+        #             unsafe_allow_html=True
+        #         )
 
         # === CARGAR DATOS PRIMERO (para tener df_ventas disponible) ===
         print(f"\n🔄 Cargando datos para filtros...")
