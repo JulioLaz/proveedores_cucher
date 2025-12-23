@@ -1019,6 +1019,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         unsafe_allow_html=True)
         show_ranking_section(
             df_prov_con_familias=df_prov_con_familias,
+            df_proveedores=df_proveedores,
             df_ventas=df_ventas,
             df_presupuesto=df_presupuesto,
             df_familias=df_familias,
