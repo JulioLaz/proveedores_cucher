@@ -5,7 +5,7 @@ from google.cloud import bigquery
 import time
 import os
 
-@st.cache_data(ttl=3600, show_spinner=True)  # ✅ Cache 1 hora, con spinner
+@st.cache_data(ttl=3600, show_spinner=True)
 def get_ventas_data(credentials_path, project_id, bigquery_table, fecha_desde, fecha_hasta):
     """
     Obtiene datos de ventas de BigQuery (CACHEADO)
@@ -24,6 +24,7 @@ def get_ventas_data(credentials_path, project_id, bigquery_table, fecha_desde, f
     query = f"""
     SELECT 
         idarticulo,
+        MAX(descripcion) as descripcion,
         SUM(precio_total) as venta_total,
         SUM(costo_total) as costo_total,
         SUM(cantidad_total) as cantidad_vendida
@@ -38,9 +39,47 @@ def get_ventas_data(credentials_path, project_id, bigquery_table, fecha_desde, f
     print(f"\n✅ Query ventas ejecutada exitosamente")
     print(f"   ├─ Registros: {len(df):,}")
     print(f"   ├─ Artículos únicos: {df['idarticulo'].nunique():,}")
+    print(f"   ├─ Con descripción: {df['descripcion'].notna().sum():,}")
     print(f"   └─ Tiempo: {tiempo:.2f}s")
     
     return df
+
+# @st.cache_data(ttl=3600, show_spinner=True)  # ✅ Cache 1 hora, con spinner
+# def get_ventas_data(credentials_path, project_id, bigquery_table, fecha_desde, fecha_hasta):
+#     """
+#     Obtiene datos de ventas de BigQuery (CACHEADO)
+#     """
+#     print(f"\n{'='*80}")
+#     print(f"🔄 EJECUTANDO QUERY DE VENTAS")
+#     print(f"   └─ Período: {fecha_desde} → {fecha_hasta}")
+#     print(f"{'='*80}")
+    
+#     import time
+#     from google.cloud import bigquery
+    
+#     inicio = time.time()
+#     client = bigquery.Client.from_service_account_json(credentials_path)
+    
+#     query = f"""
+#     SELECT 
+#         idarticulo,
+#         SUM(precio_total) as venta_total,
+#         SUM(costo_total) as costo_total,
+#         SUM(cantidad_total) as cantidad_vendida
+#     FROM `{project_id}.{bigquery_table}`
+#     WHERE DATE(fecha_comprobante) BETWEEN '{fecha_desde}' AND '{fecha_hasta}'
+#     GROUP BY idarticulo
+#     """
+    
+#     df = client.query(query).to_dataframe()
+#     tiempo = time.time() - inicio
+    
+#     print(f"\n✅ Query ventas ejecutada exitosamente")
+#     print(f"   ├─ Registros: {len(df):,}")
+#     print(f"   ├─ Artículos únicos: {df['idarticulo'].nunique():,}")
+#     print(f"   └─ Tiempo: {tiempo:.2f}s")
+    
+#     return df
 
 
 @st.cache_data(ttl=3600, show_spinner=True)  # ✅ Cache 1 hora, con spinner
@@ -741,6 +780,7 @@ def process_ranking_detallado_alimentos00(df_proveedores, df_ventas, df_presupue
         df_ventas,
         on='idarticulo',
         how='left'
+        # how='left'
     ).merge(
         df_presupuesto[['idarticulo', 'PRESUPUESTO', 'exceso_STK', 'costo_exceso_STK', 'STK_TOTAL']],
         on='idarticulo',
@@ -931,15 +971,15 @@ def process_ranking_detallado_alimentos(df_proveedores, df_ventas, df_presupuest
     df_detalle = df_proveedores_alimentos[columnas_para_merge].merge(
         df_ventas,
         on='idarticulo',
-        how='left'
+        how='inner'
     )
     
     # MERGE CON df_presupuesto (evitar duplicar descripcion si ya existe)
     columnas_presupuesto = ['idarticulo', 'PRESUPUESTO', 'exceso_STK', 'costo_exceso_STK', 'STK_TOTAL']
     
     # Si descripcion no vino de df_ventas pero está en df_presupuesto, incluirla
-    if 'descripcion' not in df_detalle.columns and 'descripcion' in df_presupuesto.columns:
-        columnas_presupuesto.append('descripcion')
+    # if 'descripcion' not in df_detalle.columns and 'descripcion' in df_presupuesto.columns:
+    #     columnas_presupuesto.append('descripcion')
     
     df_detalle = df_detalle.merge(
         df_presupuesto[columnas_presupuesto],
