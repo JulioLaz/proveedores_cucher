@@ -803,13 +803,21 @@ def process_ranking_detallado_alimentos(df_proveedores, df_ventas, df_presupuest
     )
     
     # === CALCULAR MÉTRICAS INDIVIDUALES DEL ARTÍCULO ===
+    # df_final['Utilidad Artículo'] = (df_final['venta_total'] - df_final['costo_total']).round(0).astype(int)
+    # df_final['Rentabilidad % Artículo'] = (
+    #     (df_final['Utilidad Artículo'] / df_final['venta_total']) * 100
+    # ).round(2)
+    # df_final['Tiene Exceso'] = (df_final['exceso_STK'] > 0).map({True: 'Sí', False: 'No'})
+    # df_final['Sin Stock'] = (df_final['STK_TOTAL'] == 0).map({True: 'Sí', False: 'No'})
+    # === CALCULAR MÉTRICAS INDIVIDUALES DEL ARTÍCULO ===
     df_final['Utilidad Artículo'] = (df_final['venta_total'] - df_final['costo_total']).round(0).astype(int)
     df_final['Rentabilidad % Artículo'] = (
         (df_final['Utilidad Artículo'] / df_final['venta_total']) * 100
     ).round(2)
     df_final['Tiene Exceso'] = (df_final['exceso_STK'] > 0).map({True: 'Sí', False: 'No'})
+    df_final['Stock Actual'] = df_final['STK_TOTAL'].fillna(0).astype(int)  # ← CAMBIADO
     df_final['Sin Stock'] = (df_final['STK_TOTAL'] == 0).map({True: 'Sí', False: 'No'})
-    
+
     # === RENOMBRAR COLUMNAS DE ARTÍCULO ===
     df_final = df_final.rename(columns={
         'venta_total': 'Venta Artículo',
@@ -838,7 +846,7 @@ def process_ranking_detallado_alimentos(df_proveedores, df_ventas, df_presupuest
     columnas_finales_renamed.extend([
         'Venta Artículo', 'Costo Artículo', 'Cantidad Vendida',
         'Utilidad Artículo', 'Rentabilidad % Artículo', 'Presupuesto Artículo',
-        'Tiene Exceso', 'Costo Exceso Artículo', 'Sin Stock'
+        'Tiene Exceso', 'Costo Exceso Artículo', 'Stock Actual', 'Sin Stock'
     ])
     
     df_final = df_final[columnas_finales_renamed]
