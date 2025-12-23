@@ -177,47 +177,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                             unsafe_allow_html=True
                         )
 
-        # with col2:
-        #     if periodo_seleccionado == "Personalizado":
-        #         col_a, col_b = st.columns(2)
-        #         fecha_desde = col_a.date_input(
-        #             "Desde:",
-        #             value= fecha_maxima_disponible - timedelta(days=30),
-        #         )
-        #         fecha_hasta = col_b.date_input(
-        #             "Hasta:",
-        #             value=fecha_maxima_disponible,  # ← CAMBIADO
-        #             max_value=fecha_maxima_disponible
-        #         )
-
-        #         if fecha_desde > fecha_hasta:
-        #             st.error("La fecha 'Desde' no puede ser mayor que 'Hasta'.")
-        #             st.stop()
-
-        #         dias_periodo = (fecha_hasta - fecha_desde).days
-
-        #     else:
-        #         dias_periodo = periodo_opciones[periodo_seleccionado]
-        #         fecha_hasta = fecha_maxima_disponible
-        #         fecha_desde = fecha_maxima_disponible - timedelta(days=dias_periodo)
-
-        #         st.markdown(
-        #             f"""
-        #             <div>
-        #                 <span style='font-weight:semi-bold;padding: 5px;font-size:1rem'>⏳ Rango de fechas</span><br>
-        #                 <div style='font-weight:300;padding-top: 5px;padding-left: 1rem;font-size:1rem'>
-        #                     Desde: {fecha_desde.strftime('%d %b %Y')}
-        #                 </div>
-        #                 <div style='font-weight:300; padding-left: 1rem;font-size:1rem'>
-        #                     Hasta: {fecha_hasta.strftime('%d %b %Y')}
-        #                 </div>
-        #                 <div style='font-weight:semi-bold;padding-top: 5px;padding-left: 5px;font-size:1rem'> 📆 Días de actividad:</div>
-        #                 <div style='font-weight:400;margin-left:2.8rem;font-size:1.4rem'>{dias_periodo} días</div>
-        #             </div>
-        #             """,
-        #             unsafe_allow_html=True
-        #         )
-
         # === CARGAR DATOS PRIMERO (para tener df_ventas disponible) ===
         print(f"\n🔄 Cargando datos para filtros...")
         df_ventas = get_ventas_data(
@@ -228,6 +187,12 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             str(fecha_hasta)
         )
 
+        print('DF_VENTAS  -- '*50)
+        print('DF_VENTAS  -- '*50)
+        print('DF_VENTAS:',df_ventas.columns)
+        print('DF_VENTAS:',df_ventas.head())
+        print('DF_VENTAS  -- '*50)
+        print('DF_VENTAS  -- '*50)
         df_presupuesto = get_presupuesto_data(credentials_path, project_id)
         # print(f"   ✅ df_presupuesto: ", df_presupuesto.columns.tolist())
         df_familias = get_familias_data(credentials_path, project_id, bigquery_table)
