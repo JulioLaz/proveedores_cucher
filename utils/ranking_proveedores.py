@@ -287,8 +287,12 @@ def crear_excel_ranking00(df, fecha_desde=None, fecha_hasta=None,
     return output
 
 def generar_nombre_archivo(prefijo="ranking_proveedores", extension="xlsx"):
-    fecha = datetime.now().strftime('%d%B%Y_%H:%M')
+    fecha = datetime.now().strftime('%d%B%Y_%Hhs_%Mmin')
     return f"{prefijo}_{fecha}.{extension}"
+
+def generar_nombre_archivo_alimentos(prefijo="ranking_proveedores", periodo=""):
+    fecha = datetime.now().strftime('%d%B%Y_%Hhs_%Mmin')
+    return f"{prefijo}_{periodo}.xlsx"
 
 ######################################################################################
 ######################################################################################
