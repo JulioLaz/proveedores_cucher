@@ -14,6 +14,7 @@ import streamlit as st
 import time
 from utils.ranking_proveedores import crear_excel_ranking, generar_nombre_archivo, generar_nombre_archivo_alimentos
 from components.global_dashboard_cache import process_ranking_data, process_ranking_detallado_alimentos
+from components.alimentos_analysis import show_alimentos_analysis
 
 
 def format_millones(valor):
@@ -51,7 +52,8 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
     print("📊 SECCIÓN: EXPORTACIÓN DE RANKINGS")
     print(f"{'='*80}\n")
     
-    col_btn1, col_btn2, col_btn3 = st.columns(3)
+    col_btn1, col_btn2 = st.columns(2)
+    # col_btn1, col_btn2, col_btn3 = st.columns(3)
 
     # ===============================================================
     # BOTÓN 1: DESCARGAR RANKING COMPLETO (SIN FILTROS)
@@ -171,30 +173,30 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
    # ===============================================================
     # BOTÓN 3: DESCARGAR RANKING DETALLADO ALIMENTOS (POR ARTÍCULO)
     # ===============================================================
-
-    with col_btn3:
-        st.markdown("#### 🥗 Ranking Detallado Alimentos")
+    st.markdown("---")
+        # with col_btn3:
+    st.markdown("#### 🥗 Ranking Detallado Alimentos")
         
         # === FILTRO ESPECÍFICO PARA ALIMENTOS ===
         # Obtener subfamilias de Alimentos disponibles
-        subfamilias_alimentos = df_familias[
+    subfamilias_alimentos = df_familias[
             df_familias['familia'].str.strip().str.lower() == 'alimentos'
         ]['subfamilia'].dropna().unique().tolist()
         
-        subfamilias_alimentos_seleccionadas = st.multiselect(
+    subfamilias_alimentos_seleccionadas = st.multiselect(
             "🥗 Subfamilias de Alimentos a incluir:",
             options=['Todas'] + sorted(subfamilias_alimentos),
             default=['Todas'],
             key='subfamilias_alimentos_detalle'
         )
         
-        st.caption(f"Detalle por artículo - {'Todas las subfamilias' if 'Todas' in subfamilias_alimentos_seleccionadas else f'{len(subfamilias_alimentos_seleccionadas)} subfamilias'}")
+    st.caption(f"Detalle por artículo - {'Todas las subfamilias' if 'Todas' in subfamilias_alimentos_seleccionadas else f'{len(subfamilias_alimentos_seleccionadas)} subfamilias'}")
         
         # Determinar qué df usar
-        if 'Todas' in subfamilias_alimentos_seleccionadas:
+    if 'Todas' in subfamilias_alimentos_seleccionadas:
             df_para_alimentos = df_proveedores  # Todas las subfamilias
             filtros_aplicados = False
-        else:
+    else:
             # Filtrar solo las subfamilias seleccionadas
             articulos_filtrados = df_familias[
                 df_familias['subfamilia'].isin(subfamilias_alimentos_seleccionadas)
@@ -205,30 +207,30 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
             ]
             filtros_aplicados = True
         
-        print(f"{'='*80}")
-        print("🥗 GENERANDO RANKING DETALLADO ALIMENTOS")
-        if 'Todas' in subfamilias_alimentos_seleccionadas:
+    print(f"{'='*80}")
+    print("🥗 GENERANDO RANKING DETALLADO ALIMENTOS")
+    if 'Todas' in subfamilias_alimentos_seleccionadas:
             print("   📊 TODAS LAS SUBFAMILIAS")
-        else:
+    else:
             print(f"   📊 {len(subfamilias_alimentos_seleccionadas)} SUBFAMILIAS SELECCIONADAS")
-        print(f"{'='*80}")
-        inicio_detallado = time.time()
+    print(f"{'='*80}")
+    inicio_detallado = time.time()
         
-        ranking_detallado_alimentos = process_ranking_detallado_alimentos(
+    ranking_detallado_alimentos = process_ranking_detallado_alimentos(
             df_para_alimentos,
             df_ventas,
             df_presupuesto,
             df_familias
         )
         
-        tiempo_detallado = time.time() - inicio_detallado
+    tiempo_detallado = time.time() - inicio_detallado
         
         # === VALIDAR SI HAY DATOS ===
-        if ranking_detallado_alimentos.empty:
+    if ranking_detallado_alimentos.empty:
             st.warning("⚠️ No se encontraron datos de la familia 'Alimentos' en el período seleccionado.")
             print(f"   ⚠️ DataFrame vacío retornado")
             print(f"{'='*80}\n")
-        else:
+    else:
             print(f"   ✅ Ranking detallado generado")
             print(f"   📦 Artículos: {len(ranking_detallado_alimentos):,}")
             print(f"   👥 Proveedores: {ranking_detallado_alimentos['Proveedor'].nunique()}")
@@ -276,3 +278,13 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
             - 📅 Período: {fecha_desde.strftime('%d/%m/%Y')} - {fecha_hasta.strftime('%d/%m/%Y')}
             - 💰 ${format_millones(ranking_detallado_alimentos['Venta Artículo'].sum())} en ventas
             """)   
+
+    show_alimentos_analysis(
+    df_proveedores=df_proveedores,
+    df_ventas=df_ventas,
+    df_presupuesto=df_presupuesto,
+    df_familias=df_familias,
+    fecha_desde=fecha_desde,
+    fecha_hasta=fecha_hasta
+)
+
