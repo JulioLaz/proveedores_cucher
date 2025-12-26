@@ -891,10 +891,11 @@ def mostrar_analisis_articulos00(df_original):
         )
     
     with col_f4:
-        buscar_texto = st.text_input(
-            "Buscar en descripción:",
-            key='buscar_articulo',
-            placeholder="Ej: arroz, fideos..."
+        art_descripcion = ['Todas'] + sorted(df_art['descripcion'].dropna().unique().tolist())
+        subfamilia_filtro = st.selectbox(
+            "Nombre art:",
+            options=art_descripcion,
+            key='filtro_art_descripcion'
         )
     
     # Aplicar filtros
@@ -1093,7 +1094,7 @@ def mostrar_analisis_articulos(df_original):
     # === FILTROS AVANZADOS ===
     st.markdown("#### 🔍 Filtros")
     
-    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+    col_f1, col_f2, col_f3 = st.columns(3)
     
     with col_f1:
         categorias_disponibles = ['Todas'] + sorted(df_art['Categoría Artículo'].unique().tolist())
@@ -1119,12 +1120,13 @@ def mostrar_analisis_articulos(df_original):
             key='filtro_subfamilia_articulo'
         )
     
-    with col_f4:
-        buscar_texto = st.text_input(
-            "Buscar en descripción:",
-            key='buscar_articulo',
-            placeholder="Ej: arroz, fideos..."
-        )
+    # with col_f4:
+    #     art_descripcion = ['Todas'] + sorted(df_art['descripcion'].dropna().unique().tolist())
+    #     subfamilia_filtro = st.selectbox(
+    #         "Nombre art:",
+    #         options=art_descripcion,
+    #         key='filtro_art_descripcion'
+    #     )
     
     # Aplicar filtros
     df_filtrado = df_art.copy()
@@ -1138,10 +1140,10 @@ def mostrar_analisis_articulos(df_original):
     if subfamilia_filtro != 'Todas':
         df_filtrado = df_filtrado[df_filtrado['Subfamilia'] == subfamilia_filtro]
     
-    if buscar_texto:
-        df_filtrado = df_filtrado[
-            df_filtrado['Descripción'].str.contains(buscar_texto, case=False, na=False)
-        ]
+    # if buscar_texto:
+    #     df_filtrado = df_filtrado[
+    #         df_filtrado['Descripción'].str.contains(buscar_texto, case=False, na=False)
+    #     ]
     
     st.info(f"📦 Mostrando {len(df_filtrado)} de {len(df_art)} artículos")
     

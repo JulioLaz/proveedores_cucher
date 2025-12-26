@@ -198,8 +198,11 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
     # ===============================================================
     st.markdown("---")
         # with col_btn3:
-    st.markdown("#### 🥗 Ranking Detallado Alimentos")
-        
+    # st.markdown("#### 🥗 Ranking Detallado Alimentos")
+    st.markdown(
+        """<div style=" text-align: center; padding: 1rem; border: 1px solid gray; border-radius: 5px; background: #f0e69b; font-size: 1.8rem; font-weight: 600;margin-bottom:1rem">
+        🥗 Ranking Detallado Alimentos</div>
+        """, unsafe_allow_html=True)
         # === FILTRO ESPECÍFICO PARA ALIMENTOS ===
         # Obtener subfamilias de Alimentos disponibles
     subfamilias_alimentos = df_familias[
