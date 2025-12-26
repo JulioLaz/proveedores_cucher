@@ -602,7 +602,7 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
     with tab4:
         st.caption("💡 Análisis artículo por artículo: decide qué SKUs potenciar, reducir o descontinuar")
         mostrar_analisis_articulos(ranking_detallado_alimentos)
-        
+
     # with tab1:
     #     crear_scatter_portfolio(df_analisis)
     
@@ -746,7 +746,7 @@ def calcular_metricas_ieu_articulo(df):
     return df_articulo
 
 
-def mostrar_analisis_articulos(df_original):
+def mostrar_analisis_articulos00(df_original):
     """
     TAB 4: Análisis detallado por artículo
     """
@@ -826,7 +826,7 @@ def mostrar_analisis_articulos(df_original):
         - > 60 días = Stock muerto → Liquidar
         """)
     
-    st.markdown("---")
+    # st.markdown("---")
     
     # Calcular métricas por artículo
     df_art = calcular_metricas_ieu_articulo(df_original)
@@ -859,7 +859,7 @@ def mostrar_analisis_articulos(df_original):
         con_exceso = len(df_art[df_art['Tiene Exceso'] == 'Sí'])
         st.metric("Con Exceso", f"{con_exceso}")
     
-    st.markdown("---")
+    # st.markdown("---")
     
     # === FILTROS AVANZADOS ===
     st.markdown("#### 🔍 Filtros")
@@ -1028,3 +1028,421 @@ def mostrar_analisis_articulos(df_original):
             )
         else:
             st.info("No hay datos para mostrar")
+
+def mostrar_analisis_articulos(df_original):
+    """
+    TAB 4: Análisis detallado por artículo con VISUALIZACIONES
+    """
+    # Explicación
+    with st.expander("ℹ️ ¿Cómo usar el análisis por artículo?", expanded=False):
+        st.markdown("""
+        ### 🎯 Análisis por Artículo - La Vista Más Accionable
+        
+        **¿Por qué es importante analizar por artículo?**
+        
+        Un proveedor puede tener buen IEU promedio, pero tener artículos individuales que:
+        - 🚨 Tienen exceso crítico de stock
+        - 💎 Son top performers que merecen más espacio
+        - 🔴 No aportan valor y ocupan lugar
+        
+        **¿Qué muestra esta sección?**
+        
+        - **Gráficos interactivos**: Visualiza patrones y outliers rápidamente
+        - **Filtros múltiples**: Enfócate en lo que necesitas analizar
+        - **Tabla detallada**: Cada artículo con todas sus métricas
+        - **Rankings**: Top 10 y Bottom 10 para decisiones rápidas
+        
+        **💡 Tip:** Usa los gráficos para detectar problemas, luego usa los filtros y tabla para el detalle.
+        """)
+    
+    # st.markdown("---")
+    
+    # Calcular métricas por artículo
+    df_art = calcular_metricas_ieu_articulo(df_original)
+    
+    # === MÉTRICAS RESUMEN ===
+    st.markdown("#### 📊 Resumen de Artículos")
+    
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    with col1:
+        total_articulos = len(df_art)
+        st.metric("Total Artículos", f"{total_articulos}")
+    
+    with col2:
+        top_performers = len(df_art[df_art['Categoría Artículo'] == 'Top Performer'])
+        st.metric("Top Performers", f"{top_performers}", 
+                 delta=f"{top_performers/total_articulos*100:.0f}%")
+    
+    with col3:
+        criticos = len(df_art[df_art['Categoría Artículo'] == 'Crítico'])
+        st.metric("Artículos Críticos", f"{criticos}",
+                 delta="Acción urgente" if criticos > 0 else "OK",
+                 delta_color="inverse" if criticos > 0 else "normal")
+    
+    with col4:
+        sin_stock = len(df_art[df_art['Stock Actual'] == 0])
+        st.metric("Sin Stock", f"{sin_stock}")
+    
+    with col5:
+        con_exceso = len(df_art[df_art['Tiene Exceso'] == 'Sí'])
+        st.metric("Con Exceso", f"{con_exceso}")
+    
+    st.markdown("---")
+    
+    # === FILTROS AVANZADOS ===
+    st.markdown("#### 🔍 Filtros")
+    
+    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+    
+    with col_f1:
+        categorias_disponibles = ['Todas'] + sorted(df_art['Categoría Artículo'].unique().tolist())
+        categoria_filtro = st.selectbox(
+            "Categoría:",
+            options=categorias_disponibles,
+            key='filtro_categoria_articulo'
+        )
+    
+    with col_f2:
+        proveedores_disponibles = ['Todos'] + sorted(df_art['Proveedor'].unique().tolist())
+        proveedor_filtro = st.selectbox(
+            "Proveedor:",
+            options=proveedores_disponibles,
+            key='filtro_proveedor_articulo'
+        )
+    
+    with col_f3:
+        subfamilias_disponibles = ['Todas'] + sorted(df_art['Subfamilia'].dropna().unique().tolist())
+        subfamilia_filtro = st.selectbox(
+            "Subfamilia:",
+            options=subfamilias_disponibles,
+            key='filtro_subfamilia_articulo'
+        )
+    
+    with col_f4:
+        buscar_texto = st.text_input(
+            "Buscar en descripción:",
+            key='buscar_articulo',
+            placeholder="Ej: arroz, fideos..."
+        )
+    
+    # Aplicar filtros
+    df_filtrado = df_art.copy()
+    
+    if categoria_filtro != 'Todas':
+        df_filtrado = df_filtrado[df_filtrado['Categoría Artículo'] == categoria_filtro]
+    
+    if proveedor_filtro != 'Todos':
+        df_filtrado = df_filtrado[df_filtrado['Proveedor'] == proveedor_filtro]
+    
+    if subfamilia_filtro != 'Todas':
+        df_filtrado = df_filtrado[df_filtrado['Subfamilia'] == subfamilia_filtro]
+    
+    if buscar_texto:
+        df_filtrado = df_filtrado[
+            df_filtrado['Descripción'].str.contains(buscar_texto, case=False, na=False)
+        ]
+    
+    st.info(f"📦 Mostrando {len(df_filtrado)} de {len(df_art)} artículos")
+    
+    # ============================================================
+    # 🎨 VISUALIZACIONES INTERACTIVAS
+    # ============================================================
+    
+    st.markdown("---")
+    st.markdown("#### 📈 Visualizaciones")
+    
+    if len(df_filtrado) == 0:
+        st.warning("⚠️ No hay artículos para mostrar con los filtros actuales")
+    else:
+        # === GRÁFICO 1: MAPA DE ARTÍCULOS ===
+        with st.expander("📊 Mapa de Artículos (Rentabilidad vs Ventas)", expanded=False):
+            st.caption("💡 Visualiza la posición de cada artículo según rentabilidad y participación en ventas. Tamaño = Costo de exceso.")
+            
+            # Limitar a top N artículos si hay muchos (para performance)
+            df_grafico = df_filtrado.nlargest(100, 'Venta Artículo') if len(df_filtrado) > 100 else df_filtrado
+            
+            if len(df_filtrado) > 100:
+                st.caption(f"⚠️ Mostrando top 100 artículos por ventas (de {len(df_filtrado)} filtrados)")
+            
+            fig_mapa = px.scatter(
+                df_grafico,
+                x='% Participación Ventas Artículo',
+                y='Rentabilidad % Artículo',
+                size='Costo Exceso Artículo',
+                color='Categoría Artículo',
+                hover_data={
+                    'Descripción': True,
+                    'Proveedor': True,
+                    'Subfamilia': True,
+                    'IEU Artículo': ':.2f',
+                    'Venta Artículo': ':$,.0f',
+                    'Stock Actual': True,
+                    'Acción Artículo': True,
+                    '% Participación Ventas Artículo': ':.3f%',
+                    'Rentabilidad % Artículo': ':.2f%',
+                    'Costo Exceso Artículo': ':$,.0f'
+                },
+                color_discrete_map={
+                    'Crítico': '#ff0000',
+                    'Revisar': '#ff9500',
+                    'Ajustar': '#ffcc00',
+                    'Mantener': '#4caf50',
+                    'Top Performer': '#2196f3'
+                },
+                title='Mapa de Artículos: Rentabilidad vs Participación en Ventas<br><sub>Tamaño = Costo de Exceso</sub>',
+                labels={
+                    '% Participación Ventas Artículo': '% Participación en Ventas',
+                    'Rentabilidad % Artículo': 'Rentabilidad %'
+                }
+            )
+            
+            # Líneas de referencia
+            if len(df_grafico) > 0:
+                fig_mapa.add_hline(
+                    y=df_grafico['Rentabilidad % Artículo'].mean(), 
+                    line_dash="dash", 
+                    line_color="gray",
+                    annotation_text="Rentabilidad Promedio"
+                )
+                
+                fig_mapa.add_vline(
+                    x=df_grafico['% Participación Ventas Artículo'].mean(), 
+                    line_dash="dash", 
+                    line_color="gray",
+                    annotation_text="Participación Promedio"
+                )
+            
+            fig_mapa.update_layout(height=600)
+            st.plotly_chart(fig_mapa, use_container_width=True)
+            
+            st.info("""
+            **Cómo interpretar:**
+            - **Superior Derecha** = Alta venta + Alto margen → Potenciar
+            - **Superior Izquierda** = Baja venta + Alto margen → Producto nicho rentable
+            - **Inferior Derecha** = Alta venta + Bajo margen → Gancho de tráfico
+            - **Inferior Izquierda** = Baja venta + Bajo margen → Candidato a descontinuar
+            - **Círculos grandes** = Mucho exceso de stock → Requiere acción
+            """)
+        
+        # === GRÁFICO 2: DISTRIBUCIÓN DE ACCIONES ===
+        with st.expander("🍩 Distribución de Categorías", expanded=False):
+            st.caption("💡 Proporción de artículos en cada categoría de acción")
+            
+            # Contar por categoría
+            dist_categorias = df_filtrado['Categoría Artículo'].value_counts().reset_index()
+            dist_categorias.columns = ['Categoría', 'Cantidad']
+            
+            fig_donut = px.pie(
+                dist_categorias,
+                values='Cantidad',
+                names='Categoría',
+                hole=0.4,
+                color='Categoría',
+                color_discrete_map={
+                    'Crítico': '#ff0000',
+                    'Revisar': '#ff9500',
+                    'Ajustar': '#ffcc00',
+                    'Mantener': '#4caf50',
+                    'Top Performer': '#2196f3'
+                },
+                title=f'Distribución de {len(df_filtrado)} Artículos por Categoría'
+            )
+            
+            fig_donut.update_traces(
+                textposition='inside',
+                textinfo='percent+label',
+                hovertemplate='<b>%{label}</b><br>Artículos: %{value}<br>Porcentaje: %{percent}<extra></extra>'
+            )
+            
+            fig_donut.update_layout(height=500)
+            st.plotly_chart(fig_donut, use_container_width=True)
+            
+            # Mostrar tabla resumen
+            col_a, col_b = st.columns(2)
+            
+            with col_a:
+                st.markdown("**📋 Detalle por Categoría:**")
+                dist_categorias['Porcentaje'] = (dist_categorias['Cantidad'] / dist_categorias['Cantidad'].sum() * 100).round(1)
+                dist_categorias['Porcentaje'] = dist_categorias['Porcentaje'].apply(lambda x: f"{x}%")
+                st.dataframe(dist_categorias, use_container_width=True, hide_index=True)
+            
+            with col_b:
+                st.markdown("**💡 ¿Qué significa?**")
+                
+                criticos_pct = (dist_categorias[dist_categorias['Categoría'] == 'Crítico']['Cantidad'].sum() / len(df_filtrado) * 100) if 'Crítico' in dist_categorias['Categoría'].values else 0
+                top_pct = (dist_categorias[dist_categorias['Categoría'] == 'Top Performer']['Cantidad'].sum() / len(df_filtrado) * 100) if 'Top Performer' in dist_categorias['Categoría'].values else 0
+                
+                if criticos_pct > 30:
+                    st.error(f"🚨 {criticos_pct:.0f}% de artículos críticos. Requiere limpieza urgente de surtido.")
+                elif criticos_pct > 15:
+                    st.warning(f"⚠️ {criticos_pct:.0f}% de artículos críticos. Considera optimizar el portafolio.")
+                else:
+                    st.success(f"✅ Solo {criticos_pct:.0f}% de artículos críticos. Portafolio saludable.")
+                
+                if top_pct > 20:
+                    st.success(f"🌟 {top_pct:.0f}% son top performers. ¡Excelente surtido rentable!")
+                elif top_pct > 10:
+                    st.info(f"✅ {top_pct:.0f}% son top performers. Surtido equilibrado.")
+                else:
+                    st.warning(f"⚠️ Solo {top_pct:.0f}% son top performers. Busca productos más rentables.")
+        
+        # === GRÁFICO 3: COMPARACIÓN POR PROVEEDOR ===
+        with st.expander("📊 Comparación por Proveedor", expanded=False):
+            st.caption("💡 Distribución de categorías de artículos por cada proveedor")
+            
+            # Agrupar por proveedor y categoría
+            prov_cat = df_filtrado.groupby(['Proveedor', 'Categoría Artículo']).size().reset_index(name='Cantidad')
+            
+            # Ordenar proveedores por total de artículos
+            orden_prov = df_filtrado['Proveedor'].value_counts().index.tolist()
+            
+            fig_barras = px.bar(
+                prov_cat,
+                x='Proveedor',
+                y='Cantidad',
+                color='Categoría Artículo',
+                color_discrete_map={
+                    'Crítico': '#ff0000',
+                    'Revisar': '#ff9500',
+                    'Ajustar': '#ffcc00',
+                    'Mantener': '#4caf50',
+                    'Top Performer': '#2196f3'
+                },
+                title='Distribución de Artículos por Proveedor y Categoría',
+                labels={'Cantidad': 'Número de Artículos'},
+                category_orders={'Proveedor': orden_prov}
+            )
+            
+            fig_barras.update_layout(
+                height=500,
+                xaxis_tickangle=-45,
+                barmode='stack',
+                hovermode='x unified'
+            )
+            
+            st.plotly_chart(fig_barras, use_container_width=True)
+            
+            st.info("""
+            **Cómo usar este gráfico:**
+            - Identifica proveedores con **muchos artículos críticos** (rojo) → Reunión urgente para renegociar o reducir surtido
+            - Proveedores con **muchos top performers** (azul) → Buscar más productos de ese proveedor
+            - Proveedores con distribución equilibrada → Mantener relación actual
+            - Si un proveedor tiene 1 top performer y 10 críticos → Mantener solo el top, descontinuar el resto
+            """)
+    
+    st.markdown("---")
+    
+    # === TABLA INTERACTIVA ===
+    st.markdown("#### 📋 Detalle por Artículo")
+    
+    # Preparar columnas para mostrar
+    columnas_mostrar = [
+        'idarticulo',
+        'Descripción',
+        'Subfamilia',
+        'Proveedor',
+        'IEU Artículo',
+        'Acción Artículo',
+        'Venta Artículo',
+        'Utilidad Artículo',
+        'Rentabilidad % Artículo',
+        'Cantidad Vendida',
+        'Stock Actual',
+        'Días Venta Stock',
+        'Tiene Exceso',
+        'Costo Exceso Artículo',
+        '% Participación Ventas Artículo',
+        '% Participación Utilidad Artículo'
+    ]
+    
+    df_display = df_filtrado[columnas_mostrar].copy()
+    
+    # Formatear para display
+    df_display['Venta Artículo'] = df_display['Venta Artículo'].apply(lambda x: f"${x:,.0f}")
+    df_display['Utilidad Artículo'] = df_display['Utilidad Artículo'].apply(lambda x: f"${x:,.0f}")
+    df_display['Costo Exceso Artículo'] = df_display['Costo Exceso Artículo'].apply(lambda x: f"${x:,.0f}")
+    df_display['Rentabilidad % Artículo'] = df_display['Rentabilidad % Artículo'].apply(lambda x: f"{x:.1f}%")
+    df_display['% Participación Ventas Artículo'] = df_display['% Participación Ventas Artículo'].apply(lambda x: f"{x:.2f}%")
+    df_display['% Participación Utilidad Artículo'] = df_display['% Participación Utilidad Artículo'].apply(lambda x: f"{x:.2f}%")
+    df_display['Días Venta Stock'] = df_display['Días Venta Stock'].apply(lambda x: f"{int(x)} días")
+    
+    # Mostrar tabla
+    st.dataframe(
+        df_display,
+        use_container_width=True,
+        hide_index=True,
+        height=600
+    )
+    
+    # === BOTÓN DE EXPORTACIÓN ===
+    st.markdown("---")
+    
+    col_exp1, col_exp2 = st.columns([3, 1])
+    
+    with col_exp1:
+        st.markdown("**💾 Exportar tabla filtrada a Excel**")
+        st.caption(f"Se exportarán los {len(df_filtrado)} artículos actualmente filtrados")
+    
+    with col_exp2:
+        # Preparar Excel
+        from io import BytesIO
+        output = BytesIO()
+        
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df_filtrado[columnas_mostrar].to_excel(
+                writer, 
+                sheet_name='Análisis Artículos',
+                index=False
+            )
+        
+        output.seek(0)
+        
+        st.download_button(
+            label="📥 Descargar Excel",
+            data=output,
+            file_name=f"analisis_articulos_{categoria_filtro}_{time.strftime('%Y%m%d_%H%M')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True,
+            type="primary"
+        )
+    
+    # === GRÁFICO TOP/BOTTOM ===
+    st.markdown("---")
+    st.markdown("#### 🏆 Top 10 y Bottom 10 por IEU")
+    
+    col_top, col_bottom = st.columns(2)
+    
+    with col_top:
+        st.markdown("**🌟 Top 10 Artículos (Mayor IEU)**")
+        top10 = df_filtrado.nlargest(10, 'IEU Artículo')[
+            ['Descripción', 'IEU Artículo', 'Venta Artículo', 'Acción Artículo']
+        ].copy()
+        
+        # Limpiar formato para mostrar
+        if len(top10) > 0:
+            top10['Venta'] = df_filtrado.nlargest(10, 'IEU Artículo')['Venta Artículo'].apply(lambda x: f"${x:,.0f}")
+            st.dataframe(
+                top10[['Descripción', 'IEU Artículo', 'Venta', 'Acción Artículo']],
+                use_container_width=True,
+                hide_index=True
+            )
+        else:
+            st.info("No hay datos para mostrar")
+    
+    with col_bottom:
+        st.markdown("**⚠️ Bottom 10 Artículos (Menor IEU)**")
+        bottom10 = df_filtrado.nsmallest(10, 'IEU Artículo')[
+            ['Descripción', 'IEU Artículo', 'Venta Artículo', 'Acción Artículo']
+        ].copy()
+        
+        if len(bottom10) > 0:
+            bottom10['Venta'] = df_filtrado.nsmallest(10, 'IEU Artículo')['Venta Artículo'].apply(lambda x: f"${x:,.0f}")
+            st.dataframe(
+                bottom10[['Descripción', 'IEU Artículo', 'Venta', 'Acción Artículo']],
+                use_container_width=True,
+                hide_index=True
+            )
+        else:
+            st.info("No hay datos para mostrar")            
+
