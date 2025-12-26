@@ -16,7 +16,7 @@ import plotly.express as px
 import time
 from utils.ranking_proveedores import crear_excel_ranking, generar_nombre_archivo
 from components.global_dashboard_cache import process_ranking_detallado_alimentos
-
+from utils.telegram_notifier import send_telegram_alert
 
 def calcular_metricas_ieu(df):
     """
@@ -41,7 +41,11 @@ def calcular_metricas_ieu(df):
     df_prov['IEU'] = (
         df_prov['% Participación Utilidad'] / df_prov['% Participación Ventas']
     ).round(2)
-    
+
+    # ✅ AGREGAR ESTO: Limpiar infinitos y NaN
+    df_prov['IEU'] = df_prov['IEU'].replace([float('inf'), -float('inf')], 0)
+    df_prov['IEU'] = df_prov['IEU'].fillna(0)
+
     # === ASIGNAR ACCIONES CONCRETAS ===
     def asignar_accion(row):
         ieu = row['IEU']
@@ -102,18 +106,20 @@ def calcular_metricas_ieu(df):
 
 def crear_scatter_portfolio(df_analisis):
     """
-    Matriz Portfolio: Rentabilidad vs Participación
+    Mapa de Proveedores: Rentabilidad vs Participación
     """
     # Explicación clara del análisis
-    with st.expander("ℹ️ ¿Qué muestra esta matriz y cómo interpretarla?", expanded=False):
+    with st.expander("ℹ️ ¿Qué muestra este mapa y cómo interpretarlo?", expanded=False):
         st.markdown("""
-        ### 📊 Matriz Portfolio de Proveedores
+        ### 📊 Mapa de Proveedores (Cuadrantes de Decisión)
         
         **¿Qué representa este gráfico?**
-        - Cada **burbuja** es un proveedor de Alimentos
-        - **Eje horizontal (X)**: % de participación en las ventas totales
-        - **Eje vertical (Y)**: Rentabilidad % del proveedor
-        - **Tamaño de la burbuja**: Costo del exceso de stock (más grande = más dinero inmovilizado)
+        - Cada **círculo** es un proveedor de Alimentos
+        - **Posición horizontal (→)**: % de participación en las ventas totales
+        - **Posición vertical (↑)**: Rentabilidad % del proveedor
+        - **TAMAÑO del círculo**: Costo del exceso de stock
+          - ⚠️ **Círculo MÁS GRANDE** = Más dinero inmovilizado en exceso
+          - ✅ **Círculo MÁS PEQUEÑO** = Poco o nada de exceso
         - **Color**: Acción recomendada según el análisis
         
         **¿Cómo lo interpreto?**
@@ -134,9 +140,10 @@ def crear_scatter_portfolio(df_analisis):
         - Baja venta + Bajo margen = **Candidatos a eliminar del surtido**
         - Acción: Reducir variedades o eliminar si no aportan valor estratégico
         
-        **⚠️ BURBUJAS MUY GRANDES = ALERTA:**
-        - Indican mucho dinero parado en stock
-        - Acción inmediata: Revisar por qué hay tanto exceso y tomar medidas
+        **⚠️ CÍRCULOS MUY GRANDES = ALERTA DE CAPITAL:**
+        - Indican mucho dinero parado en stock que no rota
+        - Acción inmediata: Revisar por qué hay tanto exceso y liquidar
+        - Ejemplo: Un círculo grande en cuadrante inferior = Doble problema (poco rentable + capital parado)
         
         **Líneas grises punteadas:**
         - Marcan el promedio de rentabilidad y participación
@@ -166,7 +173,7 @@ def crear_scatter_portfolio(df_analisis):
             'Mantener': '#4caf50',
             'Potenciar': '#2196f3'
         },
-        title='📊 Matriz Portfolio: Rentabilidad vs Participación en Ventas',
+        title='📊 Mapa de Proveedores: Rentabilidad vs Participación<br><sub>⚠️ Tamaño del círculo = Costo de Exceso de Stock</sub>',  # ← AGREGADO
         labels={
             '% Participación Ventas': '% Participación en Ventas',
             'Rentabilidad % Proveedor': 'Rentabilidad %'
@@ -185,7 +192,67 @@ def crear_scatter_portfolio(df_analisis):
     fig.update_layout(height=600)
     
     st.plotly_chart(fig, use_container_width=True)
-
+           
+    # ← NOTA FINAL COMPLETA: CUADRANTES + TAMAÑOS + COLORES
+    st.info("""
+    ### 💡 Guía Completa de Interpretación
+    #### 🎨 **COLORES (Categoría del Proveedor)**
+    
+    - 🔴 **Rojo (Crítico)**: Exceso mayor que ventas → Liquidar inmediatamente
+    - 🟠 **Naranja (Revisar)**: IEU bajo (0.8-1.0) → Renegociar o reducir
+    - 🟡 **Amarillo (Promocionar)**: Buen margen con exceso → Liberar stock
+    - 🟢 **Verde (Mantener)**: Equilibrado, sin problemas → Seguir igual
+    - 🔵 **Azul (Potenciar)**: IEU alto (>1.2) → Aumentar exhibición
+       
+    #### 📍 **POSICIÓN (Cuadrante) + TAMAÑO (Exceso de Stock)**
+    
+    **CUADRANTE SUPERIOR DERECHO** (Alta Venta + Alto Margen):
+    - ⚪ **Círculo pequeño**: ¡Perfecto! Tu mejor proveedor sin problemas
+      → Acción: Mantener, asegurar nunca romper stock
+    - ⚪ **Círculo grande**: Excelente proveedor pero compraste de más
+      → Acción: Promoción suave para normalizar exceso, no dejar de comprar
+    
+    **CUADRANTE SUPERIOR IZQUIERDO** (Baja Venta + Alto Margen):
+    - ⚪ **Círculo pequeño**: Producto rentable de nicho, baja rotación natural
+      → Acción: Mantener en surtido, comprar poco y frecuente
+    - ⚪ **Círculo grande**: Producto rentable pero sobrestockeado
+      → Acción: Promoción 2x1 o descuento para liberar capital
+    
+    **CUADRANTE INFERIOR DERECHO** (Alta Venta + Bajo Margen):
+    - ⚪ **Círculo pequeño**: Gancho de tráfico, necesario pero poco rentable
+      → Acción: Renegociar margen o usar en folletos para atraer clientes
+    - ⚪ **Círculo grande**: Vende mucho pero no ganas y tenés exceso
+      → Acción: Liquidar exceso YA, renegociar condiciones urgente
+    
+    **CUADRANTE INFERIOR IZQUIERDO** (Baja Venta + Bajo Margen):
+    - ⚪ **Círculo pequeño**: Producto marginal pero sin riesgo
+      → Acción: Dejar agotar naturalmente, no reponer
+    - 🚨 **Círculo grande**: ¡LO PEOR! No vende, no gana, capital parado
+      → Acción: LIQUIDAR URGENTE (hasta 50% OFF), descontinuar inmediato
+    
+    #### 📊 **CÓMO COMBINAR COLOR + POSICIÓN + TAMAÑO**
+    
+    **Ejemplo 1:** Círculo 🔵 azul (Potenciar) + Superior Derecha + Grande
+    - Interpretación: Top performer con exceso
+    - Acción: Hacer promoción para vender más rápido, no hay problema de rentabilidad
+    
+    **Ejemplo 2:** Círculo 🔴 rojo (Crítico) + Inferior Izquierda + Grande
+    - Interpretación: ¡DESASTRE! Poco margen, poca venta, mucho exceso
+    - Acción: Liquidar hasta 50% OFF, descontinuar inmediato, liberar capital
+    
+    **Ejemplo 3:** Círculo 🟢 verde (Mantener) + Superior Derecha + Pequeño
+    - Interpretación: Proveedor ideal
+    - Acción: No cambiar nada, asegurar disponibilidad
+    
+    ---
+    
+    **Resumen rápido:**
+    - **Color** = Categoría de acción (qué tan urgente)
+    - **Posición** = Rentabilidad vs Volumen (dónde está parado)
+    - **Tamaño** = Dinero inmovilizado (qué tan grave es el exceso)
+    
+    ⚠️ **Regla de oro**: Círculo ROJO + GRANDE en cualquier posición = ACCIÓN INMEDIATA
+    """)
 
 def crear_grafico_ieu(df_analisis):
     """
@@ -449,7 +516,7 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
         )
         nombre_archivo_detallado = generar_nombre_archivo("ranking_detallado_alimentos")
         
-        st.download_button(
+        descarga_xlsx_alimentos = st.download_button(
             label=f"📥 Descargar Excel\n({len(ranking_detallado_alimentos):,} artículos)",
             data=output_detallado,
             file_name=nombre_archivo_detallado,
@@ -457,7 +524,31 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
             use_container_width=True,
             type="secondary"
         )
-    
+
+        # Construcción del mensaje detallado
+        subfamilias_count = (
+            ranking_detallado_alimentos['Subfamilia'].nunique()
+            if 'Subfamilia' in ranking_detallado_alimentos.columns else 0
+        )
+
+        mensaje_detalle = (
+            f"📦 Artículos: {len(ranking_detallado_alimentos):,}\n"
+            f"👥 Proveedores: {ranking_detallado_alimentos['Proveedor'].nunique()}\n"
+            f"🥗 Subfamilias: {subfamilias_count}\n"
+            f"💰 Venta total: ${ranking_detallado_alimentos['Venta Artículo'].sum():,.0f}"
+        )
+
+        if descarga_xlsx_alimentos:  # ✅ Se pulsó el botón
+                usuario = st.session_state.get('username', 'Usuario desconocido')
+
+            # Mensaje principal + detalle 
+                mensaje = (
+                    f"<b>👤 USUARIO:</b> {usuario}\n"
+                    f"🥗 <b>Descarga de Ranking Alimentos</b>\n" 
+                    f"{mensaje_detalle}"
+                    )
+                send_telegram_alert(mensaje, tipo="SUCCESS")
+
     # === ANÁLISIS INTERACTIVO ===
     st.markdown("---")
     
@@ -489,27 +580,40 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
         st.metric("Proveedores Eficientes", eficientes)
     
     # 3. GRÁFICOS Y TABLAS
-    # tab1, tab2, tab3 = st.tabs(["📊 Matriz Portfolio", "📈 IEU por Proveedor", "⚠️ Alertas Críticas"])
-        # 3. GRÁFICOS Y TABLAS
     tab1, tab2, tab3, tab4 = st.tabs([
-        "📊 Matriz Portfolio", 
+        "📊 Mapa de Proveedores",  
         "📈 IEU por Proveedor", 
         "⚠️ Alertas Críticas",
-        "🎯 Análisis por Artículo"  # ← NUEVO
+        "🎯 Análisis por Artículo"
     ])
 
-
     with tab1:
+        st.caption("💡 Visualiza dónde están posicionados tus proveedores según rentabilidad y volumen de ventas")
         crear_scatter_portfolio(df_analisis)
-    
+
     with tab2:
+        st.caption("💡 Compara la eficiencia de cada proveedor: ¿Genera más ganancia que el espacio que ocupa?")
         crear_grafico_ieu(df_analisis)
-    
+
     with tab3:
+        st.caption("💡 Proveedores que necesitan acción inmediata por bajo rendimiento o exceso crítico")
         mostrar_alertas_criticas(df_analisis)
 
     with tab4:
-        mostrar_analisis_articulos(ranking_detallado_alimentos) 
+        st.caption("💡 Análisis artículo por artículo: decide qué SKUs potenciar, reducir o descontinuar")
+        mostrar_analisis_articulos(ranking_detallado_alimentos)
+        
+    # with tab1:
+    #     crear_scatter_portfolio(df_analisis)
+    
+    # with tab2:
+    #     crear_grafico_ieu(df_analisis)
+    
+    # with tab3:
+    #     mostrar_alertas_criticas(df_analisis)
+
+    # with tab4:
+    #     mostrar_analisis_articulos(ranking_detallado_alimentos) 
 ########################################################################
 # ANALISIS POR ARICULO        
 ########################################################################        

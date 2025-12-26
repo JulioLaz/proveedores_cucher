@@ -15,7 +15,7 @@ import time
 from utils.ranking_proveedores import crear_excel_ranking, generar_nombre_archivo, generar_nombre_archivo_alimentos
 from components.global_dashboard_cache import process_ranking_data, process_ranking_detallado_alimentos
 from components.alimentos_analysis import show_alimentos_analysis
-
+from utils.telegram_notifier import send_telegram_alert
 
 def format_millones(valor):
     """Formatea valores grandes en millones o miles"""
@@ -53,8 +53,6 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
     print(f"{'='*80}\n")
     
     col_btn1, col_btn2 = st.columns(2)
-    # col_btn1, col_btn2, col_btn3 = st.columns(3)
-
     # ===============================================================
     # BOTÓN 1: DESCARGAR RANKING COMPLETO (SIN FILTROS)
     # ==============================================================
@@ -101,7 +99,7 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
         )
         nombre_archivo_completo = generar_nombre_archivo("ranking_completo")
         
-        st.download_button(
+        btn_completo  = st.download_button(
             label=f"📥 Descargar Ranking Completo ({len(ranking_completo)} proveedores)",
             data=output_completo,
             file_name=nombre_archivo_completo,
@@ -109,7 +107,19 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
             width='content',
             type="secondary"
         )
-        
+
+        if btn_completo: # ✅ Se pulsó el botón 
+            usuario = st.session_state.get('username', 'Usuario desconocido')
+            mensaje = (
+                f"<b>👤 USUARIO:</b> {usuario}\n"
+                f"📊 <b>Ranking Completo generado</b>\n"
+                f"📦 Proveedores: {len(ranking_completo):,}\n"
+                f"💰 Venta total: ${ranking_completo['Venta Total'].sum():,.0f}\n"
+                f"💵 Presupuesto total: ${ranking_completo['Presupuesto'].sum():,.0f}\n"
+                f"📅 Perídod: desde: {fecha_desde} - hasta: {fecha_hasta}"
+            )
+            send_telegram_alert(mensaje, tipo="SUCCESS")
+
         st.info(f"""
         **Incluye:**
         - ✅ Todas las familias ({len(familias_disponibles)})
@@ -150,16 +160,29 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
             subfamilias_activas=subfamilias_seleccionadas
         )
         nombre_archivo_filtrado = generar_nombre_archivo("ranking_filtrado")
-        
-        st.download_button(
+
+        btn_filtrado = st.download_button(
             label=f"📥 Descargar Ranking Filtrado ({len(ranking)} proveedores)",
             data=output_filtrado,
             file_name=nombre_archivo_filtrado,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            width='content',
             type="primary"
         )
-        
+
+        if btn_filtrado:  # ✅ Se pulsó el botón
+            usuario = st.session_state.get('username', 'Usuario desconocido')
+
+            mensaje = (
+                f"<b>👤 USUARIO:</b> {usuario}\n"
+                f"🎯 <b>Ranking Filtrado generado</b>\n"
+                f"📦 Proveedores: {len(ranking):,}\n"
+                f"💰 Venta filtrada: ${ranking['Venta Total'].sum():,.0f}\n"
+                f"💵 Presupuesto filtrado: ${ranking['Presupuesto'].sum():,.0f}\n"
+                f"📅 Período: desde {fecha_desde} - hasta {fecha_hasta}"
+            )
+
+            send_telegram_alert(mensaje, tipo="SUCCESS")
+
         st.success(f"""
         **Filtros aplicados:**
         - 🏷️ {len(familias_seleccionadas)}/{len(familias_disponibles)} familias
@@ -257,7 +280,7 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
             nombre_archivo_detallado = generar_nombre_archivo_alimentos("ranking_detallado_alimentos", periodo)
 
             
-            st.download_button(
+            btn_ranking_alimentos = st.download_button(
                 label=f"📥 Descargar Detalle Alimentos ({len(ranking_detallado_alimentos):,} artículos)",
                 data=output_detallado,
                 file_name=nombre_archivo_detallado,
@@ -267,8 +290,9 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
             )
             
             mensaje_subfamilias = f"TODAS las subfamilias ({subfamilias_count})" if 'Todas' in subfamilias_alimentos_seleccionadas else f"{len(subfamilias_alimentos_seleccionadas)} subfamilias seleccionadas"
-            
-            st.success(f"""
+
+            # Construyes el mensaje una sola vez
+            mensaje_success = f"""
             **Incluye:**
             - 🥗 Solo familia: **Alimentos**
             - 📂 {mensaje_subfamilias}
@@ -277,7 +301,22 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
             - 📦 {len(ranking_detallado_alimentos):,} artículos
             - 📅 Período: {fecha_desde.strftime('%d/%m/%Y')} - {fecha_hasta.strftime('%d/%m/%Y')}
             - 💰 ${format_millones(ranking_detallado_alimentos['Venta Artículo'].sum())} en ventas
-            """)   
+            """
+
+            # Mostrar en ventana
+            st.success(mensaje_success)
+
+            if btn_ranking_alimentos:  # ✅ Se pulsó el botón
+                usuario = st.session_state.get('username', 'Usuario desconocido')
+
+            # Mensaje principal + detalle 
+                mensaje = (
+                    f"<b>👤 USUARIO:</b> {usuario}\n"
+                    f"🥗 <b>Descarga de Ranking Alimentos</b>\n\n" 
+                    f"{mensaje_success}"
+                    )
+
+                send_telegram_alert(mensaje, tipo="SUCCESS")
 
     show_alimentos_analysis(
     df_proveedores=df_proveedores,

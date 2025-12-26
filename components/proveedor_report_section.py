@@ -314,9 +314,6 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                             st.session_state['prov_id'] = id_proveedor
                             # ✅ NOTIFICACIÓN TELEGRAM
                             usuario = st.session_state.get('username', 'Usuario desconocido')
-                            # mensaje = f"""<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>
-                            #              🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}
-                            #             """
                             mensaje = (
                                 f"<b>👤 USUARIO:</b> {usuario} - <b>📊 ANÁLISIS GENERADO - COMPLETO</b>\n"
                                 f"🏢 <b>Proveedor:</b> {proveedor_seleccionado} - 📦 <b>Artículos:</b> {len(df_prov):,}"

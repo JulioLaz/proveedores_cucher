@@ -81,7 +81,7 @@ def custom_css():
         text-align: center;
         justify-content: center;
         align-items: center;
-        font-size: 1.5rem;
+        font-size: 1.2rem;
         font-weight: bold;
         color: #1e3c72;
     }
@@ -287,6 +287,14 @@ def custom_css():
         #tabs-bui42-tabpanel-0 {
             padding-top: 0 !important;
         }            
+
+        /* Estilos a los selectores de familias y subfamilias*/
+        span[data-baseweb="tag"] {
+        font-size: 0.8em !important;
+        margin: 1px !important;
+        padding: 0px 2px !important;
+        }
+
 
 </style>
 """
