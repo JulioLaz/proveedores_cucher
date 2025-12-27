@@ -125,7 +125,7 @@ class ProveedorDashboard:
                             border-radius: 5px;
                             background: #f0e69b;                    
                 '>
-                    📈 Ranking de Proveedores
+                    📈 Proveedores - Análisis
                 </div>
                 """,
                 unsafe_allow_html=True

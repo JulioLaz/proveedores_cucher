@@ -33,8 +33,18 @@ def format_miles(valor: int) -> str:
         return f"{valor:,}".replace(",", ".")
 
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
-    """Dashboard Global de Proveedores"""
-    
+    st.markdown("""
+            <style>
+            .stMultiSelect {
+                background: linear-gradient(135deg, #ffffff 0%, #d1e8ff 100%);
+                border: 2px solid #1e90ff;
+                border-radius: 10px;
+                padding: 2px;
+                box-shadow: 0 2px 6px rgba(30, 144, 255, 0.25);
+                transition: all 0.3s ease;
+            }
+            </style>
+            """, unsafe_allow_html=True)    
     print("\n" + "="*80)
     print("🚀 DASHBOARD GLOBAL DE PROVEEDORES")
     print("="*80)
@@ -50,14 +60,39 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     print(f"   ✅ Última fecha con datos: {fecha_maxima_disponible.strftime('%d/%m/%Y')}")
 
-
     container = st.container(border=True)
 
     with container:
         # === SELECTOR DE PERÍODO ===
-        col1, col2, col_fam1, col_fam2, col_fam3, col_fam4 = st.columns([1.8, 1.3, 2, 2, 1.1,0.9])
+        col1, col2, col_fam1, col_fam2, col_fam3 = st.columns([1.8, 1.3, 2, 2, 1.2])
+        # col1, col2, col_fam1, col_fam2, col_fam3, col_fam4 = st.columns([1.8, 1.3, 2, 2, 1.1,0.9])
 
         with col1:
+
+            st.markdown(
+                f"""
+                <div style="
+                    background: linear-gradient(135deg, #ffffff 0%, #f3e3a3 100%);
+                    border: 2px solid #f3c221;
+                    border-radius: 10px;
+                    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
+                    transition: all 0.3s ease;
+                    min-height:auto;
+                    display:flex;
+                    flex-direction:column;
+                    justify-content:center;
+                    overflow:hidden;">
+                    <span style="font-weight:600;padding-top: 5px;font-size:1rem; text-align:center;">
+                        🆙 Actualizado al:
+                    </span>
+                    <div style="font-weight:400;font-size:.9rem; text-align:center;">
+                        {fecha_maxima_disponible.strftime('%d %B %Y')}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
             periodo_opciones = {
                 "Últimos 30 días": 30,
                 "Últimos 60 días": 60,
@@ -80,23 +115,24 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                 "Personalizado": None,
             }
 
+            st.markdown("""
+            <style>
+            .stSelectbox {
+                background: linear-gradient(135deg, #ffffff 0%, #d1e8ff 100%);
+                border: 2px solid #1e90ff;
+                border-radius: 10px;
+                padding: 4px;
+                box-shadow: 0 2px 6px rgba(30, 144, 255, 0.25);
+                transition: all 0.3s ease;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+
             periodo_seleccionado = st.selectbox(
                 "📅 Período de análisis de ventas:",
                 options=list(periodo_opciones.keys()),
                 index=0,
             )
-
-            st.markdown(
-                    f"""
-                    <div>
-                        <span style='font-weight:semi-bold;padding: 5px;font-size:1rem'>🆙 Actualizado al:</span><br>
-                        <div style='font-weight:300;padding-top: 5px;padding-left: 1.5rem;font-size:1rem'>
-                            {fecha_maxima_disponible.strftime('%d %B %Y')}
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
 
         with col2:
                     if periodo_seleccionado == "Personalizado":
@@ -134,21 +170,29 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
                         st.markdown(
                             f"""
-                            <div style="background: linear-gradient(135deg, #ffffff 0%, #f3e3a3 100%);
+                            <div style="
+                                background: linear-gradient(135deg, #ffffff 0%, #f3e3a3 100%);
                                 border: 2px solid #f3c221;
                                 border-radius: 10px;
                                 padding: 5px;
                                 box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
-                                transition: all 0.3s ease;height:150px">
-                                <span style='font-weight:semi-bold;padding: 5px;font-size:.8rem'>⏳ Rango de fechas</span><br>
-                                <div style='font-weight:400;padding-top: 5px;padding-left: .7rem;font-size:.8rem'>
+                                transition: all 0.3s ease;
+                                min-height:154px;
+                                display:flex;
+                                flex-direction:column;
+                                justify-content:space-between;
+                                overflow:hidden;">
+                                <span style='font-weight:600;padding: 5px;font-size:.9rem; text-align: center;'>⏳ Rango de fechas</span>
+                                <div style='font-weight:400;font-size:.9rem; text-align: center;'>
                                     Desde: {fecha_desde.strftime('%d %b %Y')}
                                 </div>
-                                <div style='font-weight:400; padding-left: 1rem;font-size:.8rem'>
+                                <div style='font-weight:400;font-size:.9rem; text-align: center;'>
                                     Hasta: {fecha_hasta.strftime('%d %b %Y')}
                                 </div>
-                                <div style='font-weight:semi-bold;padding-top: 5px;padding-left: 5px;font-size:.8rem'> 📆 Días de actividad:</div>
-                                <div style='font-weight:400;margin-left:2.8rem;font-size:.7rem'>{dias_periodo} días</div>
+                                <div style='font-weight:600;padding-left:5px;font-size:.9rem; text-align: center;'>📆 Días de actividad:</div>
+                                <div style='font-weight:400;font-size:.9rem; text-align: center;'>
+                                    {dias_periodo} días
+                                </div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -193,8 +237,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
         with col_fam1:
             familias_disponibles = sorted(df_prov_con_familias['familia'].dropna().unique().tolist())
-            
-            # st.markdown(""" <style> div[data-baseweb="select"] { max-height: 120px; /* altura máxima del contenedor */ overflow-y: auto; /* agrega scroll vertical si excede */ } </style> """, unsafe_allow_html=True)
 
             familias_seleccionadas = st.multiselect(
                 "🏷️ Filtrar por Familia:",
@@ -224,58 +266,120 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             if not subfamilias_seleccionadas:
                 subfamilias_seleccionadas = subfamilias_disponibles
                 st.warning("⚠️ Debes mantener al menos una subfamilia seleccionada")
-
+        # with col_fam3:
         with col_fam3:
+            # Filtrar dataframe según familias y subfamilias seleccionadas
             df_temp = df_prov_con_familias[
                 df_prov_con_familias['familia'].isin(familias_seleccionadas)
             ]
-            
             if subfamilias_seleccionadas:
                 df_temp = df_temp[
                     df_temp['subfamilia'].isin(subfamilias_seleccionadas)
                 ]
-                                  
+            
             # Calcular artículos totales vs filtrados
             articulos_totales = df_prov_con_familias['idarticulo'].nunique()
             articulos_filtrados = df_temp['idarticulo'].nunique()
             
-            st.metric(
-                "🎯 Artículos", 
-                f"{format_miles(articulos_filtrados)}",
-                delta=f"{format_miles(articulos_totales)} totales"
-            )
-
-        with col_fam4:
-            # Calcular totales
+            # Calcular totales de familias y subfamilias
             total_familias = len(familias_disponibles)
             activas_familias = len(familias_seleccionadas)
             total_subfamilias = len(subfamilias_disponibles)
             activas_subfamilias = len(subfamilias_seleccionadas)
             
-            # Mostrar métricas de filtros
-            # <div style="text-align: center; margin-top: 0.5rem;">
+            # Mostrar métricas en un solo bloque HTML estilizado
             st.markdown(f"""
-                <div style="background: linear-gradient(135deg, #ffffff 0%, #f3e3a3 100%);
-                                border: 2px solid #f3c221;
-                                border-radius: 10px;
-                                padding: 5px;
-                                box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
-                                transition: all 0.3s ease;height:150px">                        
-                <div style="font-size: 12px; color: #555; margin-bottom: 0.3rem;">📊 Filtros</div>
-                <div style="font-size: 12px; color: #666; margin-top: 0.2rem;">
-                    familias
+            <div style="
+                background: linear-gradient(135deg, #ffffff 0%, #f3e3a3 100%);
+                border: 2px solid #f3c221;
+                border-radius: 10px;
+                padding: 3px;
+                box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
+                transition: all 0.3s ease;
+                min-height:154px;
+                display:flex;
+                flex-direction:column;
+                justify-content:space-between;
+                overflow:hidden;">
+                <div style="font-size: 15px; color: #666; text-align:center;">
+                    🎯 artículos
                 </div>
-                <div style="font-size: 14px; font-weight: bold; color: #1e3c72;">
-                    🏷️ {activas_familias}/{total_familias}
+                <div style="font-size: 14px; font-weight: bold; color: #1e3c72; text-align:center;">
+                    {format_miles(articulos_filtrados)} / {format_miles(articulos_totales)}
                 </div>
-                <div style="font-size: 12px; color: #666; margin-top: 0.2rem;">
-                    subfamilias
+                <div style="font-size: 15px; color: #666; text-align:center;">
+                    🏷️ familias
                 </div>
-                <div style="font-size: 14px; font-weight: bold; color: #1e3c72; margin-top: 0.3rem;">
-                    📂 {activas_subfamilias}/{total_subfamilias}
+                <div style="font-size: 14px; font-weight: bold; color: #1e3c72; text-align:center;">
+                    {activas_familias}/{total_familias}
+                </div>
+                <div style="font-size: 15px; color: #666; text-align:center;">
+                    📂 subfamilias
+                </div>
+                <div style="font-size: 14px; font-weight: bold; color: #1e3c72; text-align:center;">
+                    {activas_subfamilias}/{total_subfamilias}
                 </div>
             </div>
             """, unsafe_allow_html=True)
+
+        # with col_fam3:
+        #     df_temp = df_prov_con_familias[
+        #         df_prov_con_familias['familia'].isin(familias_seleccionadas)
+        #     ]
+            
+        #     if subfamilias_seleccionadas:
+        #         df_temp = df_temp[
+        #             df_temp['subfamilia'].isin(subfamilias_seleccionadas)
+        #         ]
+                                  
+        #     # Calcular artículos totales vs filtrados
+        #     articulos_totales = df_prov_con_familias['idarticulo'].nunique()
+        #     articulos_filtrados = df_temp['idarticulo'].nunique()
+            
+        #     st.metric(
+        #         "🎯 Artículos", 
+        #         f"{format_miles(articulos_filtrados)}",
+        #         delta=f"{format_miles(articulos_totales)} totales"
+        #     )
+
+        # with col_fam4:
+        #     # Calcular totales
+        #     total_familias = len(familias_disponibles)
+        #     activas_familias = len(familias_seleccionadas)
+        #     total_subfamilias = len(subfamilias_disponibles)
+        #     activas_subfamilias = len(subfamilias_seleccionadas)
+            
+        #     # Mostrar métricas de filtros
+        #     st.markdown(f"""
+        #     <div style="
+        #         background: linear-gradient(135deg, #ffffff 0%, #f3e3a3 100%);
+        #         border: 2px solid #f3c221;
+        #         border-radius: 10px;
+        #         padding: 5px;
+        #         box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
+        #         transition: all 0.3s ease;
+        #         min-height:154px;
+        #         display:flex;
+        #         flex-direction:column;
+        #         justify-content:space-between;
+        #         overflow:hidden;">
+        #         <div style="font-size: 12px; color: #555; text-align:center; font-weight:600;">
+        #             📊 Filtros
+        #         </div>
+        #         <div style="font-size: 12px; color: #666; text-align:center;">
+        #             familias
+        #         </div>
+        #         <div style="font-size: 14px; font-weight: bold; color: #1e3c72; text-align:center;">
+        #             🏷️ {activas_familias}/{total_familias}
+        #         </div>
+        #         <div style="font-size: 12px; color: #666; text-align:center;">
+        #             subfamilias
+        #         </div>
+        #         <div style="font-size: 14px; font-weight: bold; color: #1e3c72; text-align:center;">
+        #             📂 {activas_subfamilias}/{total_subfamilias}
+        #         </div>
+        #     </div>
+        #     """, unsafe_allow_html=True)
 
         # === APLICAR FILTROS AL DATAFRAME PRINCIPAL ===
         df_proveedores_filtrado = df_prov_con_familias[

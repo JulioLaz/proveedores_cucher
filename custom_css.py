@@ -297,6 +297,17 @@ def custom_css():
         div[data-baseweb="select"] {
             max-height: 120px;   /* altura máxima del contenedor */
             overflow-y: auto;    /* agrega scroll vertical si excede */
+            font-size: 1rem;
+
+        .stMultiSelect {
+                background: linear-gradient(135deg, #ffffff 0%, #d1e8ff 100%);
+                border: 2px solid #1e90ff;
+                border-radius: 10px;
+                padding: 6px;
+                box-shadow: 0 2px 6px rgba(30, 144, 255, 0.25);
+                transition: all 0.3s ease;
+            }
+
 </style>
 """
 
