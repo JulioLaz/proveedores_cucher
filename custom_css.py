@@ -294,12 +294,9 @@ def custom_css():
         margin: 1px !important;
         padding: 0px 2px !important;
         }
-        
-        /* select formatos  */
-        .st-db {
-            max-height: 120px;
-        }
-
+        div[data-baseweb="select"] {
+            max-height: 120px;   /* altura máxima del contenedor */
+            overflow-y: auto;    /* agrega scroll vertical si excede */
 </style>
 """
 
@@ -312,6 +309,7 @@ def custom_sidebar():
                 max-width: 100%;
                 border-radius: 8px;
                 margin-bottom: 0.5rem;
+                z-index: -1000;
             }
 
             .animated-title {

@@ -194,6 +194,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         with col_fam1:
             familias_disponibles = sorted(df_prov_con_familias['familia'].dropna().unique().tolist())
             
+            # st.markdown(""" <style> div[data-baseweb="select"] { max-height: 120px; /* altura máxima del contenedor */ overflow-y: auto; /* agrega scroll vertical si excede */ } </style> """, unsafe_allow_html=True)
+
             familias_seleccionadas = st.multiselect(
                 "🏷️ Filtrar por Familia:",
                 options=familias_disponibles,
