@@ -55,7 +55,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
     with container:
         # === SELECTOR DE PERÍODO ===
-        col1, col2, col_fam1, col_fam2, col_fam3, col_fam4 = st.columns([2, 1.4, 2.1, 2.1, 1.1,0.8])
+        col1, col2, col_fam1, col_fam2, col_fam3, col_fam4 = st.columns([1.8, 1.3, 2, 2, 1.1,0.9])
 
         with col1:
             periodo_opciones = {
@@ -98,34 +98,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                     unsafe_allow_html=True
                 )
 
-        # with col1:
-        #     periodo_opciones = {
-        #         "Últimos 30 días": 30,
-        #         "Últimos 60 días": 60,
-        #         "Últimos 90 días": 90,
-        #         "Últimos 6 meses": 180,
-        #         "Último año": 365,
-        #         "Personalizado": None,
-        #     }
-
-        #     periodo_seleccionado = st.selectbox(
-        #         "📅 Período de análisis de ventas:",
-        #         options=list(periodo_opciones.keys()),
-        #         index=0,
-        #     )
-
-        #     st.markdown(
-        #             f"""
-        #             <div>
-        #                 <span style='font-weight:semi-bold;padding: 5px;font-size:1rem'>🆙 Actualizado al:</span><br>
-        #                 <div style='font-weight:300;padding-top: 5px;padding-left: 1.5rem;font-size:1rem'>
-        #                     {fecha_maxima_disponible.strftime('%d %B %Y')}
-        #                 </div>
-        #             </div>
-        #             """,
-        #             unsafe_allow_html=True
-        #         )
-
         with col2:
                     if periodo_seleccionado == "Personalizado":
                         col_a, col_b = st.columns(2)
@@ -162,16 +134,21 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
                         st.markdown(
                             f"""
-                            <div>
-                                <span style='font-weight:semi-bold;padding: 5px;font-size:1rem'>⏳ Rango de fechas</span><br>
-                                <div style='font-weight:300;padding-top: 5px;padding-left: 1rem;font-size:1rem'>
+                            <div style="background: linear-gradient(135deg, #ffffff 0%, #f3e3a3 100%);
+                                border: 2px solid #f3c221;
+                                border-radius: 10px;
+                                padding: 5px;
+                                box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
+                                transition: all 0.3s ease;height:150px">
+                                <span style='font-weight:semi-bold;padding: 5px;font-size:.8rem'>⏳ Rango de fechas</span><br>
+                                <div style='font-weight:400;padding-top: 5px;padding-left: .7rem;font-size:.8rem'>
                                     Desde: {fecha_desde.strftime('%d %b %Y')}
                                 </div>
-                                <div style='font-weight:300; padding-left: 1rem;font-size:1rem'>
+                                <div style='font-weight:400; padding-left: 1rem;font-size:.8rem'>
                                     Hasta: {fecha_hasta.strftime('%d %b %Y')}
                                 </div>
-                                <div style='font-weight:semi-bold;padding-top: 5px;padding-left: 5px;font-size:1rem'> 📆 Días de actividad:</div>
-                                <div style='font-weight:400;margin-left:2.8rem;font-size:1.4rem'>{dias_periodo} días</div>
+                                <div style='font-weight:semi-bold;padding-top: 5px;padding-left: 5px;font-size:.8rem'> 📆 Días de actividad:</div>
+                                <div style='font-weight:400;margin-left:2.8rem;font-size:.7rem'>{dias_periodo} días</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -274,20 +251,26 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             activas_subfamilias = len(subfamilias_seleccionadas)
             
             # Mostrar métricas de filtros
+            # <div style="text-align: center; margin-top: 0.5rem;">
             st.markdown(f"""
-            <div style="text-align: center; margin-top: 0.5rem;">
+                <div style="background: linear-gradient(135deg, #ffffff 0%, #f3e3a3 100%);
+                                border: 2px solid #f3c221;
+                                border-radius: 10px;
+                                padding: 5px;
+                                box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
+                                transition: all 0.3s ease;height:150px">                        
                 <div style="font-size: 12px; color: #555; margin-bottom: 0.3rem;">📊 Filtros</div>
+                <div style="font-size: 12px; color: #666; margin-top: 0.2rem;">
+                    familias
+                </div>
                 <div style="font-size: 14px; font-weight: bold; color: #1e3c72;">
                     🏷️ {activas_familias}/{total_familias}
                 </div>
-                <div style="font-size: 11px; color: #666; margin-top: 0.2rem;">
-                    familias
+                <div style="font-size: 12px; color: #666; margin-top: 0.2rem;">
+                    subfamilias
                 </div>
                 <div style="font-size: 14px; font-weight: bold; color: #1e3c72; margin-top: 0.3rem;">
                     📂 {activas_subfamilias}/{total_subfamilias}
-                </div>
-                <div style="font-size: 11px; color: #666; margin-top: 0.2rem;">
-                    subfamilias
                 </div>
             </div>
             """, unsafe_allow_html=True)

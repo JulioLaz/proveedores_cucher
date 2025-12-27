@@ -606,7 +606,7 @@ def show_cobertura_section(df_para_cobertura, fecha_desde, fecha_hasta,
                 step=250_000,
                 format="%d",
                 help=f"Solo se incluirán artículos con utilidad superior a este monto. "
-                    f"Ref: $10.000",
+                    f"Ref: $1.000.000",
                 key='utilidad_minima_cobertura'
             )
 

@@ -294,7 +294,11 @@ def custom_css():
         margin: 1px !important;
         padding: 0px 2px !important;
         }
-
+        
+        /* select formatos  */
+        .st-db {
+            max-height: 120px;
+        }
 
 </style>
 """
