@@ -146,7 +146,7 @@ def main_tab1_ranking_ventas(
             )
         )
 
-        st.plotly_chart(fig_ventas, use_container_width=True)
+        st.plotly_chart(fig_ventas, width='stretch')
 
     # ─────────────────────────────────────────────────────────────────────────
     # GRÁFICO 2: RANKING POR UTILIDAD
@@ -206,7 +206,7 @@ def main_tab1_ranking_ventas(
             )
         )
         
-        st.plotly_chart(fig_util, use_container_width=True)
+        st.plotly_chart(fig_util, width='stretch')
 
     # ─────────────────────────────────────────────────────────────────────────
     # GRÁFICO 3: RANKING POR PRESUPUESTO
@@ -265,7 +265,7 @@ def main_tab1_ranking_ventas(
             )
         )
         
-        st.plotly_chart(fig_presu, use_container_width=True)
+        st.plotly_chart(fig_presu, width='stretch')
 
     # ═════════════════════════════════════════════════════════════════════════
     # SECCIÓN 2: TABLA RANKING DETALLADO
@@ -295,7 +295,7 @@ def main_tab1_ranking_ventas(
             '% Participación Presupuesto', 'Presupuesto', 'Artículos', 'Art. con Exceso', 
             'Costo Exceso', 'Art. Sin Stock'
         ]],
-        use_container_width=True,
+        width='stretch',
         hide_index=True
     )
     
@@ -303,67 +303,71 @@ def main_tab1_ranking_ventas(
     # SECCIÓN 3: INSIGHTS CLAVE (5 TARJETAS)
     # ═════════════════════════════════════════════════════════════════════════
     
-    st.markdown("### 💡 Insights Clave de Proveedores")
-    
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        top_proveedor = ranking.iloc[0]
-        st.markdown(f"""
-        <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #4caf50; font-size:13px'>
-        <b style='border-bottom:1px solid gray; margin-bottom: 3px'>🏆 Proveedor Líder en Ventas</b><br>
-        <b style='text-align: center'>{top_proveedor['Proveedor']}</b><br>
-        💰 ${top_proveedor['Venta Total']:,.0f}<br>
-        📊 {top_proveedor['% Participación Ventas']:.1f}% del total<br>
-        📦 {top_proveedor['Artículos']} artículos
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        top_presupuesto = ranking.nlargest(1, 'Presupuesto').iloc[0]
-        st.markdown(f"""
-        <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #4caf50; font-size:13px'>
-        <b style='border-bottom:1px solid gray; margin-bottom: 3px'>💰 Mayor Presupuesto Requerido</b><br>
-        <b>{top_presupuesto['Proveedor']}</b><br>
-        💵 ${top_presupuesto['Presupuesto']:,.0f}<br>
-        📊 {top_presupuesto['% Participación Presupuesto']:.1f}% del total<br>
-        📦 {top_presupuesto['Artículos']} artículos<br>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        mas_util = ranking.nlargest(1, 'Utilidad').iloc[0]
-        st.markdown(f"""
-        <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #4caf50; font-size:13px'>
-        <b style='border-bottom:1px solid gray; margin-bottom: 3px'>🏆 Proveedor Líder en Utilidad</b><br>
-        <b>{mas_util['Proveedor']}</b><br>
-        💸 ${mas_util['Utilidad']:,.0f}<br>
-        📦 {mas_util['Artículos']} artículos<br>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col4:
-        peor_util = ranking.nsmallest(1, 'Utilidad').iloc[0]
-        st.markdown(f"""
-        <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid red; font-size:13px'>
-        <b style='border-bottom:1px solid gray; margin-bottom: 3px'>⚠️ Proveedor con Menor Utilidad</b><br>
-        <b>{peor_util['Proveedor']}</b><br>
-        💸 ${peor_util['Utilidad']:,.0f}<br>
-        📦 {peor_util['Artículos']} artículos<br>
-        </div>
-        """, unsafe_allow_html=True)
-                
-    with col5:
-        mas_exceso = ranking.nlargest(1, 'Costo Exceso').iloc[0]
-        st.markdown(f"""
-        <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid red; font-size:13px'>
-        <b style='border-bottom:1px solid gray; margin-bottom: 3px'>⚠️ Mayor Exceso de Stock</b><br>
-        <b>{mas_exceso['Proveedor']}</b><br>
-        💸 ${mas_exceso['Costo Exceso']:,.0f} inmovilizado<br>
-        📊 {mas_exceso['Art. con Exceso']} artículos<br>
-        🔄 Optimizar inventario
-        </div>
-        """, unsafe_allow_html=True)
+    container_insight = st.container(border=True)
+
+    with container_insight:
+
+        st.markdown("### 💡 Insights Clave de Proveedores")
+        
+        col1, col2, col3, col4, col5 = st.columns(5)
+        
+        with col1:
+            top_proveedor = ranking.iloc[0]
+            st.markdown(f"""
+            <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #4caf50; font-size:13px; min-height:155px; margin-bottom:1rem'>
+            <b style='border-bottom:1px solid gray; margin-bottom: 3px'>🏆 Proveedor Líder en Ventas</b><br>
+            <b style='text-align: center'>{top_proveedor['Proveedor']}</b><br>
+            💰 ${top_proveedor['Venta Total']:,.0f}<br>
+            📊 {top_proveedor['% Participación Ventas']:.1f}% del total<br>
+            📦 {top_proveedor['Artículos']} artículos
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            top_presupuesto = ranking.nlargest(1, 'Presupuesto').iloc[0]
+            st.markdown(f"""
+            <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #4caf50; font-size:13px; min-height:155px; margin-bottom:1rem'>
+            <b style='border-bottom:1px solid gray; margin-bottom: 3px'>💰 Mayor Presupuesto</b><br>
+            <b>{top_presupuesto['Proveedor']}</b><br>
+            💵 ${top_presupuesto['Presupuesto']:,.0f}<br>
+            📊 {top_presupuesto['% Participación Presupuesto']:.1f}% del total<br>
+            📦 {top_presupuesto['Artículos']} artículos<br>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            mas_util = ranking.nlargest(1, 'Utilidad').iloc[0]
+            st.markdown(f"""
+            <div style='background-color:#e8f5e9;padding:1rem;border-radius:10px;border-left:5px solid #4caf50; font-size:13px; min-height:155px; margin-bottom:1rem'>
+            <b style='border-bottom:1px solid gray; margin-bottom: 3px'>🏆 Proveedor Líder en Utilidad</b><br>
+            <b>{mas_util['Proveedor']}</b><br>
+            💸 ${mas_util['Utilidad']:,.0f}<br>
+            📦 {mas_util['Artículos']} artículos<br>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col4:
+            peor_util = ranking.nsmallest(1, 'Utilidad').iloc[0]
+            st.markdown(f"""
+            <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid red; font-size:13px; min-height:155px; margin-bottom:1rem'>
+            <b style='border-bottom:1px solid gray; margin-bottom: 3px'>⚠️ Proveedor con Menor Utilidad</b><br>
+            <b>{peor_util['Proveedor']}</b><br>
+            💸 ${peor_util['Utilidad']:,.0f}<br>
+            📦 {peor_util['Artículos']} artículos<br>
+            </div>
+            """, unsafe_allow_html=True)
+                    
+        with col5:
+            mas_exceso = ranking.nlargest(1, 'Costo Exceso').iloc[0]
+            st.markdown(f"""
+            <div style='background-color:#ffebee;padding:1rem;border-radius:10px;border-left:5px solid red; font-size:13px; min-height:155px; margin-bottom:1rem'>
+            <b style='border-bottom:1px solid gray; margin-bottom: 3px'>⚠️ Mayor Exceso de Stock</b><br>
+            <b>{mas_exceso['Proveedor']}</b><br>
+            💸 ${mas_exceso['Costo Exceso']:,.0f} inmovilizado<br>
+            📊 {mas_exceso['Art. con Exceso']} artículos<br>
+            🔄 Optimizar inventario
+            </div>
+            """, unsafe_allow_html=True)
     
     # ═════════════════════════════════════════════════════════════════════════
     # SECCIÓN 4: PREPARACIÓN DE DATOS PARA COBERTURA

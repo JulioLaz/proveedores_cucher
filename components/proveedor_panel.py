@@ -681,7 +681,7 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
                             df_margen_neg,
                             hide_index=True,
                             height=300,
-                            use_container_width=True
+                            width='stretch'
                         )
                         
                         # Resumen

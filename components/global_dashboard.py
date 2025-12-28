@@ -61,12 +61,13 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     
     print(f"   ✅ Última fecha con datos: {fecha_maxima_disponible.strftime('%d/%m/%Y')}")
 
-    container = st.container(border=True)
+    container_filters = st.container(border=True)
 
-    with container:
+    with container_filters:
+        st.markdown("### ⚙️ Ajustar filtros generales: Período - Familia - Subfamilia ")
+
         # === SELECTOR DE PERÍODO ===
-        col1, col2, col_fam1, col_fam2, col_fam3 = st.columns([1.8, 1.3, 2, 2, 1.2])
-        # col1, col2, col_fam1, col_fam2, col_fam3, col_fam4 = st.columns([1.8, 1.3, 2, 2, 1.1,0.9])
+        col1, col2, col3, col4, col5 = st.columns([1.8, 2, 2, 1.4, 1.2])
 
         with col1:
 
@@ -134,70 +135,37 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                 options=list(periodo_opciones.keys()),
                 index=0,
             )
+    # with col2:
+        if periodo_seleccionado == "Personalizado":
+            col_a, col_b = st.columns(2)
+            fecha_desde = col_a.date_input(
+                "Desde:",
+                value=fecha_maxima_disponible - timedelta(days=30),
+            )
+            fecha_hasta = col_b.date_input(
+                "Hasta:",
+                value=fecha_maxima_disponible,
+                max_value=fecha_maxima_disponible
+            )
 
-        with col2:
-                    if periodo_seleccionado == "Personalizado":
-                        col_a, col_b = st.columns(2)
-                        fecha_desde = col_a.date_input(
-                            "Desde:",
-                            value= fecha_maxima_disponible - timedelta(days=30),
-                        )
-                        fecha_hasta = col_b.date_input(
-                            "Hasta:",
-                            value=fecha_maxima_disponible,
-                            max_value=fecha_maxima_disponible
-                        )
+            if fecha_desde > fecha_hasta:
+                st.error("La fecha 'Desde' no puede ser mayor que 'Hasta'.")
+                st.stop()
 
-                        if fecha_desde > fecha_hasta:
-                            st.error("La fecha 'Desde' no puede ser mayor que 'Hasta'.")
-                            st.stop()
+            dias_periodo = (fecha_hasta - fecha_desde).days
 
-                        dias_periodo = (fecha_hasta - fecha_desde).days
+        else:
+            valor_periodo = periodo_opciones[periodo_seleccionado]
 
-                    else:
-                        valor_periodo = periodo_opciones[periodo_seleccionado]
-                        
-                        # Si es una tupla (meses completos), usar las fechas directamente
-                        if isinstance(valor_periodo, tuple):
-                            from datetime import datetime
-                            fecha_desde = datetime.strptime(valor_periodo[0], "%Y-%m-%d").date()
-                            fecha_hasta = datetime.strptime(valor_periodo[1], "%Y-%m-%d").date()
-                            dias_periodo = (fecha_hasta - fecha_desde).days + 1
-                        # Si es un número (días relativos), calcular desde fecha_maxima_disponible
-                        else:
-                            dias_periodo = valor_periodo
-                            fecha_hasta = fecha_maxima_disponible
-                            fecha_desde = fecha_maxima_disponible - timedelta(days=dias_periodo)
-
-                        st.markdown(
-                            f"""
-                            <div style="
-                                background: linear-gradient(135deg, #ffffff 0%, #f3e3a3 100%);
-                                border: 2px solid #f3c221;
-                                border-radius: 10px;
-                                padding: 5px;
-                                box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
-                                transition: all 0.3s ease;
-                                min-height:154px;
-                                display:flex;
-                                flex-direction:column;
-                                justify-content:space-between;
-                                overflow:hidden;">
-                                <span style='font-weight:600;padding: 5px;font-size:.9rem; text-align: center;'>⏳ Rango de fechas</span>
-                                <div style='font-weight:400;font-size:.9rem; text-align: center;'>
-                                    Desde: {fecha_desde.strftime('%d %b %Y')}
-                                </div>
-                                <div style='font-weight:400;font-size:.9rem; text-align: center;'>
-                                    Hasta: {fecha_hasta.strftime('%d %b %Y')}
-                                </div>
-                                <div style='font-weight:600;padding-left:5px;font-size:.9rem; text-align: center;'>📆 Días de actividad:</div>
-                                <div style='font-weight:400;font-size:.9rem; text-align: center;'>
-                                    {dias_periodo} días
-                                </div>
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
+            if isinstance(valor_periodo, tuple):
+                from datetime import datetime
+                fecha_desde = datetime.strptime(valor_periodo[0], "%Y-%m-%d").date()
+                fecha_hasta = datetime.strptime(valor_periodo[1], "%Y-%m-%d").date()
+                dias_periodo = (fecha_hasta - fecha_desde).days + 1
+            else:
+                dias_periodo = valor_periodo
+                fecha_hasta = fecha_maxima_disponible
+                fecha_desde = fecha_maxima_disponible - timedelta(days=dias_periodo)
 
         # === CARGAR DATOS PRIMERO (para tener df_ventas disponible) ===
         print(f"\n🔄 Cargando datos para filtros...")
@@ -236,7 +204,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
         # === FILTROS DE FAMILIA Y SUBFAMILIA ===
 
-        with col_fam1:
+        # with col_fam1:
+        with col2:
             familias_disponibles = sorted(df_prov_con_familias['familia'].dropna().unique().tolist())
 
             familias_seleccionadas = st.multiselect(
@@ -250,7 +219,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                 familias_seleccionadas = familias_disponibles
                 st.warning("⚠️ Debes mantener al menos una familia seleccionada")
 
-        with col_fam2:
+        with col3:
             df_familias_filtradas = df_prov_con_familias[
                 df_prov_con_familias['familia'].isin(familias_seleccionadas)
             ]
@@ -267,8 +236,39 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             if not subfamilias_seleccionadas:
                 subfamilias_seleccionadas = subfamilias_disponibles
                 st.warning("⚠️ Debes mantener al menos una subfamilia seleccionada")
-        # with col_fam3:
-        with col_fam3:
+
+        with col4:
+            st.markdown(
+                f"""
+                <div style="
+                    background: linear-gradient(135deg, #ffffff 0%, #f3e3a3 100%);
+                    border: 2px solid #f3c221;
+                    border-radius: 10px;
+                    padding: 5px;
+                    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
+                    transition: all 0.3s ease;
+                    min-height:154px;
+                    display:flex;
+                    flex-direction:column;
+                    justify-content:space-between;
+                    overflow:hidden;">
+                    <span style='font-weight:600;padding: 5px;font-size:.9rem; text-align: center;'>⏳ Rango de fechas</span>
+                    <div style='font-weight:400;font-size:.9rem; text-align: center;'>
+                        Desde: {fecha_desde.strftime('%d %b %Y')}
+                    </div>
+                    <div style='font-weight:400;font-size:.9rem; text-align: center;'>
+                        Hasta: {fecha_hasta.strftime('%d %b %Y')}
+                    </div>
+                    <div style='font-weight:600;padding-left:5px;font-size:.9rem; text-align: center;'>📆 Días de actividad:</div>
+                    <div style='font-weight:400;font-size:.9rem; text-align: center;'>
+                        {dias_periodo} días
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        with col5:
             # Filtrar dataframe según familias y subfamilias seleccionadas
             df_temp = df_prov_con_familias[
                 df_prov_con_familias['familia'].isin(familias_seleccionadas)
@@ -448,88 +448,95 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     print(f"   ⏱️  Tiempo: {tiempo_ranking:.2f}s")
     print(f"{'='*80}\n")
     
-    # === KPIs ===
-    col1, col11, col2, col3, col4, col5 = st.columns(6)
-        
-    with col1:
-        st.markdown(f"""
-        <div class="metric-box">
-            <div style="text-align: center;">
-                <div style="font-size: 14px; color: #555;">💰 Ventas Totales</div>
-                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${format_millones(ranking['Venta Total'].sum())}</div>
-            </div>
-            <div style="color: green; font-size: 12px; margin-top: 0.2rem;">
-                ⬆️ {len(ranking)} proveedores
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
 
-    with col11:
-        st.markdown(f"""
-        <div class="metric-box">
-            <div style="text-align: center;">
-                <div style="font-size: 14px; color: #555;">💰 Utilidad Total</div>
-                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${format_millones(ranking['Utilidad'].sum())}</div>
-            </div>
-            <div style="color: green; font-size: 12px; margin-top: 0.2rem;">
-                ⬆️ {len(ranking)} proveedores
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    container_kpis = st.container(border=True)
 
-    with col2:
-        st.markdown(f"""
-        <div class="metric-box">
-            <div style="text-align: center;">
-                <div style="font-size: 14px; color: #555;">💵 Presupuesto a 30 días</div>
-                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${format_millones(ranking['Presupuesto'].sum())}</div>
-            </div>
-            <div style="color: #d35400; font-size: 12px; margin-top: 0.2rem;">
-                📊 Inversión requerida
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    with container_kpis:
 
-    with col3:
-        st.markdown(f"""
-        <div class="metric-box">
-            <div style="text-align: center;">
-                <div style="font-size: 14px; color: #555;">📦 Cantidad Vendida</div>
-                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{format_miles(int(ranking['Cantidad Vendida'].sum()))}</div>
-            </div>
-            <div style="color: #555; font-size: 12px; margin-top: 0.2rem;">
-                🎯 {df_ventas_filtrado['idarticulo'].nunique():,} art únicos
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("### 💹 Indicadores generales")
 
-    with col4:
-        st.markdown(f"""
-        <div class="metric-box">
-            <div style="text-align: center;">
-                <div style="font-size: 14px; color: #555;">⚠️ Exceso de Stock</div>
-                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${format_millones(ranking['Costo Exceso'].sum())}</div>
+        # === KPIs ===
+        col1, col11, col2, col3, col4, col5 = st.columns(6)
+            
+        with col1:
+            st.markdown(f"""
+            <div class="metric-box">
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; color: #555;">💰 Ventas Totales</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${format_millones(ranking['Venta Total'].sum())}</div>
+                </div>
+                <div style="color: green; font-size: 12px; margin-top: 0.2rem;">
+                    ⬆️ {len(ranking)} proveedores
+                </div>
             </div>
-            <div style="color: #888; font-size: 12px; margin-top: 0.2rem;">
-                📊 {ranking['Art. con Exceso'].sum():,} artículos
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
-    with col5:
-        st.markdown(f"""
-        <div class="metric-box">
-            <div style="text-align: center;">
-                <div style="font-size: 14px; color: #555;">❌ Sin Stock</div>
-                <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{format_miles(int(ranking['Art. Sin Stock'].sum()))}</div>
+        with col11:
+            st.markdown(f"""
+            <div class="metric-box">
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; color: #555;">💰 Utilidad Total</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${format_millones(ranking['Utilidad'].sum())}</div>
+                </div>
+                <div style="color: green; font-size: 12px; margin-top: 0.2rem;">
+                    ⬆️ {len(ranking)} proveedores
+                </div>
             </div>
-            <div style="color: #c0392b; font-size: 12px; margin-top: 0.2rem;">
-                🔴 Artículos críticos
+            """, unsafe_allow_html=True)
+
+        with col2:
+            st.markdown(f"""
+            <div class="metric-box">
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; color: #555;">💵 Presupuesto a 30 días</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${format_millones(ranking['Presupuesto'].sum())}</div>
+                </div>
+                <div style="color: #d35400; font-size: 12px; margin-top: 0.2rem;">
+                    📊 Inversión requerida
+                </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+
+        with col3:
+            st.markdown(f"""
+            <div class="metric-box">
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; color: #555;">📦 Cantidad Vendida</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{format_miles(int(ranking['Cantidad Vendida'].sum()))}</div>
+                </div>
+                <div style="color: #555; font-size: 12px; margin-top: 0.2rem;">
+                    🎯 {df_ventas_filtrado['idarticulo'].nunique():,} art únicos
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col4:
+            st.markdown(f"""
+            <div class="metric-box">
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; color: #555;">⚠️ Exceso de Stock</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">${format_millones(ranking['Costo Exceso'].sum())}</div>
+                </div>
+                <div style="color: #888; font-size: 12px; margin-top: 0.2rem;">
+                    📊 {ranking['Art. con Exceso'].sum():,} artículos
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col5:
+            st.markdown(f"""
+            <div class="metric-box">
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; color: #555;">❌ Sin Stock</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #1e3c72;">{format_miles(int(ranking['Art. Sin Stock'].sum()))}</div>
+                </div>
+                <div style="color: #c0392b; font-size: 12px; margin-top: 0.2rem;">
+                    🔴 Artículos críticos
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
     
-    st.markdown("---")
+    # st.markdown("---")
     # st.markdown("### 📊 Análizar y descargar tablas xlsx")
     st.markdown(
         """<div style=" text-align: center; padding: 1rem; border: 1px solid gray; border-radius: 5px; background: #f0e69b; font-size: 1.8rem; font-weight: 600;">
@@ -588,7 +595,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     # =================================================================
     with tab1:
         st.markdown(
-        "<h3 style='text-align:center; color:rgb(30, 60, 114);font-weight: bold;'>📊 Rankings de Proveedores por Ventas</h3>",
+        "<h3 style='text-align:center; color:rgb(30, 60, 114);font-weight: bold;'>📊 Rankings de Proveedores</h3>",
         unsafe_allow_html=True)
 
         with st.expander("ℹ️ ¿Qué hace este análisis y qué contiene la descarga?", expanded=False):

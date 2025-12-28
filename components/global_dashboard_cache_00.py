@@ -759,24 +759,24 @@ def process_ranking_detallado_alimentos00(df_proveedores, df_ventas, df_presupue
     print(f"   📊 Familias disponibles: {df_proveedores_completo['familia'].unique()}")
     
     # Filtro case-insensitive
-    df_proveedores_completo = df_proveedores_completo[
+    df_proveedores_alimentos = df_proveedores_completo[
         df_proveedores_completo['familia'].str.strip().str.lower() == 'alimentos'
     ].copy()
     
-    print(f"   ✅ Artículos de Alimentos: {len(df_proveedores_completo):,}")
+    print(f"   ✅ Artículos de Alimentos: {len(df_proveedores_alimentos):,}")
     
-    if len(df_proveedores_completo) == 0:
+    if len(df_proveedores_alimentos) == 0:
         print(f"   ⚠️ NO SE ENCONTRARON ARTÍCULOS DE 'Alimentos'")
         return pd.DataFrame()
         
     # === MERGE COMPLETO (DETALLE POR ARTÍCULO) ===
     columnas_para_merge = ['idarticulo', 'proveedor', 'idproveedor', 'familia']
-    if 'subfamilia' in df_proveedores_completo.columns:
+    if 'subfamilia' in df_proveedores_alimentos.columns:
         columnas_para_merge.append('subfamilia')
-    if 'descripcion' in df_proveedores_completo.columns:
+    if 'descripcion' in df_proveedores_alimentos.columns:
         columnas_para_merge.append('descripcion')
     
-    df_detalle = df_proveedores_completo[columnas_para_merge].merge(
+    df_detalle = df_proveedores_alimentos[columnas_para_merge].merge(
         df_ventas,
         on='idarticulo',
         how='left'
@@ -907,9 +907,9 @@ def process_ranking_detallado_alimentos00(df_proveedores, df_ventas, df_presupue
 @st.cache_data(ttl=300, show_spinner=False)
 def process_ranking_detallado_alimentos(df_proveedores, df_ventas, df_presupuesto, df_familias):
     """
-    Procesa y genera el ranking DETALLADO por artículo (cualquier familia)
+    Procesa y genera el ranking DETALLADO por artículo (solo familia 'Alimentos')
     """
-    print(f"\n🔧 PROCESANDO RANKING DETALLADO (sin caché)")
+    print(f"\n🔧 PROCESANDO RANKING DETALLADO ALIMENTOS (sin caché)")
     import time
     inicio = time.time()
     
@@ -945,23 +945,30 @@ def process_ranking_detallado_alimentos(df_proveedores, df_ventas, df_presupuest
         how='left'
     )
     
-    # === NOTA: EL FILTRADO POR FAMILIA YA SE HIZO ANTES ===
-    # df_proveedores ya viene filtrado por la familia seleccionada
-    # NO necesitamos filtrar internamente aquí
+    # === FILTRAR SOLO FAMILIA = 'Alimentos' ===
+    if 'familia' not in df_proveedores_completo.columns:
+        print(f"   ⚠️ No se encontró columna 'familia', retornando DataFrame vacío")
+        return pd.DataFrame()
     
-    print(f"   📊 Artículos a procesar: {len(df_proveedores_completo):,}")
+    print(f"   📊 Familias disponibles: {df_proveedores_completo['familia'].unique()}")
     
-    if len(df_proveedores_completo) == 0:
-        print(f"   ⚠️ NO SE ENCONTRARON ARTÍCULOS")
+    df_proveedores_alimentos = df_proveedores_completo[
+        df_proveedores_completo['familia'].str.strip().str.lower() == 'alimentos'
+    ].copy()
+    
+    print(f"   ✅ Artículos de Alimentos: {len(df_proveedores_alimentos):,}")
+    
+    if len(df_proveedores_alimentos) == 0:
+        print(f"   ⚠️ NO SE ENCONTRARON ARTÍCULOS DE 'Alimentos'")
         return pd.DataFrame()
     
     # === MERGE COMPLETO (DETALLE POR ARTÍCULO) ===
     columnas_para_merge = ['idarticulo', 'proveedor', 'idproveedor', 'familia']
-    if 'subfamilia' in df_proveedores_completo.columns:
+    if 'subfamilia' in df_proveedores_alimentos.columns:
         columnas_para_merge.append('subfamilia')
     
     # MERGE CON df_ventas (incluye descripcion si está presente)
-    df_detalle = df_proveedores_completo[columnas_para_merge].merge(
+    df_detalle = df_proveedores_alimentos[columnas_para_merge].merge(
         df_ventas,
         on='idarticulo',
         how='inner'
