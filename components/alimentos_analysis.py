@@ -629,9 +629,6 @@ def format_millones(valor):
 #                             fecha_desde, fecha_hasta):
 def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_familias,
                            fecha_desde, fecha_hasta, subfamilias_preseleccionadas=None, familia_seleccionada='Alimentos'):    
-    """
-    Función principal del análisis de alimentos
-    """
     # Diccionario de emojis por familia
     emojis_familia = {
         'alimentos': '🥗',
@@ -643,44 +640,9 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
     }
     emoji = emojis_familia.get(familia_seleccionada.lower(), '📦')
 
-   #  st.markdown("---")
-   #  st.markdown(f"### {emoji} Análisis Detallado por Familia: {familia_seleccionada}")
-    
-    # === FILTROS Y DESCARGA ===
-   #  col_descarga, col_metric = st.columns([2, 1])
-    
-   #  with col_filtro:
-        # Obtener subfamilias de Alimentos disponibles
-
-        # subfamilias_alimentos = df_familias[
-        #     df_familias['familia'].str.strip().str.lower() == 'alimentos'
-        # ]['subfamilia'].dropna().unique().tolist()
-
     subfamilias_familia = df_familias[
             df_familias['familia'].str.strip().str.lower() == familia_seleccionada.lower()  # ← DINÁMICO!
         ]['subfamilia'].dropna().unique().tolist()
-
-        # subfamilias_alimentos = df_familias['subfamilia'] .dropna() .unique() .tolist()
-
-        # subfamilias_familia_seleccionadas = st.multiselect(
-        #     "🥗 Subfamilias de Alimentos a incluir:",
-        #     options=['Todas'] + sorted(subfamilias_alimentos),
-        #     default=['Todas'],
-        #     key='subfamilias_alimentos_analysis'  # ← KEY ÚNICA
-        # )
-    # Si ya vienen preseleccionadas, usarlas; sino, mostrar el selector
-    # if subfamilias_preseleccionadas is not None:
-    #     # Usar las ya seleccionadas arriba
-    #     subfamilias_familia_seleccionadas = subfamilias_preseleccionadas
-    #     st.info(f"📂 Usando subfamilias seleccionadas: {len(subfamilias_preseleccionadas)}")
-    # else:
-    #     # Mostrar selector independiente
-    #     subfamilias_familia_seleccionadas = st.multiselect(
-    #         "🥗 Subfamilias de Alimentos a incluir:",
-    #         options=['Todas'] + sorted(subfamilias_alimentos),
-    #         default=['Todas']
-    #         # key='subfamilias_alimentos_analysis_secondary'
-    #     )
 
     # Si ya vienen preseleccionadas, usarlas; sino, mostrar el selector
     if subfamilias_preseleccionadas is not None:
@@ -755,9 +717,6 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
     print(f"{'='*80}\n")
     
     # === BOTÓN DE DESCARGA ===
-    # === BOTÓN DE DESCARGA ===
-    # === BOTÓN DE DESCARGA ===
-    # === BOTÓN DE DESCARGA ===
    #  with col_descarga:
     output_detallado = crear_excel_ranking(
             ranking_detallado_familia,
@@ -790,16 +749,6 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
             f"💰 Venta total: ${ranking_detallado_familia['Venta Artículo'].sum():,.0f}"
         )
 
-   #  if descarga_xlsx_alimentos:  # ✅ Se pulsó el botón
-   #              usuario = st.session_state.get('username', 'Usuario desconocido')
-
-   #          # Mensaje principal + detalle 
-   #              mensaje = (
-   #                  f"<b>👤 USUARIO:</b> {usuario}\n"
-   #                  f"🥗 <b>Descarga de Ranking Alimentos</b>\n" 
-   #                  f"{mensaje_detalle}"
-   #                  )
-   #              send_telegram_alert(mensaje, tipo="SUCCESS")
 
    #  # === ANÁLISIS INTERACTIVO ===
    #  st.markdown("---")
@@ -813,23 +762,42 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
     with col1:
         ieu_promedio = df_analisis['IEU'].mean()
         st.metric(
-            "IEU Promedio",
+            "IEU Promedio de proveedores",
             f"{ieu_promedio:.2f}",
             delta="Eficiente" if ieu_promedio > 1.0 else "Revisar",
             delta_color="normal" if ieu_promedio > 1.0 else "inverse"
         )
-    
+
     with col2:
+        total_proveedores = ranking_detallado_familia['Proveedor'].nunique()
         alertas = df_analisis[df_analisis['Categoría'].isin(['Crítico', 'Revisar'])].shape[0]
-        st.metric("Proveedores a Revisar", alertas)
-    
+
+        st.metric(
+            label="Proveedores a Revisar",
+            value=alertas,
+            delta=f"{(alertas/total_proveedores*100):.1f}% del total"
+        )
+
     with col3:
+        total_proveedores = ranking_detallado_familia['Proveedor'].nunique()
         exceso_critico = (df_analisis['Costo Exceso Proveedor'] > df_analisis['Venta Total Proveedor']).sum()
-        st.metric("Con Exceso Crítico", exceso_critico)
-    
+
+        st.metric(
+            label="Proveedores con Exceso Crítico",
+            value=exceso_critico,
+            delta=f"{(exceso_critico/total_proveedores*100):.1f}% del total"
+        )
+
     with col4:
+        total_proveedores = ranking_detallado_familia['Proveedor'].nunique()
         eficientes = (df_analisis['IEU'] >= 1.2).sum()
-        st.metric("Proveedores Eficientes", eficientes)
+
+        st.metric(
+            label="Proveedores Eficientes",
+            value=eficientes,
+            delta=f"{(eficientes/total_proveedores*100):.1f}% del total"
+        )
+
     
     # 3. GRÁFICOS Y TABLAS
     tab1, tab2, tab3, tab4 = st.tabs([

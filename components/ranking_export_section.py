@@ -197,15 +197,11 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
             - 💵 ${format_millones(ranking['Presupuesto'].sum())} en presupuesto
             """)
 
-   # ===============================================================
-    # BOTÓN 3: DESCARGAR RANKING DETALLADO ALIMENTOS (POR ARTÍCULO)
-    # ===============================================================
-    # st.markdown("---")
-
-# ═══════════════════════════════════════════════════════════════════════════
+    # ═══════════════════════════════════════════════════════════════════════════
+    # ═══════════════════════════════════════════════════════════════════════════
     # SECCIÓN 3: RANKING DETALLADO POR FAMILIA (CON SELECTBOX)
     # ═══════════════════════════════════════════════════════════════════════════
-    # REEMPLAZA DESDE LÍNEA 205 HASTA LÍNEA 326 con este código
+    # ═══════════════════════════════════════════════════════════════════════════
     
     st.markdown(
         """<div style=" text-align: center; padding: 1rem; border: 1px solid gray; border-radius: 5px; background: #f0e69b; font-size: 1.8rem; font-weight: 600;margin-bottom:1rem">
@@ -332,9 +328,40 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
             df_presupuesto,
             df_familias
         )
-        
+
+        ##### mostrar proveedores unicos de ranking_detallado_familia  #####
+        import math
+
+        def mostrar_proveedores_en_columnas(df, columna="Proveedor", familia="(familia)", n_cols=4, font_size=12):
+            proveedores = df[columna].unique().tolist()
+            n = len(proveedores)
+            chunk_size = math.ceil(n / n_cols)
+
+            # Expander con título dinámico
+            with st.expander(f"🛠️ VER: {n} Proveedores únicos de {familia.upper()}", expanded=False):
+                cols = st.columns(n_cols)
+                for i, col in enumerate(cols):
+                    start = i * chunk_size
+                    end = start + chunk_size
+                    subset = proveedores[start:end]
+                    with col:
+                        texto = "".join([f"<div>• {p}</div>" for p in subset])
+                        st.markdown(
+                            f"<div style='font-size:{font_size}px; line-height:1.2;'>{texto}</div>",
+                            unsafe_allow_html=True
+                        )
+
+        mostrar_proveedores_en_columnas(ranking_detallado_familia, columna="Proveedor", n_cols=6)
+
+        # st.markdown(f"<br>", unsafe_allow_html=True)
         tiempo_detallado = time.time() - inicio_detallado
         
+        print("@"*100)
+        print("@"*100)
+        print('ranking_detallado_familia: ', ranking_detallado_familia.columns)
+        print("@"*100)
+        print("@"*100)
+
         # === VALIDAR SI HAY DATOS ===
         if ranking_detallado_familia.empty:
             st.warning(f"⚠️ No se encontraron datos de la familia '{familia_seleccionada}' en el período seleccionado.")
@@ -381,14 +408,13 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
             mensaje_subfamilias = f"TODAS las subfamilias ({subfamilias_count})" if 'Todas' in subfamilias_familia_seleccionadas else f"{len(subfamilias_familia_seleccionadas)} subfamilias seleccionadas"
             
             btn_ranking_familia = st.download_button(
-                label=f"📥 Descargar detalle Familia: {familia_seleccionada.upper()} con {len(ranking_detallado_familia):,} artículos  - 📂 Usando: {mensaje_subfamilias}",
+                label=f"📥 Descargar detalle Familia: {familia_seleccionada.upper()} con {len(ranking_detallado_familia):,} artículos  - 📂 Usando: {mensaje_subfamilias} - Proveedores: {ranking_detallado_familia.Proveedor.nunique()}",
                 data=output_detallado,
                 file_name=nombre_archivo_detallado,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 width='stretch',
                 type="primary"
             )
-            
             
             # Mensaje de éxito
             mensaje_success = f"""
@@ -401,8 +427,22 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
             - 📅 Período: {fecha_desde.strftime('%d/%m/%Y')} - {fecha_hasta.strftime('%d/%m/%Y')}
             - 💰 ${format_millones(ranking_detallado_familia['Venta Artículo'].sum())} en ventas
             """
-            
-            st.success(mensaje_success)
+
+            # Crear layout en dos columnas con proporción 1:3
+            col1, col2 = st.columns([1, 3])
+
+            with col1:
+                st.success(mensaje_success)
+
+            with col2:
+                # st.markdown("### 📊 Tabla detallada")
+                st.dataframe(
+                    ranking_detallado_familia.style.format({
+                        "Venta Artículo": lambda x: f"${x:,.0f}".replace(",", ".").replace(".", ",")
+                    }),
+                    use_container_width=True,
+                    height=244
+                )
             
             if btn_ranking_familia:  # ✅ Se pulsó el botón
                 usuario = st.session_state.get('username', 'Usuario desconocido')
@@ -418,26 +458,6 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
     # ═══════════════════════════════════════════════════════════════════════════
     # ANÁLISIS ESPECÍFICO DE ALIMENTOS (Si la familia es Alimentos)
     # ═══════════════════════════════════════════════════════════════════════════
-    # if familia_seleccionada.lower() == 'alimentos':
-    #     show_alimentos_analysis(
-    #         df_proveedores=df_proveedores,
-    #         df_ventas=df_ventas,
-    #         df_presupuesto=df_presupuesto,
-    #         df_familias=df_familias,
-    #         fecha_desde=fecha_desde,
-    #         fecha_hasta=fecha_hasta
-    #     )
-    # if familia_seleccionada.lower() == 'alimentos':
-    #     show_alimentos_analysis(
-    #         df_proveedores=df_proveedores,
-    #         df_ventas=df_ventas,
-    #         df_presupuesto=df_presupuesto,
-    #         df_familias=df_familias,
-    #         fecha_desde=fecha_desde,
-    #         fecha_hasta=fecha_hasta,
-    #         # context_id="ranking_section",  # ← Identificador único
-    #         subfamilias_preseleccionadas=subfamilias_a_usar  # ← NUEVO PARÁMETRO
-    #     )
 
     # Mostrar análisis detallado para CUALQUIER familia
     show_alimentos_analysis(
@@ -450,135 +470,3 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
         subfamilias_preseleccionadas=subfamilias_a_usar,
         familia_seleccionada=familia_seleccionada
     )
-
-    # st.markdown(
-    #     """<div style=" text-align: center; padding: 1rem; border: 1px solid gray; border-radius: 5px; background: #f0e69b; font-size: 1.8rem; font-weight: 600;margin-bottom:1rem">
-    #     🥗 Ranking Detallado Alimentos</div>
-    #     """, unsafe_allow_html=True)
-    #     # === FILTRO ESPECÍFICO PARA ALIMENTOS ===
-    #     # Obtener subfamilias de Alimentos disponibles
-    # subfamilias_alimentos = df_familias[
-    #         df_familias['familia'].str.strip().str.lower() == 'alimentos'
-    #     ]['subfamilia'].dropna().unique().tolist()
-        
-    # subfamilias_alimentos_seleccionadas = st.multiselect(
-    #         "🥗 Subfamilias de Alimentos a incluir:",
-    #         options=['Todas'] + sorted(subfamilias_alimentos),
-    #         default=['Todas'],
-    #         key='subfamilias_alimentos_detalle'
-    #     )
-        
-    # st.info(f"Detalle por artículo - {'Todas las subfamilias' if 'Todas' in subfamilias_alimentos_seleccionadas else f'{len(subfamilias_alimentos_seleccionadas)} subfamilias'}")
-        
-    #     # Determinar qué df usar
-    # if 'Todas' in subfamilias_alimentos_seleccionadas:
-    #         df_para_alimentos = df_proveedores  # Todas las subfamilias
-    #         filtros_aplicados = False
-    # else:
-    #         # Filtrar solo las subfamilias seleccionadas
-    #         articulos_filtrados = df_familias[
-    #             df_familias['subfamilia'].isin(subfamilias_alimentos_seleccionadas)
-    #         ]['idarticulo'].unique()
-            
-    #         df_para_alimentos = df_proveedores[
-    #             df_proveedores['idarticulo'].isin(articulos_filtrados)
-    #         ]
-    #         filtros_aplicados = True
-        
-    # print(f"{'='*80}")
-    # print("🥗 GENERANDO RANKING DETALLADO ALIMENTOS")
-    # if 'Todas' in subfamilias_alimentos_seleccionadas:
-    #         print("   📊 TODAS LAS SUBFAMILIAS")
-    # else:
-    #         print(f"   📊 {len(subfamilias_alimentos_seleccionadas)} SUBFAMILIAS SELECCIONADAS")
-    # print(f"{'='*80}")
-    # inicio_detallado = time.time()
-        
-    # ranking_detallado_alimentos = process_ranking_detallado_alimentos(
-    #         df_para_alimentos,
-    #         df_ventas,
-    #         df_presupuesto,
-    #         df_familias
-    #     )
-        
-    # tiempo_detallado = time.time() - inicio_detallado
-        
-    #     # === VALIDAR SI HAY DATOS ===
-    # if ranking_detallado_alimentos.empty:
-    #         st.warning("⚠️ No se encontraron datos de la familia 'Alimentos' en el período seleccionado.")
-    #         print(f"   ⚠️ DataFrame vacío retornado")
-    #         print(f"{'='*80}\n")
-    # else:
-    #         print(f"   ✅ Ranking detallado generado")
-    #         print(f"   📦 Artículos: {len(ranking_detallado_alimentos):,}")
-    #         print(f"   👥 Proveedores: {ranking_detallado_alimentos['Proveedor'].nunique()}")
-            
-    #         # Contar subfamilias únicas
-    #         subfamilias_count = ranking_detallado_alimentos['Subfamilia'].nunique() if 'Subfamilia' in ranking_detallado_alimentos.columns else 0
-    #         print(f"   🥗 Subfamilias: {subfamilias_count}")
-            
-    #         print(f"   💰 Venta total: ${ranking_detallado_alimentos['Venta Artículo'].sum():,.0f}")
-    #         print(f"   ⏱️  Tiempo: {tiempo_detallado:.2f}s")
-    #         print(f"{'='*80}\n")
-            
-    #         # Crear Excel
-    #         output_detallado = crear_excel_ranking(
-    #             ranking_detallado_alimentos,
-    #             str(fecha_desde),
-    #             str(fecha_hasta),
-    #             filtros_aplicados=filtros_aplicados,
-    #             subfamilias_activas=subfamilias_alimentos_seleccionadas if filtros_aplicados else None
-    #         )
-    #         # periodo= f'{fecha_desde.strftime('%d%b')}_a_{fecha_hasta.strftime('%d%b%Y')}'
-    #         periodo = f"{fecha_desde.strftime('%d%b')}_a_{fecha_hasta.strftime('%d%b%Y')}"
-
-    #         nombre_archivo_detallado = generar_nombre_archivo_alimentos("ranking_detallado_alimentos", periodo)
-
-            
-    #         btn_ranking_alimentos = st.download_button(
-    #             label=f"📥 Descargar Detalle Alimentos ({len(ranking_detallado_alimentos):,} artículos)",
-    #             data=output_detallado,
-    #             file_name=nombre_archivo_detallado,
-    #             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    #             width='stretch',
-    #             type="primary"
-    #         )
-            
-    #         mensaje_subfamilias = f"TODAS las subfamilias ({subfamilias_count})" if 'Todas' in subfamilias_alimentos_seleccionadas else f"{len(subfamilias_alimentos_seleccionadas)} subfamilias seleccionadas"
-
-    #         # Construyes el mensaje una sola vez
-    #         mensaje_success = f"""
-    #         **Incluye:**
-    #         - 🥗 Solo familia: **Alimentos**
-    #         - 📂 {mensaje_subfamilias}
-    #         - 📊 Detalle por artículo
-    #         - 👥 {ranking_detallado_alimentos['Proveedor'].nunique()} proveedores
-    #         - 📦 {len(ranking_detallado_alimentos):,} artículos
-    #         - 📅 Período: {fecha_desde.strftime('%d/%m/%Y')} - {fecha_hasta.strftime('%d/%m/%Y')}
-    #         - 💰 ${format_millones(ranking_detallado_alimentos['Venta Artículo'].sum())} en ventas
-    #         """
-
-    #         # Mostrar en ventana
-    #         st.success(mensaje_success)
-
-    #         if btn_ranking_alimentos:  # ✅ Se pulsó el botón
-    #             usuario = st.session_state.get('username', 'Usuario desconocido')
-
-    #         # Mensaje principal + detalle 
-    #             mensaje = (
-    #                 f"<b>👤 USUARIO:</b> {usuario}\n"
-    #                 f"🥗 <b>Descarga de Ranking Alimentos</b>\n\n" 
-    #                 f"{mensaje_success}"
-    #                 )
-
-    #             send_telegram_alert(mensaje, tipo="SUCCESS")
-
-#     show_alimentos_analysis(
-#     df_proveedores=df_proveedores,
-#     df_ventas=df_ventas,
-#     df_presupuesto=df_presupuesto,
-#     df_familias=df_familias,
-#     fecha_desde=fecha_desde,
-#     fecha_hasta=fecha_hasta
-# )
-
