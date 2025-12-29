@@ -108,6 +108,198 @@ def crear_scatter_portfolio(df_analisis):
     """
     Mapa de Proveedores: Rentabilidad vs Participación
     """
+    fig = px.scatter(
+        df_analisis,
+        x='% Participación Ventas',
+        y='Rentabilidad % Proveedor',
+        size='Costo Exceso Proveedor',
+        color='Categoría',
+        hover_data={
+            'Proveedor': True,
+            'IEU': ':.2f',
+            'Venta Total Proveedor': ':$,.0f',
+            'Utilidad Proveedor': ':$,.0f',
+            'Costo Exceso Proveedor': ':$,.0f',
+            'Acción Recomendada': True,
+            '% Participación Ventas': ':.2f%',
+            'Rentabilidad % Proveedor': ':.2f%'
+        },
+        color_discrete_map={
+            'Crítico': '#ff0000',
+            'Revisar': '#ff9500',
+            'Promocionar': '#ffcc00',
+            'Mantener': '#4caf50',
+            'Potenciar': '#2196f3'
+        },
+        title='📊 Mapa de Proveedores: Rentabilidad vs Participación<br><sub>⚠️ Tamaño del círculo = Costo de Exceso de Stock</sub>',
+        labels={
+            '% Participación Ventas': '% Participación en Ventas',
+            'Rentabilidad % Proveedor': 'Rentabilidad %'
+        }
+    )
+    
+    # Líneas de referencia
+    fig.add_hline(y=df_analisis['Rentabilidad % Proveedor'].mean(), 
+                  line_dash="dash", line_color="gray", 
+                  annotation_text="Rentabilidad Promedio")
+    
+    fig.add_vline(x=df_analisis['% Participación Ventas'].mean(), 
+                  line_dash="dash", line_color="gray",
+                  annotation_text="Participación Promedio")
+    
+    fig.update_layout(height=600)
+    
+    st.plotly_chart(fig, width='stretch')
+    
+    # EXPANDER UNIFICADO - EXPLICACIÓN COMPLETA
+    with st.expander("📖 Guía Completa: Cómo interpretar el Mapa de Proveedores", expanded=False):
+        st.markdown("""
+        ## 🎯 ¿Qué muestra este gráfico?
+        
+        Este es un **mapa estratégico** que te ayuda a tomar decisiones sobre cada proveedor combinando **3 variables clave**:
+        
+        | Elemento | Qué representa | Cómo se ve |
+        |----------|----------------|------------|
+        | **Posición Horizontal (→)** | % Participación en Ventas | Más a la derecha = Vende más |
+        | **Posición Vertical (↑)** | Rentabilidad % del proveedor | Más arriba = Más rentable |
+        | **Tamaño del círculo (⭕)** | Costo del Exceso de Stock | Más grande = Más plata parada |
+        | **Color del círculo (🎨)** | Categoría/Acción recomendada | Según análisis IEU |
+        
+        **Líneas grises punteadas**: Marcan el promedio de rentabilidad y participación (te ayudan a comparar cada proveedor contra el promedio de Alimentos).
+        
+        ---
+        
+        ## 🎨 PASO 1: Entender los COLORES (Categoría del Proveedor)
+        
+        El color te dice **qué tan urgente** es actuar sobre ese proveedor según su IEU (Índice de Eficiencia de Uso):
+        
+        - 🔴 **ROJO (Crítico)**: Exceso de stock > Ventas del período → **LIQUIDAR INMEDIATAMENTE**
+        - 🟠 **NARANJA (Revisar)**: IEU bajo (0.8 - 1.0) → **RENEGOCIAR o REDUCIR**
+        - 🟡 **AMARILLO (Promocionar)**: Buen margen pero con exceso → **LIBERAR STOCK con promoción**
+        - 🟢 **VERDE (Mantener)**: Equilibrado, sin problemas → **SEGUIR IGUAL**
+        - 🔵 **AZUL (Potenciar)**: IEU alto (>1.2) → **AUMENTAR EXHIBICIÓN/COMPRAR MÁS**
+        
+        ---
+        
+        ## 📍 PASO 2: Entender la POSICIÓN (Cuadrantes)
+        
+        El gráfico se divide en **4 cuadrantes** según rentabilidad y participación en ventas:
+        
+        ### 🌟 **CUADRANTE SUPERIOR DERECHO** (Alta Venta + Alta Rentabilidad)
+        **→ TUS MEJORES PROVEEDORES**
+        
+        - ⚪ **Círculo PEQUEÑO**: ¡PERFECTO! Vende mucho, gana bien, sin exceso
+          - ✅ **Acción**: Mantener, asegurar nunca romper stock, prioridad absoluta
+        
+        - ⚪ **Círculo GRANDE**: Excelente proveedor pero compraste de más
+          - ⚠️ **Acción**: Promoción suave para normalizar exceso, NO dejar de comprar
+        
+        ---
+        
+        ### ⚡ **CUADRANTE SUPERIOR IZQUIERDO** (Baja Venta + Alta Rentabilidad)
+        **→ PRODUCTOS RENTABLES PERO DE NICHO**
+        
+        - ⚪ **Círculo PEQUEÑO**: Producto rentable, baja rotación natural (normal)
+          - ✅ **Acción**: Mantener en surtido, comprar poco y frecuente
+        
+        - ⚪ **Círculo GRANDE**: Producto rentable pero sobrestockeado
+          - 💡 **Acción**: Promoción 2x1 o descuento para liberar capital
+        
+        ---
+        
+        ### ⚠️ **CUADRANTE INFERIOR DERECHO** (Alta Venta + Baja Rentabilidad)
+        **→ GENERADORES DE TRÁFICO POCO RENTABLES**
+        
+        - ⚪ **Círculo PEQUEÑO**: "Gancho" de clientes, necesario pero poco rentable
+          - 🔄 **Acción**: Renegociar margen o usar en folletos para atraer clientes
+        
+        - ⚪ **Círculo GRANDE**: Vende mucho pero no ganas Y tenés exceso
+          - 🚨 **Acción**: Liquidar exceso YA, renegociar condiciones URGENTE
+        
+        ---
+        
+        ### 🔴 **CUADRANTE INFERIOR IZQUIERDO** (Baja Venta + Baja Rentabilidad)
+        **→ CANDIDATOS A ELIMINAR**
+        
+        - ⚪ **Círculo PEQUEÑO**: Producto marginal pero sin riesgo financiero
+          - 📉 **Acción**: Dejar agotar naturalmente, NO reponer
+        
+        - 🚨 **Círculo GRANDE**: ¡LO PEOR! No vende, no gana, capital parado
+          - ❌ **Acción**: LIQUIDAR URGENTE (hasta 50% OFF), descontinuar INMEDIATO
+        
+        ---
+        
+        ## 💡 PASO 3: Combinar COLOR + POSICIÓN + TAMAÑO
+        
+        ### 📌 Ejemplo 1: Círculo 🔵 AZUL + Superior Derecha + GRANDE
+        - **Interpretación**: Top performer (IEU alto) con exceso de stock
+        - **Acción**: Hacer promoción para vender más rápido, producto excelente pero te pasaste comprando
+        - **Urgencia**: MEDIA (es buen producto, solo ajustar cantidad)
+        
+        ### 📌 Ejemplo 2: Círculo 🔴 ROJO + Inferior Izquierda + GRANDE
+        - **Interpretación**: ¡DESASTRE TOTAL! Poco margen + Poca venta + Mucho exceso
+        - **Acción**: Liquidar hasta 50% OFF, descontinuar INMEDIATO, liberar capital
+        - **Urgencia**: MÁXIMA (triple problema)
+        
+        ### 📌 Ejemplo 3: Círculo 🟢 VERDE + Superior Derecha + PEQUEÑO
+        - **Interpretación**: Proveedor IDEAL (equilibrado, rentable, sin exceso)
+        - **Acción**: NO cambiar nada, asegurar disponibilidad constante
+        - **Urgencia**: NINGUNA (todo bien)
+        
+        ### 📌 Ejemplo 4: Círculo 🟡 AMARILLO + Superior Izquierda + GRANDE
+        - **Interpretación**: Producto muy rentable pero con mucho exceso y poca venta
+        - **Acción**: Promoción agresiva 2x1 + Mejor ubicación en góndola
+        - **Urgencia**: ALTA (liberar capital parado)
+        
+        ---
+        
+        ## ⚡ REGLA DE ORO (Qué mirar PRIMERO)
+        
+        ### 🚨 ALERTA MÁXIMA: Círculo ROJO + GRANDE en cualquier posición
+        → **ACCIÓN INMEDIATA** requerida (liquidar stock)
+        
+        ### 🔍 ORDEN DE REVISIÓN sugerido:
+        
+        1. **ROJOS GRANDES**: Liquidar urgente
+        2. **NARANJAS GRANDES en cuadrante inferior izquierdo**: Descontinuar
+        3. **AMARILLOS GRANDES**: Promocionar para liberar capital
+        4. **AZULES en superior derecha**: Potenciar (aumentar exhibición)
+        5. **VERDES**: Mantener sin cambios
+        
+        ---
+        
+        ## 📊 Resumen Visual Rápido
+```
+        ALTA RENTABILIDAD
+              ↑
+              |
+        ⚡ PROMOCIONAR  |  🌟 POTENCIAR
+        (Si círculo     |  (Tu mejor
+         grande)        |   zona)
+              |         |
+        ------+-------------------→ ALTA VENTA
+              |         |
+        🔴 DESCONTINUAR |  ⚠️ RENEGOCIAR
+        (Eliminar si    |  (Gancho de
+         círculo grande)|   tráfico)
+              |
+        BAJA RENTABILIDAD
+```
+        
+        ---
+        
+        ### 🎯 En resumen:
+        - **COLOR** = Qué tan urgente actuar (según IEU)
+        - **POSICIÓN** = Rentabilidad vs Volumen (dónde está parado estratégicamente)
+        - **TAMAÑO** = Dinero inmovilizado (qué tan grave es el exceso)
+        
+        **La mejor decisión combina los 3 elementos juntos.**
+        """)
+
+def crear_scatter_portfolio_00(df_analisis):
+    """
+    Mapa de Proveedores: Rentabilidad vs Participación
+    """
     # Explicación clara del análisis
     with st.expander("ℹ️ ¿Qué muestra este mapa y cómo interpretarlo?", expanded=False):
         st.markdown("""
@@ -194,65 +386,66 @@ def crear_scatter_portfolio(df_analisis):
     st.plotly_chart(fig, width='stretch')
            
     # ← NOTA FINAL COMPLETA: CUADRANTES + TAMAÑOS + COLORES
-    st.info("""
-    ### 💡 Guía Completa de Interpretación
-    #### 🎨 **COLORES (Categoría del Proveedor)**
-    
-    - 🔴 **Rojo (Crítico)**: Exceso mayor que ventas → Liquidar inmediatamente
-    - 🟠 **Naranja (Revisar)**: IEU bajo (0.8-1.0) → Renegociar o reducir
-    - 🟡 **Amarillo (Promocionar)**: Buen margen con exceso → Liberar stock
-    - 🟢 **Verde (Mantener)**: Equilibrado, sin problemas → Seguir igual
-    - 🔵 **Azul (Potenciar)**: IEU alto (>1.2) → Aumentar exhibición
-       
-    #### 📍 **POSICIÓN (Cuadrante) + TAMAÑO (Exceso de Stock)**
-    
-    **CUADRANTE SUPERIOR DERECHO** (Alta Venta + Alto Margen):
-    - ⚪ **Círculo pequeño**: ¡Perfecto! Tu mejor proveedor sin problemas
-      → Acción: Mantener, asegurar nunca romper stock
-    - ⚪ **Círculo grande**: Excelente proveedor pero compraste de más
-      → Acción: Promoción suave para normalizar exceso, no dejar de comprar
-    
-    **CUADRANTE SUPERIOR IZQUIERDO** (Baja Venta + Alto Margen):
-    - ⚪ **Círculo pequeño**: Producto rentable de nicho, baja rotación natural
-      → Acción: Mantener en surtido, comprar poco y frecuente
-    - ⚪ **Círculo grande**: Producto rentable pero sobrestockeado
-      → Acción: Promoción 2x1 o descuento para liberar capital
-    
-    **CUADRANTE INFERIOR DERECHO** (Alta Venta + Bajo Margen):
-    - ⚪ **Círculo pequeño**: Gancho de tráfico, necesario pero poco rentable
-      → Acción: Renegociar margen o usar en folletos para atraer clientes
-    - ⚪ **Círculo grande**: Vende mucho pero no ganas y tenés exceso
-      → Acción: Liquidar exceso YA, renegociar condiciones urgente
-    
-    **CUADRANTE INFERIOR IZQUIERDO** (Baja Venta + Bajo Margen):
-    - ⚪ **Círculo pequeño**: Producto marginal pero sin riesgo
-      → Acción: Dejar agotar naturalmente, no reponer
-    - 🚨 **Círculo grande**: ¡LO PEOR! No vende, no gana, capital parado
-      → Acción: LIQUIDAR URGENTE (hasta 50% OFF), descontinuar inmediato
-    
-    #### 📊 **CÓMO COMBINAR COLOR + POSICIÓN + TAMAÑO**
-    
-    **Ejemplo 1:** Círculo 🔵 azul (Potenciar) + Superior Derecha + Grande
-    - Interpretación: Top performer con exceso
-    - Acción: Hacer promoción para vender más rápido, no hay problema de rentabilidad
-    
-    **Ejemplo 2:** Círculo 🔴 rojo (Crítico) + Inferior Izquierda + Grande
-    - Interpretación: ¡DESASTRE! Poco margen, poca venta, mucho exceso
-    - Acción: Liquidar hasta 50% OFF, descontinuar inmediato, liberar capital
-    
-    **Ejemplo 3:** Círculo 🟢 verde (Mantener) + Superior Derecha + Pequeño
-    - Interpretación: Proveedor ideal
-    - Acción: No cambiar nada, asegurar disponibilidad
-    
-    ---
-    
-    **Resumen rápido:**
-    - **Color** = Categoría de acción (qué tan urgente)
-    - **Posición** = Rentabilidad vs Volumen (dónde está parado)
-    - **Tamaño** = Dinero inmovilizado (qué tan grave es el exceso)
-    
-    ⚠️ **Regla de oro**: Círculo ROJO + GRANDE en cualquier posición = ACCIÓN INMEDIATA
-    """)
+    with st.expander("ℹ️ Cómo interpretarlo el gráfico por cuadrantes?", expanded=False):
+        st.markdown("""
+        ### 💡 Guía Completa de Interpretación
+        #### 🎨 **COLORES (Categoría del Proveedor)**
+        
+        - 🔴 **Rojo (Crítico)**: Exceso mayor que ventas → Liquidar inmediatamente
+        - 🟠 **Naranja (Revisar)**: IEU bajo (0.8-1.0) → Renegociar o reducir
+        - 🟡 **Amarillo (Promocionar)**: Buen margen con exceso → Liberar stock
+        - 🟢 **Verde (Mantener)**: Equilibrado, sin problemas → Seguir igual
+        - 🔵 **Azul (Potenciar)**: IEU alto (>1.2) → Aumentar exhibición
+        
+        #### 📍 **POSICIÓN (Cuadrante) + TAMAÑO (Exceso de Stock)**
+        
+        **CUADRANTE SUPERIOR DERECHO** (Alta Venta + Alto Margen):
+        - ⚪ **Círculo pequeño**: ¡Perfecto! Tu mejor proveedor sin problemas
+        → Acción: Mantener, asegurar nunca romper stock
+        - ⚪ **Círculo grande**: Excelente proveedor pero compraste de más
+        → Acción: Promoción suave para normalizar exceso, no dejar de comprar
+        
+        **CUADRANTE SUPERIOR IZQUIERDO** (Baja Venta + Alto Margen):
+        - ⚪ **Círculo pequeño**: Producto rentable de nicho, baja rotación natural
+        → Acción: Mantener en surtido, comprar poco y frecuente
+        - ⚪ **Círculo grande**: Producto rentable pero sobrestockeado
+        → Acción: Promoción 2x1 o descuento para liberar capital
+        
+        **CUADRANTE INFERIOR DERECHO** (Alta Venta + Bajo Margen):
+        - ⚪ **Círculo pequeño**: Gancho de tráfico, necesario pero poco rentable
+        → Acción: Renegociar margen o usar en folletos para atraer clientes
+        - ⚪ **Círculo grande**: Vende mucho pero no ganas y tenés exceso
+        → Acción: Liquidar exceso YA, renegociar condiciones urgente
+        
+        **CUADRANTE INFERIOR IZQUIERDO** (Baja Venta + Bajo Margen):
+        - ⚪ **Círculo pequeño**: Producto marginal pero sin riesgo
+        → Acción: Dejar agotar naturalmente, no reponer
+        - 🚨 **Círculo grande**: ¡LO PEOR! No vende, no gana, capital parado
+        → Acción: LIQUIDAR URGENTE (hasta 50% OFF), descontinuar inmediato
+        
+        #### 📊 **CÓMO COMBINAR COLOR + POSICIÓN + TAMAÑO**
+        
+        **Ejemplo 1:** Círculo 🔵 azul (Potenciar) + Superior Derecha + Grande
+        - Interpretación: Top performer con exceso
+        - Acción: Hacer promoción para vender más rápido, no hay problema de rentabilidad
+        
+        **Ejemplo 2:** Círculo 🔴 rojo (Crítico) + Inferior Izquierda + Grande
+        - Interpretación: ¡DESASTRE! Poco margen, poca venta, mucho exceso
+        - Acción: Liquidar hasta 50% OFF, descontinuar inmediato, liberar capital
+        
+        **Ejemplo 3:** Círculo 🟢 verde (Mantener) + Superior Derecha + Pequeño
+        - Interpretación: Proveedor ideal
+        - Acción: No cambiar nada, asegurar disponibilidad
+        
+        ---
+        
+        **Resumen rápido:**
+        - **Color** = Categoría de acción (qué tan urgente)
+        - **Posición** = Rentabilidad vs Volumen (dónde está parado)
+        - **Tamaño** = Dinero inmovilizado (qué tan grave es el exceso)
+        
+        ⚠️ **Regla de oro**: Círculo ROJO + GRANDE en cualquier posición = ACCIÓN INMEDIATA
+        """)
 
 def crear_grafico_ieu(df_analisis):
     """
@@ -647,19 +840,19 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
     ])
 
     with tab1:
-        st.caption("💡 Visualiza dónde están posicionados tus proveedores según rentabilidad y volumen de ventas")
+        st.info("💡 Visualiza dónde están posicionados tus proveedores según rentabilidad y volumen de ventas")
         crear_scatter_portfolio(df_analisis)
 
     with tab2:
-        st.caption("💡 Compara la eficiencia de cada proveedor: ¿Genera más ganancia que el espacio que ocupa?")
+        st.info("💡 Compara la eficiencia de cada proveedor: ¿Genera más ganancia que el espacio que ocupa?")
         crear_grafico_ieu(df_analisis)
 
     with tab3:
-        st.caption("💡 Proveedores que necesitan acción inmediata por bajo rendimiento o exceso crítico")
+        st.info("💡 Proveedores que necesitan acción inmediata por bajo rendimiento o exceso crítico")
         mostrar_alertas_criticas(df_analisis)
 
     with tab4:
-        st.caption("💡 Análisis artículo por artículo: decide qué SKUs potenciar, reducir o descontinuar")
+        st.info("💡 Análisis artículo por artículo: decide qué SKUs potenciar, reducir o descontinuar")
         mostrar_analisis_articulos(ranking_detallado_familia)
 
     # with tab1:
@@ -1025,7 +1218,7 @@ def mostrar_analisis_articulos00(df_original):
     
     with col_exp1:
         st.markdown("**💾 Exportar tabla filtrada a Excel**")
-        st.caption(f"Se exportarán los {len(df_filtrado)} artículos actualmente filtrados")
+        st.info(f"Se exportarán los {len(df_filtrado)} artículos actualmente filtrados")
     
     with col_exp2:
         # Preparar Excel
@@ -1218,13 +1411,13 @@ def mostrar_analisis_articulos(df_original):
     else:
         # === GRÁFICO 1: MAPA DE ARTÍCULOS ===
         with st.expander("📊 Mapa de Artículos (Rentabilidad vs Ventas)", expanded=False):
-            st.caption("💡 Visualiza la posición de cada artículo según rentabilidad y participación en ventas. Tamaño = Costo de exceso.")
+            st.info("💡 Visualiza la posición de cada artículo según rentabilidad y participación en ventas. Tamaño = Costo de exceso.")
             
             # Limitar a top N artículos si hay muchos (para performance)
             df_grafico = df_filtrado.nlargest(100, 'Venta Artículo') if len(df_filtrado) > 100 else df_filtrado
             
             if len(df_filtrado) > 100:
-                st.caption(f"⚠️ Mostrando top 100 artículos por ventas (de {len(df_filtrado)} filtrados)")
+                st.info(f"⚠️ Mostrando top 100 artículos por ventas (de {len(df_filtrado)} filtrados)")
             
             fig_mapa = px.scatter(
                 df_grafico,
@@ -1288,7 +1481,7 @@ def mostrar_analisis_articulos(df_original):
         
         # === GRÁFICO 2: DISTRIBUCIÓN DE ACCIONES ===
         with st.expander("🍩 Distribución de Categorías", expanded=False):
-            st.caption("💡 Proporción de artículos en cada categoría de acción")
+            st.info("💡 Proporción de artículos en cada categoría de acción")
             
             # Contar por categoría
             dist_categorias = df_filtrado['Categoría Artículo'].value_counts().reset_index()
@@ -1350,7 +1543,7 @@ def mostrar_analisis_articulos(df_original):
         
         # === GRÁFICO 3: COMPARACIÓN POR PROVEEDOR ===
         with st.expander("📊 Comparación por Proveedor", expanded=False):
-            st.caption("💡 Distribución de categorías de artículos por cada proveedor")
+            st.info("💡 Distribución de categorías de artículos por cada proveedor")
             
             # Agrupar por proveedor y categoría
             prov_cat = df_filtrado.groupby(['Proveedor', 'Categoría Artículo']).size().reset_index(name='Cantidad')
@@ -1443,7 +1636,7 @@ def mostrar_analisis_articulos(df_original):
     
     with col_exp1:
         st.markdown("**💾 Exportar tabla filtrada a Excel**")
-        st.caption(f"Se exportarán los {len(df_filtrado)} artículos actualmente filtrados")
+        st.info(f"Se exportarán los {len(df_filtrado)} artículos actualmente filtrados")
     
     with col_exp2:
         # Preparar Excel

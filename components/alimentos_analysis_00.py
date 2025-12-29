@@ -610,19 +610,19 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
     ])
 
     with tab1:
-        st.caption("💡 Visualiza dónde están posicionados tus proveedores según rentabilidad y volumen de ventas")
+        st.info("💡 Visualiza dónde están posicionados tus proveedores según rentabilidad y volumen de ventas")
         crear_scatter_portfolio(df_analisis)
 
     with tab2:
-        st.caption("💡 Compara la eficiencia de cada proveedor: ¿Genera más ganancia que el espacio que ocupa?")
+        st.info("💡 Compara la eficiencia de cada proveedor: ¿Genera más ganancia que el espacio que ocupa?")
         crear_grafico_ieu(df_analisis)
 
     with tab3:
-        st.caption("💡 Proveedores que necesitan acción inmediata por bajo rendimiento o exceso crítico")
+        st.info("💡 Proveedores que necesitan acción inmediata por bajo rendimiento o exceso crítico")
         mostrar_alertas_criticas(df_analisis)
 
     with tab4:
-        st.caption("💡 Análisis artículo por artículo: decide qué SKUs potenciar, reducir o descontinuar")
+        st.info("💡 Análisis artículo por artículo: decide qué SKUs potenciar, reducir o descontinuar")
         mostrar_analisis_articulos(ranking_detallado_alimentos)
 
     # with tab1:
@@ -988,7 +988,7 @@ def mostrar_analisis_articulos00(df_original):
     
     with col_exp1:
         st.markdown("**💾 Exportar tabla filtrada a Excel**")
-        st.caption(f"Se exportarán los {len(df_filtrado)} artículos actualmente filtrados")
+        st.info(f"Se exportarán los {len(df_filtrado)} artículos actualmente filtrados")
     
     with col_exp2:
         # Preparar Excel
@@ -1181,13 +1181,13 @@ def mostrar_analisis_articulos(df_original):
     else:
         # === GRÁFICO 1: MAPA DE ARTÍCULOS ===
         with st.expander("📊 Mapa de Artículos (Rentabilidad vs Ventas)", expanded=False):
-            st.caption("💡 Visualiza la posición de cada artículo según rentabilidad y participación en ventas. Tamaño = Costo de exceso.")
+            st.info("💡 Visualiza la posición de cada artículo según rentabilidad y participación en ventas. Tamaño = Costo de exceso.")
             
             # Limitar a top N artículos si hay muchos (para performance)
             df_grafico = df_filtrado.nlargest(100, 'Venta Artículo') if len(df_filtrado) > 100 else df_filtrado
             
             if len(df_filtrado) > 100:
-                st.caption(f"⚠️ Mostrando top 100 artículos por ventas (de {len(df_filtrado)} filtrados)")
+                st.info(f"⚠️ Mostrando top 100 artículos por ventas (de {len(df_filtrado)} filtrados)")
             
             fig_mapa = px.scatter(
                 df_grafico,
@@ -1251,7 +1251,7 @@ def mostrar_analisis_articulos(df_original):
         
         # === GRÁFICO 2: DISTRIBUCIÓN DE ACCIONES ===
         with st.expander("🍩 Distribución de Categorías", expanded=False):
-            st.caption("💡 Proporción de artículos en cada categoría de acción")
+            st.info("💡 Proporción de artículos en cada categoría de acción")
             
             # Contar por categoría
             dist_categorias = df_filtrado['Categoría Artículo'].value_counts().reset_index()
@@ -1313,7 +1313,7 @@ def mostrar_analisis_articulos(df_original):
         
         # === GRÁFICO 3: COMPARACIÓN POR PROVEEDOR ===
         with st.expander("📊 Comparación por Proveedor", expanded=False):
-            st.caption("💡 Distribución de categorías de artículos por cada proveedor")
+            st.info("💡 Distribución de categorías de artículos por cada proveedor")
             
             # Agrupar por proveedor y categoría
             prov_cat = df_filtrado.groupby(['Proveedor', 'Categoría Artículo']).size().reset_index(name='Cantidad')
@@ -1406,7 +1406,7 @@ def mostrar_analisis_articulos(df_original):
     
     with col_exp1:
         st.markdown("**💾 Exportar tabla filtrada a Excel**")
-        st.caption(f"Se exportarán los {len(df_filtrado)} artículos actualmente filtrados")
+        st.info(f"Se exportarán los {len(df_filtrado)} artículos actualmente filtrados")
     
     with col_exp2:
         # Preparar Excel

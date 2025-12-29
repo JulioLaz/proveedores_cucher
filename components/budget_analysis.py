@@ -259,7 +259,7 @@ def analisis_riesgo_quiebre(df):
         df_riesgo = df_riesgo.sort_values(by='orden').drop(columns='orden')
 
         columnas = ["idarticulo", "descripcion", "dias_cobertura", "nivel_riesgo", "cantidad_optima"]
-        st.caption(f"🔍 {len(df_riesgo)} artículos en riesgo de quiebre")
+        st.info(f"🔍 {len(df_riesgo)} artículos en riesgo de quiebre")
         st.dataframe(df_riesgo[columnas].head(300), width='stretch', hide_index=True)
 
     # Exportación
@@ -666,7 +666,7 @@ def analisis_ajuste_precios(df=None):
     col1, col2 = st.columns([1, 2])
 
     with col1:
-        st.caption("📊 Distribución del análisis de variación de precios")
+        st.info("📊 Distribución del análisis de variación de precios")
         st.plotly_chart(fig, width='stretch')
 
     with col2:
@@ -679,7 +679,7 @@ def analisis_ajuste_precios(df=None):
         df_final.rename(columns={"pred_ventas_actual": "venta para hoy"}, inplace=True)
         df_final["venta para hoy"] = df_final["venta para hoy"].astype(int)
 
-        st.caption(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
+        st.info(f"🎯 {len(df_final)} artículos con propuesta de cambio de precio")
         st.dataframe(df_final, width='stretch', hide_index=True)
 
     # Descargar CSV

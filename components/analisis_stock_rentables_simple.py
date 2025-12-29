@@ -1009,7 +1009,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
     )
     
     st.markdown("---")
-    st.caption("💡 **Clasificación de alertas:**")
-    st.caption("🔴 **QUEBRADO**: Stock = 0 unidades")
-    st.caption("🟠 **QUIEBRE SEMANAL**: 1-7 días de cobertura")
-    st.caption("🟡 **QUIEBRE QUINCENAL**: 8-15 días de cobertura")
+    st.info("💡 **Clasificación de alertas:**")
+    st.info("🔴 **QUEBRADO**: Stock = 0 unidades")
+    st.info("🟠 **QUIEBRE SEMANAL**: 1-7 días de cobertura")
+    st.info("🟡 **QUIEBRE QUINCENAL**: 8-15 días de cobertura")

@@ -62,7 +62,7 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
         # ==============================================================
         with col_btn1:
             st.markdown("#### 📊 Ranking Completo")
-            st.caption("Incluye TODOS los proveedores sin aplicar filtros")
+            st.info("Incluye TODOS los proveedores sin aplicar filtros")
             
             print(f"{'='*80}")
             print("📊 GENERANDO RANKING COMPLETO (SIN FILTROS)")
@@ -139,7 +139,7 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
         # ============================================
         with col_btn2:
             st.markdown("#### 🎯 Ranking Filtrado")
-            st.caption("Solo incluye los filtros actualmente seleccionados")
+            st.info("Solo incluye los filtros actualmente seleccionados")
             
             print(f"{'='*80}")
             print("🎯 PREPARANDO RANKING FILTRADO PARA DESCARGA")
@@ -308,7 +308,7 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
         # st.markdown("---")
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # st.caption(f"Detalle por artículo - {texto_filtro}")
+        # st.info(f"Detalle por artículo - {texto_filtro}")
         
         # Filtrar artículos por familia y subfamilias
         articulos_filtrados = df_familias[
@@ -468,7 +468,7 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
     #         key='subfamilias_alimentos_detalle'
     #     )
         
-    # st.caption(f"Detalle por artículo - {'Todas las subfamilias' if 'Todas' in subfamilias_alimentos_seleccionadas else f'{len(subfamilias_alimentos_seleccionadas)} subfamilias'}")
+    # st.info(f"Detalle por artículo - {'Todas las subfamilias' if 'Todas' in subfamilias_alimentos_seleccionadas else f'{len(subfamilias_alimentos_seleccionadas)} subfamilias'}")
         
     #     # Determinar qué df usar
     # if 'Todas' in subfamilias_alimentos_seleccionadas:

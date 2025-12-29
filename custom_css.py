@@ -307,6 +307,9 @@ def custom_css():
                 box-shadow: 0 2px 6px rgba(30, 144, 255, 0.25);
                 transition: all 0.3s ease;
             }
+        p {
+        margin-top: 10px !impotant;
+        }
 
 </style>
 """
