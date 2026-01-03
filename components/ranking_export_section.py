@@ -440,7 +440,7 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
                     ranking_detallado_familia.style.format({
                         "Venta Artículo": lambda x: f"${x:,.0f}".replace(",", ".").replace(".", ",")
                     }),
-                    use_container_width=True,
+                    width='stretch',
                     height=244
                 )
             

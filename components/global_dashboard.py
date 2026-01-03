@@ -20,6 +20,8 @@ from components.cobertura_stock_exporter import CoberturaStockExporter
 from components.global_dashboard_cache import get_ventas_agregadas_stock  # ← NUEVA FUNCIÓN
 from components.analisis_stock_rentables_simple import main_analisis_stock_simple  
 from components.tab1_ranking_ventas import main_tab1_ranking_ventas  # ← NUEVO MÓDULO TAB1  
+# Busca la sección de imports de components y agrega:
+from components.tab_prediccion_presupuesto import render_tab_prediccion_presupuesto
 
 def format_millones(valor):
         if valor >= 1_000_000:
@@ -34,6 +36,8 @@ def format_miles(valor: int) -> str:
         return f"{valor:,}".replace(",", ".")
 
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
+        # AQUÍ, ANTES DE LAS TABS, AGREGA:
+
     st.markdown("""
             <style>
             .stMultiSelect {
@@ -582,13 +586,166 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     if 'active_tab_index' not in st.session_state:
         st.session_state['active_tab_index'] = 0
 
-    tab1, tab2, tab3, tab4 = st.tabs([
-      "1- 📊 Proveedores: Rankings, Insights y Reportes", 
-      "2- 💰 Utilidad vs Cobertura", 
-      "3- 📦 Proveedor Ventas vs Presupuesto | Cobertura",
-      "4- 📊 Análisis de Stock Rentable"
-   ])
+#####################################################################################
+#### tooltips para tabs
+#####################################################################################
+    # st.markdown(
+    # """
+    # <style>
+    # /* Ajustar la distribución de los tabs */
+    # .stTabs [role="tablist"] {
+    #     justify-content: space-around;
+    #     overflow: visible !important;
+    # }
 
+    # /* Estilo general de los títulos de las tabs */
+    # .stTabs [data-baseweb="tab"] {
+    #     font-size: 1.5rem;
+    #     font-weight: 600;
+    #     color: #444;
+    #     background-color: #f0e69b;
+    #     border-radius: 5px;
+    #     padding: 0.5rem 1rem;
+    #     position: relative;
+    #     overflow: visible !important;
+    # }
+
+    # /* Tab seleccionada */
+    # .stTabs [aria-selected="true"] {
+    #     font-weight: bold;
+    #     color: #000;
+    #     background-color: #ffd700;
+    #     border-bottom: 5px solid #0066cc;
+    #     font-size: 1rem;
+    #     font-weight: 800;
+    #     height: 50px;
+    #     line-height: 50px;
+    #     padding-top: 5px;
+    #     padding-bottom: 5px;
+    #     transition: all 0.2s ease-in-out;        
+    # }
+
+    # /* TOOLTIPS - Posición absoluta, 1rem arriba, fondo transparente */
+    # .stTabs [data-baseweb="tab"]:nth-child(1):hover::after {
+    #     content: "Rankings de proveedores, análisis de desempeño y reportes detallados";
+    #     position: absolute;
+    #     top: -.8rem;
+    #     left: 50%;
+    #     transform: translateX(-50%) translateY(-100%);
+    #     background: rgba(45, 55, 72, 0.8);  /* Fondo semi-transparente */
+    #     color: white;
+    #     padding: 12px 18px;
+    #     border-radius: 8px;
+    #     font-size: 0.85rem;
+    #     font-weight: 500;
+    #     max-width: 280px;
+    #     white-space: normal;
+    #     text-align: center;
+    #     z-index: 99999;
+    #     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    #     line-height: 1.5;
+    #     pointer-events: none;
+    #     backdrop-filter: blur(4px);  /* Efecto de desenfoque */
+    # }
+
+    # .stTabs [data-baseweb="tab"]:nth-child(2):hover::after {
+    #     content: "Análisis de utilidad vs cobertura de stock por proveedor";
+    #     position: absolute;
+    #     top: -.8rem;
+    #     left: 50%;
+    #     transform: translateX(-50%) translateY(-100%);
+    #     background: rgba(45, 55, 72, 0.8);
+    #     color: white;
+    #     padding: 12px 18px;
+    #     border-radius: 8px;
+    #     font-size: 0.85rem;
+    #     font-weight: 500;
+    #     max-width: 280px;
+    #     white-space: normal;
+    #     text-align: center;
+    #     z-index: 99999;
+    #     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    #     line-height: 1.5;
+    #     pointer-events: none;
+    #     backdrop-filter: blur(4px);
+    # }
+
+    # .stTabs [data-baseweb="tab"]:nth-child(3):hover::after {
+    #     content: "Comparación de ventas vs presupuesto y análisis de cobertura";
+    #     position: absolute;
+    #     top: -.8rem;
+    #     left: 50%;
+    #     transform: translateX(-50%) translateY(-100%);
+    #     background: rgba(45, 55, 72, 0.8);
+    #     color: white;
+    #     padding: 12px 18px;
+    #     border-radius: 8px;
+    #     font-size: 0.85rem;
+    #     font-weight: 500;
+    #     max-width: 280px;
+    #     white-space: normal;
+    #     text-align: center;
+    #     z-index: 99999;
+    #     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    #     line-height: 1.5;
+    #     pointer-events: none;
+    #     backdrop-filter: blur(4px);
+    # }
+
+    # .stTabs [data-baseweb="tab"]:nth-child(4):hover::after {
+    #     content: "Identificar artículos rentables con análisis de rotación y utilidad";
+    #     position: absolute;
+    #     top: -.8rem;
+    #     left: 50%;
+    #     transform: translateX(-50%) translateY(-100%);
+    #     background: rgba(45, 55, 72, 0.8);
+    #     color: white;
+    #     padding: 12px 18px;
+    #     border-radius: 8px;
+    #     font-size: 0.85rem;
+    #     font-weight: 500;
+    #     max-width: 280px;
+    #     white-space: normal;
+    #     text-align: center;
+    #     z-index: 99999;
+    #     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    #     line-height: 1.5;
+    #     pointer-events: none;
+    #     backdrop-filter: blur(4px);
+    # }
+
+    # .stTabs [data-baseweb="tab"]:nth-child(5):hover::after {
+    #     content: "Sistema de predicción y cálculo de presupuesto de reabastecimiento";
+    #     position: absolute;
+    #     top: -.8rem;
+    #     left: 50%;
+    #     transform: translateX(-50%) translateY(-100%);
+    #     background: rgba(45, 55, 72, 0.8);
+    #     color: white;
+    #     padding: 12px 18px;
+    #     border-radius: 8px;
+    #     font-size: 0.85rem;
+    #     font-weight: 500;
+    #     max-width: 280px;
+    #     white-space: normal;
+    #     text-align: center;
+    #     z-index: 99999;
+    #     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    #     line-height: 1.5;
+    #     pointer-events: none;
+    #     backdrop-filter: blur(4px);
+    # }
+    # </style>
+    # """,
+    # unsafe_allow_html=True)
+
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "1- 📊 Proveedores: Rankings, Insights y Reportes", 
+        "2- 💰 Utilidad vs Cobertura", 
+        "3- 📦 Proveedor Ventas vs Presupuesto | Cobertura",
+        "4- 📊 Análisis de Stock Rentable",
+        "5- 🎯 Predicción y Presupuesto Proveedor"  # ← NUEVA
+    ])
 
     # =================================================================
     # TAB 1: RANKINGS (COMPLETO Y FILTRADO)
@@ -878,3 +1035,9 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             df_stock=df_stock,
             df_presupuesto=df_presupuesto  # Ya disponible en la función
         )
+
+    with tab5:
+        from utils.config import setup_credentials
+        
+        config = setup_credentials()
+        render_tab_prediccion_presupuesto(df_proveedores, config)

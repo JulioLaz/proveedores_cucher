@@ -340,17 +340,6 @@ def crear_grafica_margen_mejorada(df, top_n=20):
     
     return fig
 
-# def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31):
-#     """
-#     Gráfica de días de cobertura con colores según clasificación
-#     Incluye líneas verticales de referencia
-#     """
-    
-#     df_top = df.nlargest(top_n, 'utilidad').iloc[::-1].copy()
-    
-#     if len(df_top) == 0:
-#         return None
-
 def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31, ordenar_por='utilidad'):
     """
     Gráfica de días de cobertura con colores según clasificación
@@ -825,60 +814,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
                 delta_color="off",
                 help=f"Estimación de ganancia no obtenida en {dias_estimacion} días si no se repone stock. Calculado como: Venta diaria estimada × Margen real × {dias_estimacion} días."
             )
-    
-#     container = st.container(border=True)
-
-#     with container:
-
-#         st.subheader("📊 Resumen")
         
-#         col1, col2, col3, col4 = st.columns(4)
-
-#         with col1:
-#             st.metric("Artículos con Problema", f"{len(df_resultado):,}")
-        
-#         with col2:
-#             quebrados = len(df_resultado[df_resultado['estado_stock'] == 'QUEBRADO'])
-#             st.metric("🔴 Quebrados", f"{quebrados:,}")
-        
-#         with col3:
-#             quiebre_semanal = len(df_resultado[df_resultado['estado_stock'] == 'QUIEBRE SEMANAL'])
-#             st.metric("🟠 Quiebre Semanal", f"{quiebre_semanal:,}")
-        
-#         with col4:
-#             quiebre_quincenal = len(df_resultado[df_resultado['estado_stock'] == 'QUIEBRE QUINCENAL'])
-#             st.metric("🟡 Quiebre Quincenal", f"{quiebre_quincenal:,}")
-        
-#         col_selector, col5, col6 = st.columns([1,2,2])
-        
-#         with col_selector:
-#             dias_estimacion = st.select_slider(
-#                 "Estimación de pérdida:",
-#                 options=[7, 14, 21, 30],
-#                 value=14,
-#                 format_func=lambda x: f"{x} días")        # Calcular métricas diarias
-            
-#             df_resultado['precio_unitario'] = df_resultado['precio_total'] / df_resultado['cantidad_total']
-#             df_resultado['venta_diaria_$'] = df_resultado['velocidad_venta_diaria'] * df_resultado['precio_unitario']
-#             df_resultado['utilidad_diaria_$'] = df_resultado['venta_diaria_$'] * df_resultado['margen_real']
-
-#             # Estimar pérdida (14 días por default)
-#             venta_perdida = (df_resultado['venta_diaria_$'] * dias_estimacion).sum()
-#             utilidad_perdida = (df_resultado['utilidad_diaria_$'] * dias_estimacion).sum()
-
-#         with col5:
-#             # venta_perdida = df_resultado['precio_total'].sum()
-#             st.metric(f"💰 Venta Potencial Perdida en {dias_estimacion} días por falta de stock", f"${venta_perdida:,.0f}",
-#             help="Suma de ventas del período de artículos rentables con problemas de stock (quebrados, quiebre semanal/quincenal)"
-# )
-        
-#         with col6:
-#             # utilidad_perdida = df_resultado['utilidad'].sum()
-#             st.metric(f"💵 Utilidad Potencial Perdida en {dias_estimacion} días por falta de stock", f"${utilidad_perdida:,.0f}",
-#             help="Suma de utilidades del período de artículos rentables con problemas de stock (quebrados, quiebre semanal/quincenal)")
-    
-    # st.markdown("---")
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # GRÁFICAS - ANÁLISIS POR UTILIDAD
     # ═══════════════════════════════════════════════════════════════════════════
@@ -970,24 +906,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
             "cantidad_total": st.column_config.NumberColumn("Cantidad Total", format="%d"),
         }
     )
-
-
-    # st.dataframe(
-    #     df_resultado[[
-    #         'idarticulo', 'descripcion', 'proveedor', 'familia', 'subfamilia',
-    #         'cantidad_total', 'precio_total', 'costo_total', 'utilidad',
-    #         'margen_real', 'STK_TOTAL', 'dias_cobertura', 'estado_stock'
-    #     ]],
-    #     hide_index=True,
-    #     column_config={
-    #         "precio_total": st.column_config.NumberColumn("Precio Total", format="$%d"),
-    #         "costo_total": st.column_config.NumberColumn("Costo Total", format="$%d"),
-    #         "utilidad": st.column_config.NumberColumn("Utilidad", format="$%d"),
-    #         "margen_real": st.column_config.NumberColumn("Margen %", format="%.2f%%"),
-    #         "dias_cobertura": st.column_config.NumberColumn("Días Cobertura", format="%d"),
-    #     }
-    # )
-    
+   
     st.subheader("💾 Descargar Reporte")
     
     nombre_archivo = f"Stock_Rentables_{periodo_seleccionado}_{datetime.now().strftime('%d%B%Y_%Hhs%Mmin')}.xlsx"
