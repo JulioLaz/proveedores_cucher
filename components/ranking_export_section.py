@@ -12,6 +12,7 @@ Fecha: Diciembre 2024
 
 import streamlit as st
 import time
+import pandas as pd
 from utils.ranking_proveedores import crear_excel_ranking, generar_nombre_archivo, generar_nombre_archivo_alimentos
 from components.global_dashboard_cache import process_ranking_data, process_ranking_detallado_alimentos
 from components.alimentos_analysis import show_alimentos_analysis
@@ -333,25 +334,75 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
         import math
 
         def mostrar_proveedores_en_columnas(df, columna="Proveedor", familia="(familia)", n_cols=4, font_size=12):
-            proveedores = df[columna].unique().tolist()
-            n = len(proveedores)
+            """
+            Muestra proveedores únicos en columnas con su ranking y ventas totales formateadas.
+            
+            Args:
+                df: DataFrame con columnas 'Ranking', 'Proveedor' y 'Venta Total Proveedor'
+                columna: Nombre de la columna del proveedor (por defecto "Proveedor")
+                familia: Nombre de la familia para el título
+                n_cols: Número de columnas a mostrar
+                font_size: Tamaño de fuente
+            """
+            # Función para formatear valores a millones
+            def formatear_millones(valor):
+                if pd.isna(valor) or valor == 0:
+                    return "$0,00 M"
+                millones = valor / 1_000_000
+                return f"${millones:,.2f} M".replace(",", ".")
+            
+            # Obtener proveedores únicos con su ranking y ventas (sin duplicados)
+            proveedores_unicos = df[[columna, 'Ranking', 'Venta Total Proveedor']].drop_duplicates(subset=[columna])
+            
+            # Crear lista de tuplas (ranking, proveedor, ventas)
+            proveedores_data = [
+                (row['Ranking'], row[columna], formatear_millones(row['Venta Total Proveedor']))
+                for _, row in proveedores_unicos.iterrows()
+            ]
+            
+            n = len(proveedores_data)
             chunk_size = math.ceil(n / n_cols)
 
             # Expander con título dinámico
-            with st.expander(f"🛠️ VER: {n} Proveedores únicos de {familia.upper()}", expanded=False):
+            with st.expander(f"🛠️ VER: {n} Proveedores únicos de {familia.upper()}: Ranking - Proveedor - Venta (📅 Período: {fecha_desde.strftime('%d/%m/%Y')} - {fecha_hasta.strftime('%d/%m/%Y')})", expanded=False):
                 cols = st.columns(n_cols)
                 for i, col in enumerate(cols):
                     start = i * chunk_size
                     end = start + chunk_size
-                    subset = proveedores[start:end]
+                    subset = proveedores_data[start:end]
                     with col:
-                        texto = "".join([f"<div>• {p}</div>" for p in subset])
+                        texto = "".join([
+                            f'<div><span style="font-weight:bold">{ranking}.</span> {proveedor} - <span style="color:red">{ventas}</span></div>'
+                            for ranking, proveedor, ventas in subset
+                        ])
                         st.markdown(
                             f"<div style='font-size:{font_size}px; line-height:1.2;'>{texto}</div>",
                             unsafe_allow_html=True
                         )
 
-        mostrar_proveedores_en_columnas(ranking_detallado_familia, columna="Proveedor", n_cols=6)
+        # Llamada (reemplazar la anterior)
+        mostrar_proveedores_en_columnas(ranking_detallado_familia, columna="Proveedor", familia="Alimentos", n_cols=5)
+
+        # def mostrar_proveedores_en_columnas(df, columna="Proveedor", familia="(familia)", n_cols=4, font_size=12):
+        #     proveedores = df[columna].unique().tolist()
+        #     n = len(proveedores)
+        #     chunk_size = math.ceil(n / n_cols)
+
+        #     # Expander con título dinámico
+        #     with st.expander(f"🛠️ VER: {n} Proveedores únicos de {familia.upper()}", expanded=False):
+        #         cols = st.columns(n_cols)
+        #         for i, col in enumerate(cols):
+        #             start = i * chunk_size
+        #             end = start + chunk_size
+        #             subset = proveedores[start:end]
+        #             with col:
+        #                 texto = "".join([f"<div>• {p}</div>" for p in subset])
+        #                 st.markdown(
+        #                     f"<div style='font-size:{font_size}px; line-height:1.2;'>{texto}</div>",
+        #                     unsafe_allow_html=True
+        #                 )
+
+        # mostrar_proveedores_en_columnas(ranking_detallado_familia, columna="Proveedor", n_cols=6)
 
         # st.markdown(f"<br>", unsafe_allow_html=True)
         tiempo_detallado = time.time() - inicio_detallado
@@ -435,14 +486,48 @@ def show_ranking_section(df_prov_con_familias, df_proveedores, df_ventas, df_pre
                 st.success(mensaje_success)
 
             with col2:
-                # st.markdown("### 📊 Tabla detallada")
+                # Definir formatos para cada tipo de columna
+                formato_porcentaje = lambda x: f"{x:.2f}%"
+                formato_moneda = lambda x: f"${x:,.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                formato_numero = lambda x: f"{x:,.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                
+                # Aplicar formatos a todas las columnas correspondientes
                 st.dataframe(
                     ranking_detallado_familia.style.format({
-                        "Venta Artículo": lambda x: f"${x:,.0f}".replace(",", ".").replace(".", ",")
+                        # Porcentajes con 2 decimales
+                        "% Participación Ventas": formato_porcentaje,
+                        "Rentabilidad % Proveedor": formato_porcentaje,
+                        "% Participación Presupuesto": formato_porcentaje,
+                        "Rentabilidad % Artículo": formato_porcentaje,
+                        
+                        # Monedas sin decimales
+                        "Venta Total Proveedor": formato_moneda,
+                        "Costo Total Proveedor": formato_moneda,
+                        "Utilidad Proveedor": formato_moneda,
+                        "Presupuesto Proveedor": formato_moneda,
+                        "Costo Exceso Proveedor": formato_moneda,
+                        "Venta Artículo": formato_moneda,
+                        "Costo Artículo": formato_moneda,
+                        "Utilidad Artículo": formato_moneda,
+                        "Presupuesto Artículo": formato_moneda,
+                        "Costo Exceso Artículo": formato_moneda,
+                        
+                        # Números enteros
+                        "Cantidad Vendida": formato_numero,
+                        "Stock Actual": formato_numero,
                     }),
                     width='stretch',
                     height=244
                 )
+            # with col2:
+            #     # st.markdown("### 📊 Tabla detallada")
+            #     st.dataframe(
+            #         ranking_detallado_familia.style.format({
+            #             "Venta Artículo": lambda x: f"${x:,.0f}".replace(",", ".").replace(".", ",")
+            #         }),
+            #         width='stretch',
+            #         height=244
+            #     )
             
             if btn_ranking_familia:  # ✅ Se pulsó el botón
                 usuario = st.session_state.get('username', 'Usuario desconocido')

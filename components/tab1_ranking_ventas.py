@@ -271,17 +271,30 @@ def main_tab1_ranking_ventas(
     # SECCIÓN 2: TABLA RANKING DETALLADO
     # ═════════════════════════════════════════════════════════════════════════
     
-    st.markdown("### 📋 Ranking Detallado de Proveedores ordenados por ranking Venta")
+    st.markdown("#### 📋 Ranking Detallado de Proveedores ordenados por ranking Venta")
     
+    # df_display = ranking.copy()
+    # df_display['Venta Total'] = df_display['Venta Total'].apply(lambda x: f"${x:,.0f}")
+    # df_display['Costo Total'] = df_display['Costo Total'].apply(lambda x: f"${x:,.0f}")
+    # df_display['Utilidad'] = df_display['Utilidad'].apply(lambda x: f"${x:,.0f}")
+    # df_display['Presupuesto'] = df_display['Presupuesto'].apply(lambda x: f"${x:,.0f}")
+    # df_display['Costo Exceso'] = df_display['Costo Exceso'].apply(lambda x: f"${x:,.0f}")
+    # df_display['Rentabilidad %'] = df_display['Rentabilidad %'].apply(lambda x: f"{x:.2f}%")
+    # df_display['% Participación Presupuesto'] = df_display['% Participación Presupuesto'].apply(lambda x: f"{x:.2f}%")
+    # df_display['% Participación Ventas'] = df_display['% Participación Ventas'].apply(lambda x: f"{x:.2f}%")
+
     df_display = ranking.copy()
-    df_display['Venta Total'] = df_display['Venta Total'].apply(lambda x: f"${x:,.0f}")
-    df_display['Costo Total'] = df_display['Costo Total'].apply(lambda x: f"${x:,.0f}")
-    df_display['Utilidad'] = df_display['Utilidad'].apply(lambda x: f"${x:,.0f}")
-    df_display['Presupuesto'] = df_display['Presupuesto'].apply(lambda x: f"${x:,.0f}")
-    df_display['Costo Exceso'] = df_display['Costo Exceso'].apply(lambda x: f"${x:,.0f}")
+
+    df_display['Venta Total'] = df_display['Venta Total'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+    df_display['Costo Total'] = df_display['Costo Total'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+    df_display['Utilidad'] = df_display['Utilidad'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+    df_display['Presupuesto'] = df_display['Presupuesto'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+    df_display['Costo Exceso'] = df_display['Costo Exceso'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+
     df_display['Rentabilidad %'] = df_display['Rentabilidad %'].apply(lambda x: f"{x:.2f}%")
     df_display['% Participación Presupuesto'] = df_display['% Participación Presupuesto'].apply(lambda x: f"{x:.2f}%")
     df_display['% Participación Ventas'] = df_display['% Participación Ventas'].apply(lambda x: f"{x:.2f}%")
+
 
     num_mostrar = st.slider(
         "Cantidad de proveedores a mostrar:", 
@@ -307,7 +320,7 @@ def main_tab1_ranking_ventas(
 
     with container_insight:
 
-        st.markdown("### 💡 Insights Clave de Proveedores")
+        st.markdown("#### 💡 Insights Clave de Proveedores")
         
         col1, col2, col3, col4, col5 = st.columns(5)
         

@@ -808,32 +808,21 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
     ])
 
     with tab1:
-        st.info("💡 Visualiza dónde están posicionados tus proveedores según rentabilidad y volumen de ventas")
+        st.info(f"\n\n💡 Visualiza dónde están posicionados tus proveedores según rentabilidad y volumen de ventas")
         crear_scatter_portfolio(df_analisis)
 
     with tab2:
-        st.info("💡 Compara la eficiencia de cada proveedor: ¿Genera más ganancia que el espacio que ocupa?")
+        st.info(f"\n\n Compara la eficiencia de cada proveedor: ¿Genera más ganancia que el espacio que ocupa?")
         crear_grafico_ieu(df_analisis)
 
     with tab3:
-        st.info("💡 Proveedores que necesitan acción inmediata por bajo rendimiento o exceso crítico")
+        st.info(f"\n\n Proveedores que necesitan acción inmediata por bajo rendimiento o exceso crítico")
         mostrar_alertas_criticas(df_analisis)
 
     with tab4:
-        st.info("💡 Análisis artículo por artículo: decide qué SKUs potenciar, reducir o descontinuar")
-        mostrar_analisis_articulos(ranking_detallado_familia)
+        st.info(f"\n\n Análisis artículo por artículo: decide qué SKUs potenciar, reducir o descontinuar")
+        mostrar_analisis_articulos(ranking_detallado_familia,familia_seleccionada)
 
-    # with tab1:
-    #     crear_scatter_portfolio(df_analisis)
-    
-    # with tab2:
-    #     crear_grafico_ieu(df_analisis)
-    
-    # with tab3:
-    #     mostrar_alertas_criticas(df_analisis)
-
-    # with tab4:
-    #     mostrar_analisis_articulos(ranking_detallado_familia) 
 ########################################################################
 # ANALISIS POR ARICULO        
 ########################################################################        
@@ -965,292 +954,7 @@ def calcular_metricas_ieu_articulo(df):
     
     return df_articulo
 
-
-def mostrar_analisis_articulos00(df_original):
-    """
-    TAB 4: Análisis detallado por artículo
-    """
-    # Explicación
-    with st.expander("ℹ️ ¿Cómo usar el análisis por artículo?", expanded=False):
-        st.markdown("""
-        ### 🎯 Análisis por Artículo - La Vista Más Accionable
-        
-        **¿Por qué es importante analizar por artículo?**
-        
-        Un proveedor puede tener buen IEU promedio, pero tener artículos individuales que:
-        - 🚨 Tienen exceso crítico de stock
-        - 💎 Son top performers que merecen más espacio
-        - 🔴 No aportan valor y ocupan lugar
-        
-        **¿Qué muestra esta tabla?**
-        
-        Cada fila es un artículo individual con:
-        - **IEU del artículo**: Eficiencia individual del SKU
-        - **Acción específica**: Qué hacer con ESE producto puntual
-        - **Días de venta en stock**: Cuántos días tardas en vender el stock actual
-        - **Todas las métricas**: Ventas, costos, exceso, rentabilidad
-        
-        **Cómo usar los filtros:**
-        
-        **1. Filtro por Categoría:**
-        - **Crítico** 🚨🔴: Acción inmediata (liquidar, descontinuar)
-        - **Revisar** ⚠️: Decisión a corto plazo (promocionar, reducir)
-        - **Top Performer** 💎🌟: Potenciar y nunca romper stock
-        - **Mantener** ✅: Todo OK, seguir igual
-        
-        **2. Filtro por Proveedor:**
-        - Ver todos los artículos de un proveedor específico
-        - Útil para reuniones con comercial del proveedor
-        
-        **3. Filtro por Subfamilia:**
-        - Analizar una categoría específica (ej: solo Arroz)
-        - Comparar artículos similares
-        
-        **4. Buscar por descripción:**
-        - Encuentra un producto específico rápidamente
-        
-        **Acciones específicas por artículo:**
-        
-        | Acción | ¿Qué significa? | Ejemplo práctico |
-        |--------|-----------------|------------------|
-        | 💎 **CRÍTICO: Reponer inmediatamente** | Stock 0 en tu mejor producto | Llama YA al proveedor, pide envío urgente |
-        | 🌟 **REPONER URGENTE** | Stock bajo en producto rentable | Anticipar pedido, no esperar al habitual |
-        | ✅ **REPONER: Stock agotado** | Stock 0 en producto normal | Incluir en próximo pedido regular |
-        | 🚨 **LIQUIDAR YA** | Exceso > 2x ventas mensuales | 2x1 o 40% OFF hasta normalizar |
-        | 🔴 **NO REPONER** | Stock 0 pero bajo rendimiento | Dejar que se agote, no volver a pedir |
-        | ⚠️ **REDUCIR** | Comprar menos en próximo pedido | Si pedías 100 u, pedir solo 50 u |
-        | 💎 **AUMENTAR STOCK** | Tu top performer merece más | Si pedías 100 u, pedir 150 u |
-        
-        **💡 Tips de uso:**
-        
-        **Para reunión con proveedor:**
-        1. Filtra por el proveedor
-        2. Ordena por IEU Artículo (ascendente)
-        3. Los más bajos → pedir devolución o bonificación
-        4. Los más altos → pedir condiciones especiales para comprar más
-        
-        **Para armar pedido semanal:**
-        1. Filtra "Top Performer" y ordena por Stock Actual
-        2. Los que tienen stock bajo o 0 → prioridad máxima
-        3. Filtra "Crítico" → NO incluir en pedido
-        
-        **Para optimizar góndola:**
-        1. Ordena por IEU Artículo (descendente)
-        2. Top 10 → altura de ojos
-        3. Bottom 10 → estante superior o inferior
-        
-        **Días Venta Stock:**
-        - < 7 días = Rotación muy rápida → Aumentar stock
-        - 7-30 días = Normal
-        - 30-60 días = Rotación lenta → Reducir compras
-        - > 60 días = Stock muerto → Liquidar
-        """)
-    
-    # st.markdown("---")
-    
-    # Calcular métricas por artículo
-    df_art = calcular_metricas_ieu_articulo(df_original)
-    
-    # === MÉTRICAS RESUMEN ===
-    st.markdown("#### 📊 Resumen de Artículos")
-    
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        total_articulos = len(df_art)
-        st.metric("Total Artículos", f"{total_articulos}")
-    
-    with col2:
-        top_performers = len(df_art[df_art['Categoría Artículo'] == 'Top Performer'])
-        st.metric("Top Performers", f"{top_performers}", 
-                 delta=f"{top_performers/total_articulos*100:.0f}%")
-    
-    with col3:
-        criticos = len(df_art[df_art['Categoría Artículo'] == 'Crítico'])
-        st.metric("Artículos Críticos", f"{criticos}",
-                 delta="Acción urgente" if criticos > 0 else "OK",
-                 delta_color="inverse" if criticos > 0 else "normal")
-    
-    with col4:
-        sin_stock = len(df_art[df_art['Stock Actual'] == 0])
-        st.metric("Sin Stock", f"{sin_stock}")
-    
-    with col5:
-        con_exceso = len(df_art[df_art['Tiene Exceso'] == 'Sí'])
-        st.metric("Con Exceso", f"{con_exceso}")
-    
-    # st.markdown("---")
-    
-    # === FILTROS AVANZADOS ===
-    st.markdown("#### 🔍 Filtros")
-    
-    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
-    
-    with col_f1:
-        categorias_disponibles = ['Todas'] + sorted(df_art['Categoría Artículo'].unique().tolist())
-        categoria_filtro = st.selectbox(
-            "Categoría:",
-            options=categorias_disponibles,
-            key='filtro_categoria_articulo'
-        )
-    
-    with col_f2:
-        proveedores_disponibles = ['Todos'] + sorted(df_art['Proveedor'].unique().tolist())
-        proveedor_filtro = st.selectbox(
-            "Proveedor:",
-            options=proveedores_disponibles,
-            key='filtro_proveedor_articulo'
-        )
-    
-    with col_f3:
-        subfamilias_disponibles = ['Todas'] + sorted(df_art['Subfamilia'].dropna().unique().tolist())
-        subfamilia_filtro = st.selectbox(
-            "Subfamilia:",
-            options=subfamilias_disponibles,
-            key='filtro_subfamilia_articulo'
-        )
-    
-    with col_f4:
-        art_descripcion = ['Todas'] + sorted(df_art['descripcion'].dropna().unique().tolist())
-        subfamilia_filtro = st.selectbox(
-            "Nombre art:",
-            options=art_descripcion,
-            key='filtro_art_descripcion'
-        )
-    
-    # Aplicar filtros
-    df_filtrado = df_art.copy()
-    
-    if categoria_filtro != 'Todas':
-        df_filtrado = df_filtrado[df_filtrado['Categoría Artículo'] == categoria_filtro]
-    
-    if proveedor_filtro != 'Todos':
-        df_filtrado = df_filtrado[df_filtrado['Proveedor'] == proveedor_filtro]
-    
-    if subfamilia_filtro != 'Todas':
-        df_filtrado = df_filtrado[df_filtrado['Subfamilia'] == subfamilia_filtro]
-    
-    if buscar_texto:
-        df_filtrado = df_filtrado[
-            df_filtrado['Descripción'].str.contains(buscar_texto, case=False, na=False)
-        ]
-    
-    st.info(f"📦 Mostrando {len(df_filtrado)} de {len(df_art)} artículos")
-    
-    # === TABLA INTERACTIVA ===
-    st.markdown("#### 📋 Detalle por Artículo")
-    
-    # Preparar columnas para mostrar
-    columnas_mostrar = [
-        'idarticulo',
-        'Descripción',
-        'Subfamilia',
-        'Proveedor',
-        'IEU Artículo',
-        'Acción Artículo',
-        'Venta Artículo',
-        'Utilidad Artículo',
-        'Rentabilidad % Artículo',
-        'Cantidad Vendida',
-        'Stock Actual',
-        'Días Venta Stock',
-        'Tiene Exceso',
-        'Costo Exceso Artículo',
-        '% Participación Ventas Artículo',
-        '% Participación Utilidad Artículo'
-    ]
-    
-    df_display = df_filtrado[columnas_mostrar].copy()
-    
-    # Formatear para display
-    df_display['Venta Artículo'] = df_display['Venta Artículo'].apply(lambda x: f"${x:,.0f}")
-    df_display['Utilidad Artículo'] = df_display['Utilidad Artículo'].apply(lambda x: f"${x:,.0f}")
-    df_display['Costo Exceso Artículo'] = df_display['Costo Exceso Artículo'].apply(lambda x: f"${x:,.0f}")
-    df_display['Rentabilidad % Artículo'] = df_display['Rentabilidad % Artículo'].apply(lambda x: f"{x:.1f}%")
-    df_display['% Participación Ventas Artículo'] = df_display['% Participación Ventas Artículo'].apply(lambda x: f"{x:.2f}%")
-    df_display['% Participación Utilidad Artículo'] = df_display['% Participación Utilidad Artículo'].apply(lambda x: f"{x:.2f}%")
-    df_display['Días Venta Stock'] = df_display['Días Venta Stock'].apply(lambda x: f"{int(x)} días")
-    
-    # Mostrar tabla
-    st.dataframe(
-        df_display,
-        width='stretch',
-        hide_index=True,
-        height=600
-    )
-    
-    # === BOTÓN DE EXPORTACIÓN ===
-    st.markdown("---")
-    
-    col_exp1, col_exp2 = st.columns([3, 1])
-    
-    with col_exp1:
-        st.markdown("**💾 Exportar tabla filtrada a Excel**")
-        st.info(f"Se exportarán los {len(df_filtrado)} artículos actualmente filtrados")
-    
-    with col_exp2:
-        # Preparar Excel
-        from io import BytesIO
-        output = BytesIO()
-        
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            df_filtrado[columnas_mostrar].to_excel(
-                writer, 
-                sheet_name='Análisis Artículos',
-                index=False
-            )
-        
-        output.seek(0)
-        
-        st.download_button(
-            label="📥 Descargar Excel",
-            data=output,
-            file_name=f"analisis_articulos_{categoria_filtro}_{time.strftime('%Y%m%d_%H%M')}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            width='stretch',
-            type="primary"
-        )
-    
-    # === GRÁFICO TOP/BOTTOM ===
-    st.markdown("---")
-    st.markdown("#### 🏆 Top 10 y Bottom 10 por IEU")
-    
-    col_top, col_bottom = st.columns(2)
-    
-    with col_top:
-        st.markdown("**🌟 Top 10 Artículos (Mayor IEU)**")
-        top10 = df_filtrado.nlargest(10, 'IEU Artículo')[
-            ['Descripción', 'IEU Artículo', 'Venta Artículo', 'Acción Artículo']
-        ].copy()
-        
-        # Limpiar formato para mostrar
-        if len(top10) > 0:
-            top10['Venta'] = df_filtrado.nlargest(10, 'IEU Artículo')['Venta Artículo'].apply(lambda x: f"${x:,.0f}")
-            st.dataframe(
-                top10[['Descripción', 'IEU Artículo', 'Venta', 'Acción Artículo']],
-                width='stretch',
-                hide_index=True
-            )
-        else:
-            st.info("No hay datos para mostrar")
-    
-    with col_bottom:
-        st.markdown("**⚠️ Bottom 10 Artículos (Menor IEU)**")
-        bottom10 = df_filtrado.nsmallest(10, 'IEU Artículo')[
-            ['Descripción', 'IEU Artículo', 'Venta Artículo', 'Acción Artículo']
-        ].copy()
-        
-        if len(bottom10) > 0:
-            bottom10['Venta'] = df_filtrado.nsmallest(10, 'IEU Artículo')['Venta Artículo'].apply(lambda x: f"${x:,.0f}")
-            st.dataframe(
-                bottom10[['Descripción', 'IEU Artículo', 'Venta', 'Acción Artículo']],
-                width='stretch',
-                hide_index=True
-            )
-        else:
-            st.info("No hay datos para mostrar")
-
-def mostrar_analisis_articulos(df_original):
+def mostrar_analisis_articulos(df_original, familia_seleccionada):
     """
     TAB 4: Análisis detallado por artículo con VISUALIZACIONES
     """
@@ -1282,13 +986,14 @@ def mostrar_analisis_articulos(df_original):
     df_art = calcular_metricas_ieu_articulo(df_original)
     
     # === MÉTRICAS RESUMEN ===
-    st.markdown("#### 📊 Resumen de Artículos")
+    st.markdown("##### 📊 Resumen de Artículos")
     
     col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         total_articulos = len(df_art)
-        st.metric("Total Artículos", f"{total_articulos}")
+        st.metric("Total Artículos", f"{total_articulos}",
+                  delta=f"Familia: {familia_seleccionada}")
     
     with col2:
         top_performers = len(df_art[df_art['Categoría Artículo'] == 'Top Performer'])
@@ -1298,16 +1003,18 @@ def mostrar_analisis_articulos(df_original):
     with col3:
         criticos = len(df_art[df_art['Categoría Artículo'] == 'Crítico'])
         st.metric("Artículos Críticos", f"{criticos}",
-                 delta="Acción urgente" if criticos > 0 else "OK",
+                 delta=f"{criticos/total_articulos*100:.0f}% - Acción urgente" if criticos > 0 else "OK",
                  delta_color="inverse" if criticos > 0 else "normal")
     
     with col4:
         sin_stock = len(df_art[df_art['Stock Actual'] == 0])
-        st.metric("Sin Stock", f"{sin_stock}")
+        st.metric("Sin Stock", f"{sin_stock}", 
+                 delta=f"{sin_stock/total_articulos*100:.0f}%",delta_color="inverse")
     
     with col5:
         con_exceso = len(df_art[df_art['Tiene Exceso'] == 'Sí'])
-        st.metric("Con Exceso", f"{con_exceso}")
+        st.metric("Con Exceso", f"{con_exceso}", 
+                 delta=f"{con_exceso/total_articulos*100:.0f}%", delta_color="inverse")
     
     st.markdown("---")
     
@@ -1580,15 +1287,27 @@ def mostrar_analisis_articulos(df_original):
     
     df_display = df_filtrado[columnas_mostrar].copy()
     
-    # Formatear para display
-    df_display['Venta Artículo'] = df_display['Venta Artículo'].apply(lambda x: f"${x:,.0f}")
-    df_display['Utilidad Artículo'] = df_display['Utilidad Artículo'].apply(lambda x: f"${x:,.0f}")
-    df_display['Costo Exceso Artículo'] = df_display['Costo Exceso Artículo'].apply(lambda x: f"${x:,.0f}")
+    # # Formatear para display
+    # df_display['Venta Artículo'] = df_display['Venta Artículo'].apply(lambda x: f"${x:,.0f}")
+    # df_display['Utilidad Artículo'] = df_display['Utilidad Artículo'].apply(lambda x: f"${x:,.0f}")
+    # df_display['Costo Exceso Artículo'] = df_display['Costo Exceso Artículo'].apply(lambda x: f"${x:,.0f}")
+    # df_display['Rentabilidad % Artículo'] = df_display['Rentabilidad % Artículo'].apply(lambda x: f"{x:.1f}%")
+    # df_display['% Participación Ventas Artículo'] = df_display['% Participación Ventas Artículo'].apply(lambda x: f"{x:.2f}%")
+    # df_display['% Participación Utilidad Artículo'] = df_display['% Participación Utilidad Artículo'].apply(lambda x: f"{x:.2f}%")
+    # df_display['Días Venta Stock'] = df_display['Días Venta Stock'].apply(lambda x: f"{int(x)} días")
+
+    # Formatear para display con separador de miles usando punto
+    df_display['Venta Artículo'] = df_display['Venta Artículo'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+    df_display['Utilidad Artículo'] = df_display['Utilidad Artículo'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+    df_display['Costo Exceso Artículo'] = df_display['Costo Exceso Artículo'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+
     df_display['Rentabilidad % Artículo'] = df_display['Rentabilidad % Artículo'].apply(lambda x: f"{x:.1f}%")
     df_display['% Participación Ventas Artículo'] = df_display['% Participación Ventas Artículo'].apply(lambda x: f"{x:.2f}%")
     df_display['% Participación Utilidad Artículo'] = df_display['% Participación Utilidad Artículo'].apply(lambda x: f"{x:.2f}%")
+
     df_display['Días Venta Stock'] = df_display['Días Venta Stock'].apply(lambda x: f"{int(x)} días")
-    
+
+
     # Mostrar tabla
     st.dataframe(
         df_display,
@@ -1643,7 +1362,7 @@ def mostrar_analisis_articulos(df_original):
         
         # Limpiar formato para mostrar
         if len(top10) > 0:
-            top10['Venta'] = df_filtrado.nlargest(10, 'IEU Artículo')['Venta Artículo'].apply(lambda x: f"${x:,.0f}")
+            top10['Venta'] = df_filtrado.nlargest(10, 'IEU Artículo')['Venta Artículo'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
             st.dataframe(
                 top10[['Descripción', 'IEU Artículo', 'Venta', 'Acción Artículo']],
                 width='stretch',
@@ -1659,7 +1378,7 @@ def mostrar_analisis_articulos(df_original):
         ].copy()
         
         if len(bottom10) > 0:
-            bottom10['Venta'] = df_filtrado.nsmallest(10, 'IEU Artículo')['Venta Artículo'].apply(lambda x: f"${x:,.0f}")
+            bottom10['Venta'] = df_filtrado.nsmallest(10, 'IEU Artículo')['Venta Artículo'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
             st.dataframe(
                 bottom10[['Descripción', 'IEU Artículo', 'Venta', 'Acción Artículo']],
                 width='stretch',

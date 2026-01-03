@@ -68,7 +68,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
     container_filters = st.container(border=True)
 
     with container_filters:
-        st.markdown("### ⚙️ Ajustar filtros generales: Período - Familia - Subfamilia ")
+        st.markdown("#### ⚙️ Ajustar filtros generales: Período - Familia - Subfamilia ")
 
         # === SELECTOR DE PERÍODO ===
         col1, col2, col3, col4, col5 = st.columns([1.8, 2, 2, 1.4, 1.2])
