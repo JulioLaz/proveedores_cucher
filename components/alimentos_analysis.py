@@ -296,163 +296,12 @@ def crear_scatter_portfolio(df_analisis):
         **La mejor decisión combina los 3 elementos juntos.**
         """)
 
-def crear_scatter_portfolio_00(df_analisis):
-    """
-    Mapa de Proveedores: Rentabilidad vs Participación
-    """
-    # Explicación clara del análisis
-    with st.expander("ℹ️ ¿Qué muestra este mapa y cómo interpretarlo?", expanded=False):
-        st.markdown("""
-        ### 📊 Mapa de Proveedores (Cuadrantes de Decisión)
-        
-        **¿Qué representa este gráfico?**
-        - Cada **círculo** es un proveedor de Alimentos
-        - **Posición horizontal (→)**: % de participación en las ventas totales
-        - **Posición vertical (↑)**: Rentabilidad % del proveedor
-        - **TAMAÑO del círculo**: Costo del exceso de stock
-          - ⚠️ **Círculo MÁS GRANDE** = Más dinero inmovilizado en exceso
-          - ✅ **Círculo MÁS PEQUEÑO** = Poco o nada de exceso
-        - **Color**: Acción recomendada según el análisis
-        
-        **¿Cómo lo interpreto?**
-        
-        **Cuadrante Superior Derecho** (🌟 POTENCIAR):
-        - Alta venta + Alto margen = **Tus mejores proveedores**
-        - Acción: Asegurar stock, mejor ubicación en góndola, nunca romper stock
-        
-        **Cuadrante Superior Izquierdo** (⚡ PROMOCIONAR):
-        - Baja venta + Alto margen = **Productos rentables pero con poca rotación**
-        - Acción: Si tienen exceso → promoción para liberar stock. Si no tienen exceso → revisar si el producto es conocido
-        
-        **Cuadrante Inferior Derecho** (⚠️ RENEGOCIAR):
-        - Alta venta + Bajo margen = **Generadores de tráfico pero poco rentables**
-        - Acción: Pedir mejores condiciones al proveedor, o usar como "gancho" en folletos
-        
-        **Cuadrante Inferior Izquierdo** (🔴 REDUCIR/DESCONTINUAR):
-        - Baja venta + Bajo margen = **Candidatos a eliminar del surtido**
-        - Acción: Reducir variedades o eliminar si no aportan valor estratégico
-        
-        **⚠️ CÍRCULOS MUY GRANDES = ALERTA DE CAPITAL:**
-        - Indican mucho dinero parado en stock que no rota
-        - Acción inmediata: Revisar por qué hay tanto exceso y liquidar
-        - Ejemplo: Un círculo grande en cuadrante inferior = Doble problema (poco rentable + capital parado)
-        
-        **Líneas grises punteadas:**
-        - Marcan el promedio de rentabilidad y participación
-        - Te ayudan a comparar cada proveedor con el promedio de la categoría
-        """)
-    
-    fig = px.scatter(
-        df_analisis,
-        x='% Participación Ventas',
-        y='Rentabilidad % Proveedor',
-        size='Costo Exceso Proveedor',
-        color='Categoría',
-        hover_data={
-            'Proveedor': True,
-            'IEU': ':.2f',
-            'Venta Total Proveedor': ':$,.0f',
-            'Utilidad Proveedor': ':$,.0f',
-            'Costo Exceso Proveedor': ':$,.0f',
-            'Acción Recomendada': True,
-            '% Participación Ventas': ':.2f%',
-            'Rentabilidad % Proveedor': ':.2f%'
-        },
-        color_discrete_map={
-            'Crítico': '#ff0000',
-            'Revisar': '#ff9500',
-            'Promocionar': '#ffcc00',
-            'Mantener': '#4caf50',
-            'Potenciar': '#2196f3'
-        },
-        title='📊 Mapa de Proveedores: Rentabilidad vs Participación<br><sub>⚠️ Tamaño del círculo = Costo de Exceso de Stock</sub>',  # ← AGREGADO
-        labels={
-            '% Participación Ventas': '% Participación en Ventas',
-            'Rentabilidad % Proveedor': 'Rentabilidad %'
-        }
-    )
-    
-    # Líneas de referencia
-    fig.add_hline(y=df_analisis['Rentabilidad % Proveedor'].mean(), 
-                  line_dash="dash", line_color="gray", 
-                  annotation_text="Rentabilidad Promedio")
-    
-    fig.add_vline(x=df_analisis['% Participación Ventas'].mean(), 
-                  line_dash="dash", line_color="gray",
-                  annotation_text="Participación Promedio")
-    
-    fig.update_layout(height=600)
-    
-    st.plotly_chart(fig, width='stretch')
-           
-    # ← NOTA FINAL COMPLETA: CUADRANTES + TAMAÑOS + COLORES
-    with st.expander("ℹ️ Cómo interpretarlo el gráfico por cuadrantes?", expanded=False):
-        st.markdown("""
-        ### 💡 Guía Completa de Interpretación
-        #### 🎨 **COLORES (Categoría del Proveedor)**
-        
-        - 🔴 **Rojo (Crítico)**: Exceso mayor que ventas → Liquidar inmediatamente
-        - 🟠 **Naranja (Revisar)**: IEU bajo (0.8-1.0) → Renegociar o reducir
-        - 🟡 **Amarillo (Promocionar)**: Buen margen con exceso → Liberar stock
-        - 🟢 **Verde (Mantener)**: Equilibrado, sin problemas → Seguir igual
-        - 🔵 **Azul (Potenciar)**: IEU alto (>1.2) → Aumentar exhibición
-        
-        #### 📍 **POSICIÓN (Cuadrante) + TAMAÑO (Exceso de Stock)**
-        
-        **CUADRANTE SUPERIOR DERECHO** (Alta Venta + Alto Margen):
-        - ⚪ **Círculo pequeño**: ¡Perfecto! Tu mejor proveedor sin problemas
-        → Acción: Mantener, asegurar nunca romper stock
-        - ⚪ **Círculo grande**: Excelente proveedor pero compraste de más
-        → Acción: Promoción suave para normalizar exceso, no dejar de comprar
-        
-        **CUADRANTE SUPERIOR IZQUIERDO** (Baja Venta + Alto Margen):
-        - ⚪ **Círculo pequeño**: Producto rentable de nicho, baja rotación natural
-        → Acción: Mantener en surtido, comprar poco y frecuente
-        - ⚪ **Círculo grande**: Producto rentable pero sobrestockeado
-        → Acción: Promoción 2x1 o descuento para liberar capital
-        
-        **CUADRANTE INFERIOR DERECHO** (Alta Venta + Bajo Margen):
-        - ⚪ **Círculo pequeño**: Gancho de tráfico, necesario pero poco rentable
-        → Acción: Renegociar margen o usar en folletos para atraer clientes
-        - ⚪ **Círculo grande**: Vende mucho pero no ganas y tenés exceso
-        → Acción: Liquidar exceso YA, renegociar condiciones urgente
-        
-        **CUADRANTE INFERIOR IZQUIERDO** (Baja Venta + Bajo Margen):
-        - ⚪ **Círculo pequeño**: Producto marginal pero sin riesgo
-        → Acción: Dejar agotar naturalmente, no reponer
-        - 🚨 **Círculo grande**: ¡LO PEOR! No vende, no gana, capital parado
-        → Acción: LIQUIDAR URGENTE (hasta 50% OFF), descontinuar inmediato
-        
-        #### 📊 **CÓMO COMBINAR COLOR + POSICIÓN + TAMAÑO**
-        
-        **Ejemplo 1:** Círculo 🔵 azul (Potenciar) + Superior Derecha + Grande
-        - Interpretación: Top performer con exceso
-        - Acción: Hacer promoción para vender más rápido, no hay problema de rentabilidad
-        
-        **Ejemplo 2:** Círculo 🔴 rojo (Crítico) + Inferior Izquierda + Grande
-        - Interpretación: ¡DESASTRE! Poco margen, poca venta, mucho exceso
-        - Acción: Liquidar hasta 50% OFF, descontinuar inmediato, liberar capital
-        
-        **Ejemplo 3:** Círculo 🟢 verde (Mantener) + Superior Derecha + Pequeño
-        - Interpretación: Proveedor ideal
-        - Acción: No cambiar nada, asegurar disponibilidad
-        
-        ---
-        
-        **Resumen rápido:**
-        - **Color** = Categoría de acción (qué tan urgente)
-        - **Posición** = Rentabilidad vs Volumen (dónde está parado)
-        - **Tamaño** = Dinero inmovilizado (qué tan grave es el exceso)
-        
-        ⚠️ **Regla de oro**: Círculo ROJO + GRANDE en cualquier posición = ACCIÓN INMEDIATA
-        """)
-
 def crear_grafico_ieu(df_analisis):
     """
     Gráfico de barras: IEU por proveedor
     """
     # Explicación clara del análisis
-    with st.expander("ℹ️ ¿Qué es el IEU y cómo se interpreta?", expanded=False):
+    with st.expander("ℹ️ ¿Qué es el IEU (Índice de Eficiencia de Utilidad) y cómo se interpreta?", expanded=False):
         st.markdown("""
         ### 📈 Índice de Eficiencia de Utilidad (IEU)
         
@@ -461,37 +310,79 @@ def crear_grafico_ieu(df_analisis):
         El IEU mide si un proveedor **"merece" el espacio** que ocupa en tu negocio.
         
         **Fórmula:**
-```
+
         IEU = % Participación en Utilidad / % Participación en Ventas
-```
         
         **Ejemplo práctico:**
-        - Proveedor A: Tiene el 10% de las ventas pero genera el 15% de la utilidad → IEU = 1.5 ✅
-        - Proveedor B: Tiene el 10% de las ventas pero solo genera el 5% de la utilidad → IEU = 0.5 ❌
-        
+        - **Proveedor A:** Tiene el 10% de las ventas pero genera el 15% de la utilidad → IEU = 1.5 ✅
+        - **Proveedor B:** Tiene el 10% de las ventas pero solo genera el 5% de la utilidad → IEU = 0.5 ❌
+               
         **¿Cómo interpreto el IEU?**
         
         | Rango IEU | Significado | Acción |
         |-----------|-------------|--------|
-        | **IEU ≥ 1.2** | 🌟 **Super eficiente** - Te da más ganancia que la venta que genera | **POTENCIAR**: Aumentar exhibición, asegurar stock, promocionar |
-        | **IEU 1.0 - 1.2** | ✅ **Equilibrado** - Genera utilidad proporcional a su venta | **MANTENER**: Seguir con el surtido actual |
-        | **IEU 0.8 - 1.0** | ⚠️ **Bajo rendimiento** - Da más volumen que ganancia | **REVISAR**: Renegociar margen o reducir variedades |
-        | **IEU < 0.8** | 🔴 **Muy ineficiente** - Ocupa espacio sin aportar margen | **REDUCIR/DESCONTINUAR**: Evaluar salida del surtido |
-        
+        | **IEU ≥ 1.2** | 🌟 **Super eficiente** - Te da más ganancia que la venta que genera | **POTENCIAR:** Aumentar exhibición, asegurar stock, promocionar |
+        | **IEU 1.0 - 1.2** | ✅ **Equilibrado** - Genera utilidad proporcional a su venta | **MANTENER:** Seguir con el surtido actual |
+        | **IEU 0.8 - 1.0** | ⚠️ **Bajo rendimiento** - Da más volumen que ganancia | **REVISAR:** Renegociar margen o reducir variedades |
+        | **IEU < 0.8** | 🔴 **Muy ineficiente** - Ocupa espacio sin aportar margen | **REDUCIR/DESCONTINUAR:** Evaluar salida del surtido |
+              
         **¿Por qué es importante?**
         
         En retail, el espacio en góndola es **ORO**. El IEU te dice si estás usando bien ese espacio:
-        - Un proveedor con IEU bajo está "desperdiciando" lugar que podría ocupar uno más rentable
-        - Un proveedor con IEU alto merece más espacio porque aprovecha mejor cada cm² de góndola
         
-        **💡 Tip de Comprador:**
-        - Ordena tu góndola poniendo a la **altura de los ojos** los productos con IEU > 1.2
-        - Los productos con IEU < 0.8 van arriba o abajo (peor visibilidad)
+        - Un proveedor con **IEU bajo** está desperdiciando lugar que podría ocupar uno más rentable
+        - Un proveedor con **IEU alto** merece más espacio porque aprovecha mejor cada cm² de góndola
         
-        **La línea vertical en 1.0:**
-        - Marca el punto de equilibrio
-        - A la derecha = eficientes, a la izquierda = ineficientes
-        """)
+        **¿Cómo priorizo mis proveedores según IEU?**
+        
+        **1. PRIMERO** - 🌟 IEU ≥ 1.5 (Super estrellas):
+        - Asegurar stock permanente
+        - Negociar mejores condiciones de pago
+        - Ampliar variedades si hay demanda
+        - Ubicar productos a altura de ojos
+        
+        **2. SEGUNDO** - ✅ IEU 1.2 - 1.5 (Eficientes):
+        - Mantener relación comercial estable
+        - Monitorear rendimiento mensual
+        - Probar nuevos productos de estas marcas
+        
+        **3. TERCERO** - ⚠️ IEU 0.8 - 1.2 (Zona gris):
+        - Renegociar margen con proveedor
+        - Reducir variedades a solo las más vendidas
+        - Evaluar si cliente lo pide específicamente
+        
+        **4. ÚLTIMO** - 🔴 IEU < 0.8 (Ineficientes):
+        - Descontinuar gradualmente
+        - No reponer stock
+        - Usar espacio para productos más rentables
+                
+        **💡 Tips de Comprador:**
+        
+        - **Altura de ojos (1.20m - 1.60m):** Solo productos con IEU > 1.2
+        - **Estantes superiores/inferiores:** Productos con IEU 0.8 - 1.2
+        - **Evitar gondola:** Productos con IEU < 0.8
+        
+        **📊 La línea vertical en 1.0:**
+        
+        Marca el punto de **equilibrio perfecto**:
+        - **A la derecha (IEU > 1.0):** Proveedores que aportan más utilidad que venta (BUENOS)
+        - **A la izquierda (IEU < 1.0):** Proveedores que venden mucho pero aportan poca ganancia (REVISAR)
+               
+        **📞 Caso práctico:**
+        
+        *"Proveedor X tiene 15% de participación en ventas pero solo 9% de utilidad → IEU = 0.6"*
+        
+        Análisis:
+        1. Ocupa el 15% de tu capital de compra
+        2. Solo te devuelve el 9% de tu ganancia total
+        3. Ese 6% de diferencia es espacio/dinero desperdiciado
+        
+        Acción:
+        1. Reunión con comercial del proveedor → Pedir 5-8% más de margen
+        2. Si no acepta → Reducir variedades de 20 SKUs a solo 5 top sellers
+        3. Liberar capital y espacio para proveedores con IEU > 1.2
+        4. Monitorear 3 meses: si no mejora → Descontinuar
+        """)   
     
     df_sorted = df_analisis.sort_values('IEU', ascending=True)
     
@@ -757,7 +648,7 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
     df_analisis = calcular_metricas_ieu(ranking_detallado_familia)
     
     # 2. MÉTRICAS RESUMEN
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col_ieu, col2, col3, col4 = st.columns([2,1,2,2,2])
     
     with col1:
         ieu_promedio = df_analisis['IEU'].mean()
@@ -768,6 +659,35 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
             delta_color="normal" if ieu_promedio > 1.0 else "inverse"
         )
 
+    with col_ieu:
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #ffffff 0%, #f3e3a3 100%);
+                border: 2px solid #f3c221;
+                border-radius: 10px;
+                padding: 3px;
+                box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
+                transition: all 0.3s ease;
+                height:93.6px;
+                display:flex;
+                flex-direction:column;
+                justify-content:space-between;
+                overflow:hidden;">
+                <div style="font-size: 11px; color: #666; text-align:left;">
+                    IEU > 1.5 → Excelente
+                </div>
+                <div style="font-size: 11px; color: #666; text-align:left;">
+                    IEU ≥ 1.2 → Eficiente
+                </div>
+                <div style="font-size: 11px; color: #666; text-align:left;">
+                    IEU 1.0 a 1.2 → Aceptable
+                </div>
+                <div style="font-size: 11px; color: #666; text-align:left;">
+                    IEU 0.8 a 1.0 → Revisar
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
     with col2:
         total_proveedores = ranking_detallado_familia['Proveedor'].nunique()
         alertas = df_analisis[df_analisis['Categoría'].isin(['Crítico', 'Revisar'])].shape[0]
@@ -775,7 +695,8 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
         st.metric(
             label="Proveedores a Revisar",
             value=alertas,
-            delta=f"{(alertas/total_proveedores*100):.1f}% del total"
+            delta=f"{(alertas/total_proveedores*100):.1f}% del total",
+            delta_color="inverse" 
         )
 
     with col3:
@@ -785,7 +706,8 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
         st.metric(
             label="Proveedores con Exceso Crítico",
             value=exceso_critico,
-            delta=f"{(exceso_critico/total_proveedores*100):.1f}% del total"
+            delta=f"{(exceso_critico/total_proveedores*100):.1f}% del total",
+            delta_color="inverse" 
         )
 
     with col4:
@@ -795,7 +717,8 @@ def show_alimentos_analysis(df_proveedores, df_ventas, df_presupuesto, df_famili
         st.metric(
             label="Proveedores Eficientes",
             value=eficientes,
-            delta=f"{(eficientes/total_proveedores*100):.1f}% del total"
+            delta=f"{(eficientes/total_proveedores*100):.1f}% del total",
+            delta_color="inverse"
         )
 
     

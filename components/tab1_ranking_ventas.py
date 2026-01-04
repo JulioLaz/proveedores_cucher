@@ -120,7 +120,7 @@ def main_tab1_ranking_ventas(
         ))
 
         # Título interno del gráfico con indicador de filtros
-        titulo_grafico = f"Top {top_ventas_num} Proveedores por Ventas"
+        titulo_grafico = f"Top {top_ventas_num} Proveedores por Ventas (con rentabilidad)"
         if filtros_activos:
             titulo_grafico += f" (Filtrado: {len(familias_seleccionadas)} familias, {len(subfamilias_seleccionadas)} subfamilias)"
 
