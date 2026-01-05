@@ -12,7 +12,7 @@ Fecha: Diciembre 2024
 
 import streamlit as st
 import pandas as pd
-from utils.proveedor_exporter import obtener_ids_originales
+from utils.proveedor_exporter import obtener_ids_originales, obtener_ids_originales_simple
 
 
 def format_millones(valor):
@@ -39,14 +39,47 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
     """
     
     # Obtener todos los IDs (principal + secundarios si es unificado)
-    ids_proveedor = obtener_ids_originales(id_proveedor)
+    # ids_proveedor = obtener_ids_originales(id_proveedor)
     
-    # Formatear IDs para mostrar
-    if len(ids_proveedor) > 1:
-        ids_str = ", ".join(map(str, sorted(ids_proveedor)))
-        ids_label = f"IDs proveedores: {ids_str}"
+    # # Formatear IDs para mostrar
+    # if len(ids_proveedor) > 1:
+    #     ids_str = ", ".join(map(str, sorted(ids_proveedor)))
+    #     ids_label = f"IDs proveedores: {ids_str}"
+    # else:
+    #     ids_label = f"ID proveedor: {id_proveedor}"
+    
+    # # ═══════════════════════════════════════════════════════════════
+    # # HEADER PRINCIPAL
+    # # ═══════════════════════════════════════════════════════════════
+    # st.markdown(f"""
+    # <div style='background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
+    #             padding: 12px; 
+    #             border-radius: 10px; 
+    #             margin-bottom: 12px;
+    #             box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
+    #     <h3 style='color: white; margin: 0; text-align: center; font-size: 1.3rem;'>
+    #         🏢 {proveedor_seleccionado}
+    #     </h3>
+    #     <p style='color: #e8f4fd; text-align: center; margin: 3px 0 0 0; font-size: 0.85rem;'>
+    #         Ranking #{info_prov['Ranking']} | {ids_label}
+    #     </p>
+    # </div>
+    # """, unsafe_allow_html=True)
+
+# Obtener todos los IDs con nombres (formato "ID (Nombre)")
+    ids_proveedor_formateados = obtener_ids_originales(id_proveedor)
+    
+    # Extraer solo los números para contar y validar
+    ids_numericos = [int(id_str.split('(')[0].strip()) for id_str in ids_proveedor_formateados]
+    
+    # Formatear para mostrar
+    if len(ids_numericos) > 1:
+        # Ordenar por número y unir con salto de línea o coma
+        ids_ordenados = sorted(ids_proveedor_formateados, key=lambda x: int(x.split('(')[0].strip()))
+        ids_str = " - ".join(ids_ordenados)
+        ids_label = f"IDs proveedores unificados: {ids_str}"
     else:
-        ids_label = f"ID proveedor: {id_proveedor}"
+        ids_label = f"ID proveedor: {ids_proveedor_formateados[0]}"
     
     # ═══════════════════════════════════════════════════════════════
     # HEADER PRINCIPAL
@@ -65,7 +98,7 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
         </p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # ═══════════════════════════════════════════════════════════════
     # MÉTRICAS PRINCIPALES (4 columnas)
     # ═══════════════════════════════════════════════════════════════
@@ -89,17 +122,6 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
             delta_color="normal" if utilidad >= 0 else "inverse"
         )
 
-    # with col2:
-    #     margen = info_prov['Rentabilidad %']
-    #     utilidad = info_prov['Utilidad']
-        
-    #     st.metric(
-    #         "📊 Rentabilidad",
-    #         f"{margen:.1f}%",
-    #         delta=f"${format_millones(utilidad)} {'utilidad' if utilidad >= 0 else 'pérdida'}",
-    #         delta_color="normal" if utilidad >= 0 else "inverse"
-    #     )
-
     with col3:
         st.metric(
             "💵 Presupuesto",
@@ -119,6 +141,8 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
     # ═══════════════════════════════════════════════════════════════
     
     # Filtrar artículos del proveedor (ids_proveedor ya calculado arriba)
+    ids_proveedor = obtener_ids_originales_simple(id_proveedor)
+
     articulos_prov = df_presupuesto_con_ventas[
         df_presupuesto_con_ventas['idproveedor'].isin(ids_proveedor)
     ].copy()
@@ -191,6 +215,10 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
                 # Obtener artículos de la familia
                 arts_familia = articulos_prov[articulos_prov['familia'] == fam['familia']]
                 
+                margen_val = fam.get('margen', 0) # obtiene margen o 0 si no existe # Si es NaN, reemplazar por 0 o por texto 
+                if pd.isna(margen_val): margen_str = "sin margen" 
+                else: margen_str = f"{margen_val:.1f}%"
+
                 st.markdown(f"""
                 <div style='background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
                             border-left: 5px solid {border_color};
@@ -211,7 +239,7 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
                         <div>
                             <div style='font-size: 0.7rem; color: #888;'>Margen</div>
                             <div style='font-size: 1rem; font-weight: bold; color: {border_color};'>
-                                {fam['margen']:.1f}%
+                                {margen_str}
                             </div>
                         </div>
                         <div>

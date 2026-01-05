@@ -15,6 +15,7 @@ from io import BytesIO
 from datetime import datetime
 import time
 
+
 # 🔧 AGREGAR AQUÍ - Diccionario de unificación de proveedores
 PROVEEDOR_UNIFICADO = {
     # YAPUR → 12000001
@@ -30,7 +31,72 @@ PROVEEDOR_UNIFICADO = {
     1332: 12000005, 2049: 12000005, 1702: 12000005
 }
 
+# 📋 Diccionario con nombres de proveedores
+NOMBRES_PROVEEDORES = {
+    503: "UNILEVER DE ARG. - REF",
+    440: "BAGLEY ARGENTINA S.A.",
+    2466: "UNILEVER BPC",
+    189: "ARCOR S.A.I.C.",
+    9: "UNILEVER de Argentina S.A. HC",
+    1316: "SALTA REFRESCOS S.A. (CTES)",
+    1268: "Cia. Industrial Cervecera S.A.",
+    1332: "CLARG S.A.",
+    1285: "YAPUR",
+    463: "J.J.YAPUR-CAR",
+    1313: "MOLINOS TRES ARROYOS",
+    181: "FRUTOS DE CUYO S.A.",
+    1073: "LA CAMPAGNOLA S.A.",
+    2049: "Cerveceria y Malteria Quilmes",
+    1358: "JOSÉ JUAN YAPUR S.A.",
+    1867: "Salta Refrescos (Chaco)",
+    193: "DULCIORA S.A.",
+    1702: "Alfa Nea S.A"
+}
+
 def obtener_ids_originales(id_proveedor):
+    """
+    Obtiene los IDs originales de un proveedor unificado con sus nombres.
+    Si no es unificado, retorna solo el ID original con su nombre.
+    
+    Args:
+        id_proveedor (int): ID del proveedor (puede ser unificado o no)
+        
+    Returns:
+        list[str]: Lista de strings formato "ID (Nombre)" o "ID (proveedor)"
+    """
+    # IDs unificados (12000001 - 12000005)
+    ids_unificados = [12000001, 12000002, 12000003, 12000004, 12000005]
+    
+    if id_proveedor in ids_unificados:
+        # Es un ID unificado, obtener todos los IDs originales
+        ids_originales = [k for k, v in PROVEEDOR_UNIFICADO.items() if v == id_proveedor]
+    else:
+        # No es unificado, retornar el mismo ID
+        ids_originales = [id_proveedor]
+    
+    # Formatear con nombres
+    resultado = []
+    for id_orig in ids_originales:
+        nombre = NOMBRES_PROVEEDORES.get(id_orig, "proveedor")
+        resultado.append(f"{id_orig} ({nombre})")
+    
+    return resultado
+# 🔧 AGREGAR AQUÍ - Diccionario de unificación de proveedores
+# PROVEEDOR_UNIFICADO = {
+#     # YAPUR → 12000001
+#     1358: 12000001, 1285: 12000001, 1084: 12000001, 463: 12000001,
+#     1346: 12000001, 1351: 12000001, 1361: 12000001, 1366: 12000001,
+#     # COCA → 12000002
+#     1268: 12000002, 1316: 12000002, 1867: 12000002,
+#     # UNILEVER → 12000003
+#     503: 12000003, 1313: 12000003, 9: 12000003, 2466: 12000003,
+#     # ARCOR → 12000004
+#     181: 12000004, 189: 12000004, 440: 12000004, 1073: 12000004, 193: 12000004,
+#     # QUILMES → 12000005
+#     1332: 12000005, 2049: 12000005, 1702: 12000005
+# }
+
+def obtener_ids_originales_simple(id_proveedor):
     """
     Obtiene los IDs originales de un proveedor unificado.
     Si no es unificado, retorna solo el ID original.
@@ -431,7 +497,7 @@ def crear_excel_proveedor(df_proveedor, nombre_proveedor, fecha_inicio, fecha_fi
 
 
 def generar_reporte_proveedor(df_presupuesto, id_proveedor, fecha_inicio, fecha_fin,
-                              con_filtros=False, familias_activas=None, subfamilias_activas=None):
+                              con_filtros=False, familias_activas=None, subfamilias_activas=None, proveedor_name=None):
     """
     Función principal para generar reporte de un proveedor específico.
     
@@ -480,7 +546,8 @@ def generar_reporte_proveedor(df_presupuesto, id_proveedor, fecha_inicio, fecha_
     # Generar Excel
     return crear_excel_proveedor(
         df_prov, 
-        nombre_proveedor, 
+        # nombre_proveedor,
+        proveedor_name,
         fecha_inicio, 
         fecha_fin,
         con_filtros,

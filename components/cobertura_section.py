@@ -473,7 +473,8 @@ def show_cobertura_section(df_para_cobertura, fecha_desde, fecha_hasta,
         # Mostrar tabla con estilo
         st.dataframe(
             df_tabla,
-            width='content',
+            # width='content',
+            use_container_width=True,
             hide_index=True,
             height=min(400, (top_articulos * 35) + 38)
         )

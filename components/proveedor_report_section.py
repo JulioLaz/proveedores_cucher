@@ -466,7 +466,8 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
             fecha_hasta.strftime('%d/%m/%Y'),
             con_filtros=con_filtros,
             familias_activas=familias_seleccionadas if con_filtros else None,
-            subfamilias_activas=subfamilias_seleccionadas if con_filtros else None
+            subfamilias_activas=subfamilias_seleccionadas if con_filtros else None,
+            proveedor_name = nombre_prov
         )
         
         if excel_prov and nombre_archivo_prov:
@@ -738,7 +739,8 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
         # Mostrar tabla
         st.dataframe(
             df_tabla,
-            width='content',
+            # width='content',
+            use_container_width=True,
             hide_index=True,
             height=min(400, (top_articulos * 35) + 38)
         )
