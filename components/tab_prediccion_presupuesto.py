@@ -506,7 +506,7 @@ def formatear_hoja_excel(ws, destacar_columna=None):
             if isinstance(cell.value, (int, float)):
                 cell.alignment = Alignment(horizontal='center', vertical='center')
                 if 'presupuesto' in str(col_name).lower():
-                    cell.number_format = '$#,##0.00'
+                    cell.number_format = '$#,##0'
                 else:
                     cell.number_format = '#,##0'
             else:
@@ -865,30 +865,165 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
             # ═══════════════════════════════════════════════════════════════════
             
             st.markdown("---")
-            st.subheader("📋 Tablas de Datos Detallados")
+            st.subheader("📋 Tablas de Datos Detallados - Presupuesto por Proveedor")
+
+            def formatear_dataframe_para_visualizacion(df):
+                """
+                Formatea el DataFrame para visualización:
+                - Valores numéricos/monetarios: enteros con separador de miles (.)
+                - Valores de presupuesto: enteros con separador de miles (.) y prefijo $
+                - Valores porcentuales: 2 decimales
+                """
+                df_display = df.copy()
+                
+                # Identificar columnas numéricas (sin presupuesto)
+                columnas_enteros = [
+                    'idartalfa', 'uxb', 'STK_CHACO', 'stk_corrientes', 
+                    'ultimos_7_dias', 'ultimos_14_dias',
+                    'chaco_abastecer_1sem', 'chaco_abastecer_2sem', 'chaco_abastecer_3sem', 'chaco_abastecer_4sem',
+                    'corr_abastecer_1sem', 'corr_abastecer_2sem', 'corr_abastecer_3sem', 'corr_abastecer_4sem',
+                    'costo_unitario'
+                ]
+                
+                # Identificar columnas de presupuesto (llevan prefijo $)
+                columnas_presupuesto = [
+                    'presupuesto_chaco_1sem', 'presupuesto_chaco_2sem', 'presupuesto_chaco_3sem', 'presupuesto_chaco_4sem',
+                    'presupuesto_corrientes_1sem', 'presupuesto_corrientes_2sem', 'presupuesto_corrientes_3sem', 'presupuesto_corrientes_4sem',
+                    'presupuesto_total_1sem', 'presupuesto_total_2sem', 'presupuesto_total_3sem', 'presupuesto_total_4sem'
+                ]
+                
+                # Identificar columnas porcentuales
+                columnas_porcentuales = [col for col in df_display.columns if 'perc' in col.lower() or '%' in col or 'cor_%' in col or 'chaco_perc' in col]
+                
+                # Formatear columnas enteras con separador de miles
+                for col in columnas_enteros:
+                    if col in df_display.columns:
+                        df_display[col] = df_display[col].apply(lambda x: f"{int(x):,}".replace(',', '.') if pd.notna(x) else '')
+                
+                # Formatear columnas de presupuesto con $ y separador de miles
+                for col in columnas_presupuesto:
+                    if col in df_display.columns:
+                        df_display[col] = df_display[col].apply(lambda x: f"${int(x):,}".replace(',', '.') if pd.notna(x) else '')
+                
+                # Formatear columnas porcentuales con 2 decimales
+                for col in columnas_porcentuales:
+                    if col in df_display.columns:
+                        df_display[col] = df_display[col].apply(lambda x: f"{x:.2f}" if pd.notna(x) else '')
+                
+                return df_display
+
+
+            def main_formato_tablas_presupuesto_proveedor(df_final):
+                """
+                Muestra tablas formateadas de presupuesto por proveedor (SALTA REFRESCOS por defecto)
+                con columnas específicas para CHACO y CORRIENTES
+                """
+                
+                # Calcular columnas adicionales
+                df_final['ultimos_7_dias'] = df_final['sem_29dec_04jan']
+                df_final['ultimos_14_dias'] = df_final['sem_08dec_14dec'] + df_final['sem_15dec_21dec']
+                
+                # Definir columnas para CHACO
+                columnas_chaco = [
+                    'idartalfa', 'descripcion', 'uxb', 'STK_CHACO', 
+                    'ultimos_7_dias', 'ultimos_14_dias',
+                    'chaco_abastecer_1sem', 'chaco_abastecer_2sem', 'chaco_abastecer_3sem', 'chaco_abastecer_4sem',
+                    'costo_unitario',
+                    'presupuesto_chaco_1sem', 'presupuesto_chaco_2sem', 'presupuesto_chaco_3sem', 'presupuesto_chaco_4sem'
+                ]
+                
+                # Definir columnas para CORRIENTES
+                columnas_corrientes = [
+                    'idartalfa', 'descripcion', 'uxb', 'stk_corrientes',
+                    'ultimos_7_dias', 'ultimos_14_dias',
+                    'corr_abastecer_1sem', 'corr_abastecer_2sem', 'corr_abastecer_3sem', 'corr_abastecer_4sem',
+                    'costo_unitario',
+                    'presupuesto_corrientes_1sem', 'presupuesto_corrientes_2sem', 'presupuesto_corrientes_3sem', 'presupuesto_corrientes_4sem'
+                ]
+                
+                # ═══════════════════════════════════════════════════════════════════
+                # TABLA GENERAL - Ordenada por presupuesto_total_4sem descendente
+                # ═══════════════════════════════════════════════════════════════════
+                
+                df_general_ordenado = df_final.sort_values('presupuesto_total_4sem', ascending=False).copy()
+                df_general_display = formatear_dataframe_para_visualizacion(df_general_ordenado)
+                
+                with st.expander("📊 Ver Tabla GENERAL", expanded=False):
+                    st.dataframe(df_general_display, use_container_width=True, height=400)
+                
+                # ═══════════════════════════════════════════════════════════════════
+                # TABLAS CHACO y CORRIENTES en paralelo
+                # ═══════════════════════════════════════════════════════════════════
+                
+                col_t1, col_t2 = st.columns(2)
+                
+                with col_t1:
+                    with st.expander("🟧 Ver Tabla CHACO", expanded=False):
+                        # Filtrar filas con valores > 0 en cualquier semana de abastecimiento
+                        df_chaco_tabla = df_final[
+                            (df_final['chaco_abastecer_1sem'] > 0) | 
+                            (df_final['chaco_abastecer_2sem'] > 0) |
+                            (df_final['chaco_abastecer_3sem'] > 0) |
+                            (df_final['chaco_abastecer_4sem'] > 0)
+                        ].copy()
+                        
+                        # Ordenar por presupuesto_chaco_1sem descendente
+                        df_chaco_tabla = df_chaco_tabla.sort_values('presupuesto_chaco_1sem', ascending=False)
+                        
+                        # Seleccionar solo las columnas definidas
+                        df_chaco_tabla = df_chaco_tabla[columnas_chaco]
+                        
+                        # Formatear para visualización
+                        df_chaco_display = formatear_dataframe_para_visualizacion(df_chaco_tabla)
+                        
+                        st.dataframe(df_chaco_display, use_container_width=True, height=400)
+                
+                with col_t2:
+                    with st.expander("🟦 Ver Tabla CORRIENTES", expanded=False):
+                        # Filtrar filas con valores > 0 en cualquier semana de abastecimiento
+                        df_corr_tabla = df_final[
+                            (df_final['corr_abastecer_1sem'] > 0) | 
+                            (df_final['corr_abastecer_2sem'] > 0) |
+                            (df_final['corr_abastecer_3sem'] > 0) |
+                            (df_final['corr_abastecer_4sem'] > 0)
+                        ].copy()
+                        
+                        # Ordenar por presupuesto_corrientes_1sem descendente
+                        df_corr_tabla = df_corr_tabla.sort_values('presupuesto_corrientes_1sem', ascending=False)
+                        
+                        # Seleccionar solo las columnas definidas
+                        df_corr_tabla = df_corr_tabla[columnas_corrientes]
+                        
+                        # Formatear para visualización
+                        df_corr_display = formatear_dataframe_para_visualizacion(df_corr_tabla)
+                        
+                        st.dataframe(df_corr_display, use_container_width=True, height=400)
+
+
+            # Llamar a la función para mostrar las tablas
+            main_formato_tablas_presupuesto_proveedor(df_final)
+            # # TABLA GENERAL (ancho completo)
+            # with st.expander("📊 Ver Tabla GENERAL", expanded=False):
+            #     st.dataframe(df_final, width='stretch', height=400)
             
-            # TABLA GENERAL (ancho completo)
-            with st.expander("📊 Ver Tabla GENERAL", expanded=False):
-                st.dataframe(df_final, width='stretch', height=400)
+            # # TABLAS CHACO y CORRIENTES en paralelo
+            # col_t1, col_t2 = st.columns(2)
             
-            # TABLAS CHACO y CORRIENTES en paralelo
-            col_t1, col_t2 = st.columns(2)
+            # with col_t1:
+            #     with st.expander("🟧 Ver Tabla CHACO", expanded=False):
+            #         df_chaco_tabla = df_final[(df_final['chaco_abastecer_1sem'] > 0) | 
+            #                                   (df_final['chaco_abastecer_2sem'] > 0) |
+            #                                   (df_final['chaco_abastecer_3sem'] > 0) |
+            #                                   (df_final['chaco_abastecer_4sem'] > 0)].copy()
+            #         st.dataframe(df_chaco_tabla, width='stretch', height=400)
             
-            with col_t1:
-                with st.expander("🟧 Ver Tabla CHACO", expanded=False):
-                    df_chaco_tabla = df_final[(df_final['chaco_abastecer_1sem'] > 0) | 
-                                              (df_final['chaco_abastecer_2sem'] > 0) |
-                                              (df_final['chaco_abastecer_3sem'] > 0) |
-                                              (df_final['chaco_abastecer_4sem'] > 0)].copy()
-                    st.dataframe(df_chaco_tabla, width='stretch', height=400)
-            
-            with col_t2:
-                with st.expander("🟦 Ver Tabla CORRIENTES", expanded=False):
-                    df_corr_tabla = df_final[(df_final['corr_abastecer_1sem'] > 0) | 
-                                             (df_final['corr_abastecer_2sem'] > 0) |
-                                             (df_final['corr_abastecer_3sem'] > 0) |
-                                             (df_final['corr_abastecer_4sem'] > 0)].copy()
-                    st.dataframe(df_corr_tabla, width='stretch', height=400)
+            # with col_t2:
+            #     with st.expander("🟦 Ver Tabla CORRIENTES", expanded=False):
+            #         df_corr_tabla = df_final[(df_final['corr_abastecer_1sem'] > 0) | 
+            #                                  (df_final['corr_abastecer_2sem'] > 0) |
+            #                                  (df_final['corr_abastecer_3sem'] > 0) |
+            #                                  (df_final['corr_abastecer_4sem'] > 0)].copy()
+            #         st.dataframe(df_corr_tabla, width='stretch', height=400)
             
             # ═══════════════════════════════════════════════════════════════════
             # FUNCIONES AUXILIARES PARA GRÁFICOS
@@ -917,7 +1052,7 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
             # ═══════════════════════════════════════════════════════════════════
             
             st.markdown("---")
-            st.subheader("📊 Análisis de Ventas Período Completo")
+            st.subheader(f"📊 Análisis de Ventas Período Completo para {proveedor_seleccionado}")
             
             # Identificar columna TOTAL
             columna_total = None
@@ -1045,7 +1180,7 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
             # ═══════════════════════════════════════════════════════════════════
             
             st.markdown("---")
-            st.subheader("🟧 Análisis de Presupuesto CHACO - 1 Semana")
+            st.subheader(f"🟧 Análisis de Presupuesto CHACO para {proveedor_seleccionado} - 1 Semana")
             
             df_top_chaco = df_final.nlargest(20, 'presupuesto_chaco_1sem').copy()
             df_top_chaco = df_top_chaco.iloc[::-1]
@@ -1195,7 +1330,7 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
             # ═══════════════════════════════════════════════════════════════════
             
             st.markdown("---")
-            st.subheader("🟦 Análisis de Presupuesto CORRIENTES - 1 Semana")
+            st.subheader(f"🟦 Análisis de Presupuesto CORRIENTES para {proveedor_seleccionado} - 1 Semana")
             
             df_top_corr = df_final.nlargest(20, 'presupuesto_corrientes_1sem').copy()
             df_top_corr = df_top_corr.iloc[::-1]

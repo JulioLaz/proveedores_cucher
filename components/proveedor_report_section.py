@@ -740,7 +740,7 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
         st.dataframe(
             df_tabla,
             # width='content',
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
             height=min(400, (top_articulos * 35) + 38)
         )

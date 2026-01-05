@@ -554,7 +554,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto, a�
             "💰 Margen mínimo (%):",
             min_value=0.0,
             max_value=100.0,
-            value=10.0,
+            value=25.0,
             step=1.0,
             key='margen_minimo_stock'
         ) / 100
@@ -581,6 +581,10 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto, a�
             df_resultado['estado_stock'].isin(['QUEBRADO', 'QUIEBRE SEMANAL', 'QUIEBRE QUINCENAL'])
         ].copy()
         
+         # 4. Asegurar filtro de margen mínimo (por si acaso)
+        df_resultado = df_resultado[df_resultado['margen_real'] >= margen_min]
+
+
         print(f"\n📊 RESULTADO FINAL:")
         print(f"   Total artículos con problemas de stock: {len(df_resultado):,}")
         print(f"   Utilidad total en riesgo: ${df_resultado['utilidad'].sum():,.0f}\n")
@@ -607,13 +611,13 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto, a�
     # ═══════════════════════════════════════════════════════════════════════════
     
     with st.container():
-        st.subheader("📊 Resumen Ejecutivo")
+        st.subheader("📊 Resumen Ejecutivo - Artículos Rentables")
         
         # FILA 1: Contadores de estado
         col1, col2, col3, col4, col_margen = st.columns([1.2, 1, 1.2, 1.3, 1])
         
         with col1:
-            total_articulos = len(df_resultado)
+            total_articulos = len(df_resultado) ### VER ARTICULOS TOTALES margen_minimo_stock
             st.metric(
                 "🔍 Artículos Analizados", 
                 f"{total_articulos:,}",
@@ -719,7 +723,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto, a�
             # ✅ KEY ÚNICO: periodo + tipo_grafico + slider_value
             st.plotly_chart(
                 fig1, 
-                use_container_width=True,
+                width='stretch',
                 key=f"plotly_utilidad_{periodo_seleccionado}_{año_analisis}_{top_utilidad}"
             )
     
@@ -730,7 +734,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto, a�
             # ✅ KEY ÚNICO: periodo + tipo_grafico + slider_value
             st.plotly_chart(
                 fig2, 
-                use_container_width=True,
+                width='stretch',
                 key=f"plotly_cobertura_utilidad_{periodo_seleccionado}_{año_analisis}_{top_utilidad}"
             )
     
@@ -761,7 +765,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto, a�
             # ✅ KEY ÚNICO: periodo + tipo_grafico + slider_value
             st.plotly_chart(
                 fig3, 
-                use_container_width=True,
+                width='stretch',
                 key=f"plotly_margen_{periodo_seleccionado}_{año_analisis}_{top_margen}"
             )
     
@@ -774,7 +778,7 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto, a�
             # ✅ KEY ÚNICO: periodo + tipo_grafico + slider_value
             st.plotly_chart(
                 fig4, 
-                use_container_width=True,
+                width='stretch',
                 key=f"plotly_cobertura_margen_{periodo_seleccionado}_{año_analisis}_{top_margen}"
             )
     
