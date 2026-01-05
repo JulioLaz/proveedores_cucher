@@ -728,7 +728,7 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
         ]
         
         # Formatear valores
-        df_tabla['Presupuesto'] = df_tabla['Presupuesto'].apply(lambda x: f"${x:,.0f}")
+        df_tabla['Presupuesto'] = df_tabla['Presupuesto'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
         df_tabla['Stock Total'] = df_tabla['Stock Total'].apply(lambda x: f"{x:,.0f}")
         df_tabla['Cobertura (días)'] = df_tabla['Cobertura (días)'].apply(lambda x: f"{x:.0f}")
         # df_tabla['Margen %'] = df_tabla['Margen %'].apply(lambda x: f"{x:.2f}%")

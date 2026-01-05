@@ -928,25 +928,66 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         # ═══════════════════════════════════════════════════════════════════════════
         # CARGAR DATOS (con spinner visible)
         # ═══════════════════════════════════════════════════════════════════════════
+        # ═══════════════════════════════════════════════════════════════════
+        # SELECTOR DE AÑO PARA ANÁLISIS
+        # ═══════════════════════════════════════════════════════════════════
         
-        with st.spinner("🔄 Cargando datos para análisis de stock... (~10 segundos)"):
+        # Determinar años disponibles (desde 2020 hasta año actual)
+        # import datetime
+        from datetime import datetime
+        año_actual_sistema = datetime.now().year
+        años_disponibles = list(range(2024, año_actual_sistema + 1))
+        
+        # Selector de año
+        col_año, col_info = st.columns([1, 3])
+        
+        with col_año:
+            año_seleccionado = st.selectbox(
+                "📅 Año a analizar:",
+                options=años_disponibles,
+                index=len(años_disponibles) - 1,  # Por defecto: año más reciente
+                key='selector_año_stock'
+            )
+        
+        with col_info:
+            st.info(f"""
+            💡 **Año seleccionado: {año_seleccionado}**
+            - Q1: Enero - Marzo | Q2: Abril - Junio | Q3: Julio - Septiembre | Q4: Octubre - Diciembre
+            """)
+        
+        # ═══════════════════════════════════════════════════════════════════
+        # CARGAR DATOS
+        # ═══════════════════════════════════════════════════════════════════
+        
+        with st.spinner(f"🔄 Cargando datos del año {año_seleccionado}... (~10 segundos)"):
             
             print(f"\n{'='*80}")
             print(f"📦 TAB4: CARGANDO DATOS PARA ANÁLISIS DE STOCK")
             print(f"{'='*80}")
-            
-            # Determinar año actual
-            año_actual = fecha_maxima_disponible.year
-            
-            print(f"   • Año de análisis: {año_actual}")
+            print(f"   • Año seleccionado: {año_seleccionado}")
             print(f"   • Tabla: {bigquery_table}")
+
+
+# #######################################################################################3
+        # with st.spinner("🔄 Cargando datos para análisis de stock... (~10 segundos)"):
+            
+        #     print(f"\n{'='*80}")
+        #     print(f"📦 TAB4: CARGANDO DATOS PARA ANÁLISIS DE STOCK")
+        #     print(f"{'='*80}")
+            
+        #     # Determinar año actual
+        #     año_actual = fecha_maxima_disponible.year
+            
+        #     print(f"   • Año de análisis: {año_actual}")
+        #     print(f"   • Tabla: {bigquery_table}")
             
             # 1. Cargar VENTAS AGREGADAS desde BigQuery (~7 segundos)
             df_ventas_agregadas = get_ventas_agregadas_stock(
                 credentials_path=credentials_path,
                 project_id=project_id,
                 bigquery_table=bigquery_table,
-                año=año_actual
+                año=año_seleccionado  
+                # año=año_actual
             )
             
             if df_ventas_agregadas is None or len(df_ventas_agregadas) == 0:
@@ -1022,7 +1063,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             - Análisis de stock y cobertura
             - Métricas de rentabilidad y velocidad de venta
             - Clasificación de riesgo y recomendaciones
-            """.replace("{año_actual}", str(año_actual)))
+            """.replace("{año_actual}", str(año_seleccionado)))
 
 
         # ═══════════════════════════════════════════════════════════════════════════
@@ -1033,7 +1074,8 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         main_analisis_stock_simple(
             df_ventas_agregadas=df_ventas_agregadas,
             df_stock=df_stock,
-            df_presupuesto=df_presupuesto  # Ya disponible en la función
+            df_presupuesto=df_presupuesto,
+            año_analisis=año_seleccionado  # ✅ PASAR AÑO SELECCIONADO
         )
 
     with tab5:

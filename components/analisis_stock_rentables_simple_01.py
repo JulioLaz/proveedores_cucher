@@ -3,9 +3,6 @@
     MÓDULO SIMPLIFICADO: ANÁLISIS DE STOCK DE ARTÍCULOS RENTABLES
     Versión optimizada para recibir datos PRE-AGREGADOS desde BigQuery
     Con selectores dinámicos y gráficas mejoradas
-    
-    ✅ CORRECCIÓN: Keys únicos en plotly_chart para evitar errores de IDs duplicados
-    ✅ MEJORA: Soporte para análisis por año
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
@@ -198,13 +195,18 @@ def consolidar_con_stock(df_periodo, df_stock, df_presupuesto):
     else:
         df_resultado['proveedor'] = 'N/D'
     
+    # Filtrar solo artículos con problemas de stock
+    df_resultado = df_resultado[
+        df_resultado['estado_stock'].isin(['QUEBRADO', 'QUIEBRE SEMANAL', 'QUIEBRE QUINCENAL'])
+    ].copy()
+    
     # Limpiar valores negativos
     df_resultado = limpiar_valores_negativos(df_resultado)
     
     return df_resultado
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# GRÁFICAS MEJORADAS - FORMATO ORIGINAL
+# VISUALIZACIONES MEJORADAS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def crear_grafica_utilidad_mejorada(df, top_n=20):
@@ -218,7 +220,7 @@ def crear_grafica_utilidad_mejorada(df, top_n=20):
     if len(df_top) == 0:
         return None
     
-    # Labels con idarticulo - descripcion
+    # labels = df_top['descripcion'].tolist()
     labels = [f"{idarticulo} - {desc}" for idarticulo, desc in zip(df_top['idarticulo'], df_top['descripcion'])]
     utilidades = df_top['utilidad'].tolist()
     margenes = df_top['margen_real'].tolist()
@@ -226,15 +228,19 @@ def crear_grafica_utilidad_mejorada(df, top_n=20):
     # Formatear utilidad en millones
     utilidades_m = [u / 1_000_000 for u in utilidades]
     
-    # ✅ FORMATO ORIGINAL: Utilidad | Margen con punto como separador
-    texto_barras = [f"${u:,.0f} | {m*100:.1f}%".replace(",", ".") for u, m in zip(utilidades, margenes)]
-    
+    # Texto combinado: Utilidad | Margen
+    # texto_barras = [f"${u/1_000_000:.2f}M | {m*100:.1f}%" 
+    #                 for u, m in zip(utilidades, margenes)]
+    texto_barras = [ f"${u:,.0f} | {m*100:.1f}%".replace(",", ".") for u, m in zip(utilidades, margenes) ]
+    # texto_barras = [ f"{m*100:.1f}% | ${u:,.0f}".replace(",", ".") for u, m in zip(utilidades, margenes) ]
+
     # Crear hover text personalizado
     hover_texts = []
     for i in range(len(df_top)):
         texto = f"<b>id {labels[i]}</b><br>"
         texto += f"Utilidad: ${utilidades[i]:,}".replace(",", ".")
-        texto += f"<br>Margen: {margenes[i]*100:.1f}%"
+        # texto += f"Utilidad: ${utilidades[i]/1_000_000:.2f}M<br>"
+        texto += f"Margen: {margenes[i]*100:.1f}%"
         hover_texts.append(texto)
     
     fig = go.Figure(go.Bar(
@@ -242,9 +248,9 @@ def crear_grafica_utilidad_mejorada(df, top_n=20):
         x=utilidades_m,
         orientation='h',
         text=texto_barras,
-        textposition='outside',  # ✅ ORIGINAL: fuera de la barra
+        textposition='outside',
         cliponaxis=False,
-        marker_color='#3498db',  # ✅ ORIGINAL: azul
+        marker_color='#3498db',
         hovertemplate='%{customdata}<extra></extra>',
         customdata=hover_texts
     ))
@@ -253,10 +259,10 @@ def crear_grafica_utilidad_mejorada(df, top_n=20):
     
     fig.update_layout(
         height=max(400, top_n * 25),
-        margin=dict(t=20, b=25, l=10, r=40),
+        margin=dict(t=20, b=25, l=10, r=40),  # Más margen para texto combinado
         xaxis=dict(
             visible=False,
-            range=[0, max_val * 1.25]
+            range=[0, max_val * 1.25]  # Más espacio para texto
         ),
         yaxis=dict(
             visible=True,
@@ -280,7 +286,7 @@ def crear_grafica_margen_mejorada(df, top_n=20):
     if len(df_top) == 0:
         return None
     
-    # Labels con idarticulo - descripcion
+    # labels = df_top['descripcion'].tolist()
     labels = [f"{idarticulo} - {desc}" for idarticulo, desc in zip(df_top['idarticulo'], df_top['descripcion'])]
     margenes = df_top['margen_real'].tolist()
     df_top['utilidad'] = df_top['utilidad'].astype(int)
@@ -289,14 +295,16 @@ def crear_grafica_margen_mejorada(df, top_n=20):
     # Formatear valores
     margenes_pct = [m * 100 for m in margenes]
     
-    # ✅ FORMATO ORIGINAL: Margen | Utilidad (con punto como separador)
-    texto_barras = [f"{m*100:.1f}% | ${u:,.0f}".replace(",", ".") for m, u in zip(margenes, utilidades)]
-    
+    # Texto combinado: Margen | Utilidad
+    # texto_barras = [f"{m*100:.1f}% | ${u/1_000_000:.2f}M" for m, u in zip(margenes, utilidades)]
+    # Texto combinado: Margen | Utilidad (con miles y punto) 
+    texto_barras = [ f"{m*100:.1f}% | ${u:,.0f}".replace(",", ".") for m, u in zip(margenes, utilidades) ]
     # Crear hover text personalizado
     hover_texts = []
     for i in range(len(df_top)):
         texto = f"<b>id {labels[i]}</b><br>"
         texto += f"Margen: {margenes[i]*100:.1f}%<br>"
+        # texto += f"Utilidad: ${utilidades[i]/1_000_000:.2f}M"
         texto += f"Utilidad: ${utilidades[i]:,}".replace(",", ".")
         hover_texts.append(texto)
     
@@ -305,9 +313,9 @@ def crear_grafica_margen_mejorada(df, top_n=20):
         x=margenes_pct,
         orientation='h',
         text=texto_barras,
-        textposition='outside',  # ✅ ORIGINAL: fuera de la barra
+        textposition='outside',
         cliponaxis=False,
-        marker_color='#27ae60',  # ✅ ORIGINAL: verde
+        marker_color='#27ae60',
         hovertemplate='%{customdata}<extra></extra>',
         customdata=hover_texts
     ))
@@ -316,10 +324,10 @@ def crear_grafica_margen_mejorada(df, top_n=20):
     
     fig.update_layout(
         height=max(400, top_n * 25),
-        margin=dict(t=20, b=25, l=10, r=50),
+        margin=dict(t=20, b=25, l=10, r=50),  # Más margen para texto combinado
         xaxis=dict(
             visible=False,
-            range=[0, max_val * 1.30]
+            range=[0, max_val * 1.30]  # Más espacio para texto
         ),
         yaxis=dict(
             visible=True,
@@ -360,19 +368,18 @@ def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31, ordenar_por='uti
     estados = df_top['estado_stock'].tolist()
     stocks = df_top['STK_TOTAL'].tolist()
     
-    # ✅ FORMATO ORIGINAL: {dias:.0f}d o {cap_dias}d+
     texto_barras = [f"{d:.0f}d" if d <= cap_dias else f"{cap_dias}d+" for d in dias_reales]
     
-    # ✅ COLORES ORIGINALES según estado
+    # Asignar colores según estado
     def get_color_estado(estado):
         if estado == 'QUEBRADO':
-            return '#e74c3c'  # Rojo
+            return '#e74c3c'
         elif estado == 'QUIEBRE SEMANAL':
-            return '#f39c12'  # Naranja
+            return '#f39c12'
         elif estado == 'QUIEBRE QUINCENAL':
-            return '#f1c40f'  # Amarillo
+            return '#f1c40f'
         else:
-            return '#27ae60'  # Verde
+            return '#27ae60'
     
     colores = [get_color_estado(e) for e in estados]
     
@@ -393,24 +400,43 @@ def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31, ordenar_por='uti
         x=dias_visual,
         orientation='h',
         text=texto_barras,
-        textposition='inside',  # ✅ ORIGINAL: dentro de la barra
-        marker=dict(color=colores),
+        textposition='outside',
+        cliponaxis=False,
+        marker=dict(
+            color=colores,
+            line=dict(width=0)
+        ),
         hovertemplate='%{customdata}<extra></extra>',
         customdata=hover_texts
     ))
     
-    # ✅ LÍNEAS DE REFERENCIA ORIGINALES
-    fig.add_vline(x=7, line_dash="dash", line_color="red", line_width=1.5,
-                  annotation_text="7d", annotation_position="top right")
-    fig.add_vline(x=15, line_dash="dash", line_color="orange", line_width=1.5,
-                  annotation_text="15d", annotation_position="top right")
+    # Agregar líneas verticales de referencia
+    lineas_config = [
+        (7, '#e74c3c', '7d'),
+        (14, '#e67e22', '14d'),
+        (21, '#f39c12', '21d'),
+        (28, '#3498db', '28d')
+    ]
+    
+    for dia, color, etiqueta in lineas_config:
+        fig.add_vline(
+            x=dia,
+            line_dash="dash",
+            line_color=color,
+            line_width=1.5,
+            opacity=0.6,
+            annotation_text=etiqueta,
+            annotation_position="top",
+            annotation_font_size=9,
+            annotation_font_color=color
+        )
     
     fig.update_layout(
         height=max(400, top_n * 25),
-        margin=dict(t=30, b=25, l=10, r=15),
+        margin=dict(t=20, b=5, l=30, r=40),
         xaxis=dict(
             visible=True,
-            range=[0, cap_dias * 1.05],
+            range=[0, cap_dias + 2],
             tickmode='array',
             tickvals=[0, 7, 14, 21, 28, cap_dias],
             ticktext=['0', '7', '14', '21', '28', f'{cap_dias}+'],
@@ -428,11 +454,11 @@ def crear_grafica_cobertura_mejorada(df, top_n=20, cap_dias=31, ordenar_por='uti
     return fig
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# EXPORTACIÓN A EXCEL - FORMATO ORIGINAL
+# EXPORTACIÓN A EXCEL
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def generar_excel_con_formato(df, periodo):
-    """✅ Genera archivo Excel con formato condicional - VERSIÓN ORIGINAL"""
+    """Genera archivo Excel con formato condicional"""
     
     output = io.BytesIO()
     
@@ -449,7 +475,6 @@ def generar_excel_con_formato(df, periodo):
         cols_disponibles = [col for col in cols_export if col in df.columns]
         df_excel = df[cols_disponibles].copy()
         
-        # Redondear valores numéricos
         for col in ['cantidad_total', 'precio_total', 'costo_total', 'utilidad', 'dias_cobertura', 'STK_TOTAL']:
             if col in df_excel.columns:
                 df_excel[col] = df_excel[col].round(0).astype(int)
@@ -457,11 +482,9 @@ def generar_excel_con_formato(df, periodo):
         if 'velocidad_venta_diaria' in df_excel.columns:
             df_excel['velocidad_venta_diaria'] = df_excel['velocidad_venta_diaria'].round(1)
         
-        # Escribir a Excel
         df_excel.to_excel(writer, sheet_name=periodo, index=False)
         worksheet = writer.sheets[periodo]
         
-        # Formatos
         header_format = workbook.add_format({
             'bold': True, 'bg_color': '#4472C4', 'font_color': 'white',
             'align': 'center', 'valign': 'vcenter', 'border': 1
@@ -471,14 +494,12 @@ def generar_excel_con_formato(df, periodo):
         formato_quiebre_semanal = workbook.add_format({'bg_color': '#F7BE89'})
         formato_quiebre_quincenal = workbook.add_format({'bg_color': '#FFFFCC'})
         
-        # Aplicar formato a encabezados
         worksheet.set_row(0, 25)
         for col_num, col_name in enumerate(df_excel.columns):
             worksheet.write(0, col_num, col_name, header_format)
             max_len = max(df_excel[col_name].astype(str).apply(len).max(), len(col_name))
             worksheet.set_column(col_num, col_num, max_len + 2)
         
-        # ✅ FORMATO CONDICIONAL - VERSIÓN ORIGINAL (sin xl_rowcol_to_cell)
         if 'estado_stock' in df_excel.columns:
             estado_col = df_excel.columns.get_loc('estado_stock')
             
@@ -494,7 +515,6 @@ def generar_excel_con_formato(df, periodo):
                 else:
                     continue
                 
-                # Escribir toda la fila con formato
                 for col_num in range(len(df_excel.columns)):
                     valor = row_data[col_num]
                     worksheet.write(row_num, col_num, valor, formato)
@@ -508,115 +528,214 @@ def generar_excel_con_formato(df, periodo):
 # FUNCIÓN PRINCIPAL
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto, año_analisis):
+def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto):
     """
-    Dashboard principal de análisis de stock de artículos rentables
-    
-    Args:
-        df_ventas_agregadas: DataFrame con ventas agregadas por trimestre
-        df_stock: DataFrame con stock actual por artículo
-        df_presupuesto: DataFrame con información de proveedores
-        año_analisis: Año que se está analizando (ej: 2025)
+    Función principal para renderizar el análisis en Streamlit
     """
     
-    # ═══════════════════════════════════════════════════════════════════════════
-    # ENCABEZADO
-    # ═══════════════════════════════════════════════════════════════════════════
-    
-    st.markdown(f"### 📦 Análisis de Stock - Artículos Rentables ({año_analisis})")
-    st.markdown("---")
+    # st.header("📦 Análisis de Stock - Artículos Rentables")
     
     # ═══════════════════════════════════════════════════════════════════════════
-    # CONTROLES SUPERIORES
+    # SELECTORES DE CONFIGURACIÓN
     # ═══════════════════════════════════════════════════════════════════════════
-    
-    col_periodo, col_margen_tipo, col_margen_valor = st.columns([2, 2, 1.5])
-    
-    with col_periodo:
-        periodo_seleccionado = st.selectbox(
-            "📅 Período de análisis:",
-            options=['ANUAL', 'Q1', 'Q2', 'Q3', 'Q4'],
-            format_func=get_nombre_trimestre,
-            index=0,
-            key='selector_periodo_stock'
-        )
-    
-    with col_margen_tipo:
-        tipo_margen = st.radio(
-            "📊 Filtrar por:",
-            options=['Margen Anual', 'Margen del Período'],
-            horizontal=True,
-            key='tipo_margen_stock'
-        )
-    
-    with col_margen_valor:
-        margen_min = st.number_input(
-            "💰 Margen mínimo (%):",
-            min_value=0.0,
-            max_value=100.0,
-            value=10.0,
-            step=1.0,
-            key='margen_minimo_stock'
-        ) / 100
-    
-    # ═══════════════════════════════════════════════════════════════════════════
-    # PROCESAMIENTO DE DATOS
-    # ═══════════════════════════════════════════════════════════════════════════
-    
-    with st.spinner(f"🔄 Procesando {get_nombre_trimestre(periodo_seleccionado)}..."):
+    container = st.container(border=True)
+
+    with container:
+
+        # st.subheader("⚙️ Configuración de Análisis - Selecciona los Parámetros y filtros para el análisis de stock de artículos rentables.")
+        st.markdown(
+        "<h5 style='font-weight:600;'>⚙️ Configuración de Análisis - Selecciona los Parámetros y filtros para el análisis de stock de artículos rentables.</h5>",
+        unsafe_allow_html=True
+    )
+
+        # FILA 1: Período, Tipo Margen, Margen Mínimo
+        col1, col2, col3 = st.columns([2, 1.5, 1])
         
-        # 1. Filtrar por período y margen
-        df_periodo = filtrar_por_periodo(
-            df_ventas_agregadas, 
-            periodo_seleccionado,
-            tipo_margen,
-            margen_min
-        )
+        with col1:
+            mes_actual = datetime.now().month
+            if mes_actual <= 3:
+                trimestre_default = 'Q1'
+            elif mes_actual <= 6:
+                trimestre_default = 'Q2'
+            elif mes_actual <= 9:
+                trimestre_default = 'Q3'
+            else:
+                trimestre_default = 'Q4'
+            
+            periodos = ['ANUAL', 'Q1', 'Q2', 'Q3', 'Q4']
+            indice_default = periodos.index(trimestre_default)
+            
+            periodo_seleccionado = st.selectbox(
+                "📅 Período a analizar:",
+                periodos,
+                format_func=lambda x: get_nombre_trimestre(x),
+                index=indice_default
+            )
         
-        # 2. Consolidar con stock
-        df_resultado = consolidar_con_stock(df_periodo, df_stock, df_presupuesto)
+        with col2:
+            tipo_margen = st.radio(
+                "📊 Base de cálculo de margen:",
+                ["Margen Anual", "Margen del Período"],
+                help="**Margen Anual**: Artículos rentables todo el año\n\n**Margen del Período**: Artículos rentables en el trimestre seleccionado"
+            )
         
-        # 3. Filtrar solo artículos con problemas de stock
-        df_resultado = df_resultado[
-            df_resultado['estado_stock'].isin(['QUEBRADO', 'QUIEBRE SEMANAL', 'QUIEBRE QUINCENAL'])
-        ].copy()
+        with col3:
+            margen_min = st.number_input(
+                "💰 Margen mínimo (%):",
+                min_value=10.0,
+                max_value=50.0,
+                value=25.0,
+                step=5.0,
+                help="Porcentaje mínimo de margen para considerar rentable"
+            )
         
-        print(f"\n📊 RESULTADO FINAL:")
-        print(f"   Total artículos con problemas de stock: {len(df_resultado):,}")
-        print(f"   Utilidad total en riesgo: ${df_resultado['utilidad'].sum():,.0f}\n")
+        # FILA 2: Filtros de Proveedor, Familia, Subfamilia con botones de control
+        
+        # Procesar datos preliminares para obtener opciones de filtros
+        with st.spinner("🔄 Cargando opciones de filtros..."):
+            df_temp = filtrar_por_periodo(
+                df_ventas_agregadas, 
+                periodo_seleccionado,
+                tipo_margen,
+                margen_min / 100
+            )
+            
+            df_temp_stock = consolidar_con_stock(df_temp, df_stock, df_presupuesto)
+        
+        # Obtener listas únicas
+        proveedores_disponibles = sorted(df_temp_stock['proveedor'].unique().tolist())
+        familias_disponibles = sorted(df_temp_stock['familia'].unique().tolist()) if 'familia' in df_temp_stock.columns else []
+        subfamilias_disponibles = sorted(df_temp_stock['subfamilia'].unique().tolist()) if 'subfamilia' in df_temp_stock.columns else []
+        
+        # Inicializar session_state si no existe
+        # ✅ CORRECCIÓN: Intersectar con opciones disponibles para evitar errores
+        if 'proveedores_selected' not in st.session_state:
+            st.session_state.proveedores_selected = proveedores_disponibles
+        else:
+            # Intersectar: mantener solo proveedores que están en ambas listas
+            st.session_state.proveedores_selected = list(
+                set(st.session_state.proveedores_selected) & set(proveedores_disponibles)
+            )
+            # Si quedó vacía, usar todas las disponibles
+            if not st.session_state.proveedores_selected:
+                st.session_state.proveedores_selected = proveedores_disponibles
+        
+        if 'familias_selected' not in st.session_state:
+            st.session_state.familias_selected = familias_disponibles
+        else:
+            st.session_state.familias_selected = list(
+                set(st.session_state.familias_selected) & set(familias_disponibles)
+            )
+            if not st.session_state.familias_selected:
+                st.session_state.familias_selected = familias_disponibles
+        
+        if 'subfamilias_selected' not in st.session_state:
+            st.session_state.subfamilias_selected = subfamilias_disponibles
+        else:
+            st.session_state.subfamilias_selected = list(
+                set(st.session_state.subfamilias_selected) & set(subfamilias_disponibles)
+            )
+            if not st.session_state.subfamilias_selected:
+                st.session_state.subfamilias_selected = subfamilias_disponibles
+        
+        col4, col5, col6 = st.columns(3)
+        
+        # FILTRO PROVEEDORES
+        with col4:
+            proveedores_seleccionados = st.multiselect(
+                "🏢 Filtrar por Proveedor:",
+                options=proveedores_disponibles,
+                default=st.session_state.proveedores_selected,
+                key='multiselect_prov',
+                placeholder="Deselecciona los proveedores que NO quieres ver"
+            )
+ 
+            # proveedores_seleccionados = st.multiselect(
+            #     "Seleccione proveedores:",
+            #     options=proveedores_disponibles,
+            #     default=st.session_state.proveedores_selected,
+            #     key='multiselect_prov',
+            #     label_visibility='collapsed'
+            # )
+            st.session_state.proveedores_selected = proveedores_seleccionados
+        
+        # FILTRO FAMILIAS
+        with col5:
+            familias_seleccionadas = st.multiselect( "🏷️ Filtrar por Familia:", options=familias_disponibles, default=st.session_state.familias_selected, key='multiselect_fam', placeholder="Deselecciona las familias que NO quieres ver" )
+            # familias_seleccionadas = st.multiselect(
+            #     "Seleccione familias:",
+            #     options=familias_disponibles,
+            #     default=st.session_state.familias_selected,
+            #     key='multiselect_fam',
+            #     label_visibility='collapsed'
+            # )
+            st.session_state.familias_selected = familias_seleccionadas
+        
+        # FILTRO SUBFAMILIAS
+        with col6:
+            subfamilias_seleccionadas = st.multiselect( "📂 Filtrar por Subfamilia:", options=subfamilias_disponibles, default=st.session_state.subfamilias_selected, key='multiselect_sub', placeholder="Deselecciona las subfamilias que NO quieres ver" )
+            # subfamilias_seleccionadas = st.multiselect(
+            #     "Seleccione subfamilias:",
+            #     options=subfamilias_disponibles,
+            #     default=st.session_state.subfamilias_selected,
+            #     key='multiselect_sub',
+            #     label_visibility='collapsed'
+            # )
+            st.session_state.subfamilias_selected = subfamilias_seleccionadas
+    
+    # st.markdown("---")
     
     # ═══════════════════════════════════════════════════════════════════════════
-    # VALIDACIÓN
+    # PROCESAR DATOS CON FILTROS
     # ═══════════════════════════════════════════════════════════════════════════
+    
+    # Usar datos ya filtrados preliminarmente
+    df_resultado = df_temp_stock.copy()
+    
+    # Aplicar filtros adicionales (solo si hay selecciones)
+    if proveedores_seleccionados:  # Si lista NO está vacía
+        df_resultado = df_resultado[df_resultado['proveedor'].isin(proveedores_seleccionados)]
+        print(f"   🔍 Filtro proveedores: {len(proveedores_seleccionados)} seleccionados → {len(df_resultado):,} artículos")
+    else:
+        print(f"   ⚠️  Sin proveedores seleccionados → 0 artículos")
+        df_resultado = df_resultado[df_resultado['proveedor'].isin([])]  # Ninguno
+    
+    if familias_seleccionadas:  # Si lista NO está vacía
+        df_resultado = df_resultado[df_resultado['familia'].isin(familias_seleccionadas)]
+        print(f"   🔍 Filtro familias: {len(familias_seleccionadas)} seleccionadas → {len(df_resultado):,} artículos")
+    else:
+        print(f"   ⚠️  Sin familias seleccionadas → 0 artículos")
+        df_resultado = df_resultado[df_resultado['familia'].isin([])]  # Ninguno
+    
+    if subfamilias_seleccionadas:  # Si lista NO está vacía
+        df_resultado = df_resultado[df_resultado['subfamilia'].isin(subfamilias_seleccionadas)]
+        print(f"   🔍 Filtro subfamilias: {len(subfamilias_seleccionadas)} seleccionadas → {len(df_resultado):,} artículos")
+    else:
+        print(f"   ⚠️  Sin subfamilias seleccionadas → 0 artículos")
+        df_resultado = df_resultado[df_resultado['subfamilia'].isin([])]  # Ninguno
+    
+    print(f"   ✅ Total artículos después de filtros: {len(df_resultado):,}\n")
     
     if len(df_resultado) == 0:
-        st.warning(f"""
-        ⚠️ **No hay datos disponibles para {get_nombre_trimestre(periodo_seleccionado)} del año {año_analisis}**
-        
-        Posibles causas:
-        - El período aún no ha llegado (ej: Q2-Q4 en 2026)
-        - No hay artículos rentables con problemas de stock
-        - El margen mínimo ({margen_min*100:.1f}%) es muy alto
-        
-        💡 Prueba seleccionar un período diferente o ajustar el margen mínimo.
-        """)
+        st.info(f"✅ No hay artículos rentables con problemas de stock en {get_nombre_trimestre(periodo_seleccionado)}")
         return
     
     # ═══════════════════════════════════════════════════════════════════════════
-    # MÉTRICAS PRINCIPALES
+    # MÉTRICAS RESUMEN
     # ═══════════════════════════════════════════════════════════════════════════
-    
-    with st.container():
-        st.subheader("📊 Resumen Ejecutivo")
+
+    container = st.container(border=True)
+
+    with container:
+        st.subheader(f"📊 Resumen - Período {periodo_seleccionado}")
         
-        # FILA 1: Contadores de estado
-        col1, col2, col3, col4, col_margen = st.columns([1.2, 1, 1.2, 1.3, 1])
-        
+        # FILA 1: Contadores de artículos
+        col1, col2, col3, col4, col_margen = st.columns(5)
+
         with col1:
-            total_articulos = len(df_resultado)
             st.metric(
-                "🔍 Artículos Analizados", 
-                f"{total_articulos:,}",
+                "Artículos con Problema", 
+                f"{len(df_resultado):,}",
                 help="Total de artículos rentables con stock insuficiente"
             )
         
@@ -647,10 +766,12 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto, a�
         with col_margen:
             st.metric(
                 "📈 Margen mínimo", 
-                f"{margen_min*100:.1f}%",
+                f"{margen_min:.1f}%",
                 help="Margen mín promedio de los artículos considerados en el análisis"
             )
 
+        # st.markdown("---")
+        
         # FILA 2: Estimación de pérdidas
         col_selector, col_spacer, col5, col6 = st.columns([1.5, 0.5, 2, 2])
         
@@ -716,23 +837,13 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto, a�
         st.markdown(f"#### 💰 Top {top_utilidad} Artículos por Utilidad con margen")
         fig1 = crear_grafica_utilidad_mejorada(df_resultado, top_n=top_utilidad)
         if fig1:
-            # ✅ KEY ÚNICO: periodo + tipo_grafico + slider_value
-            st.plotly_chart(
-                fig1, 
-                use_container_width=True,
-                key=f"plotly_utilidad_{periodo_seleccionado}_{año_analisis}_{top_utilidad}"
-            )
+            st.plotly_chart(fig1, width='content')
     
     with col2:
         st.markdown("#### ⏱️ Días de Cobertura (Cap: 31 días)")
         fig2 = crear_grafica_cobertura_mejorada(df_resultado, top_n=top_utilidad, cap_dias=31)
         if fig2:
-            # ✅ KEY ÚNICO: periodo + tipo_grafico + slider_value
-            st.plotly_chart(
-                fig2, 
-                use_container_width=True,
-                key=f"plotly_cobertura_utilidad_{periodo_seleccionado}_{año_analisis}_{top_utilidad}"
-            )
+            st.plotly_chart(fig2, width='content')
     
     st.markdown("---")
     
@@ -758,25 +869,16 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto, a�
         st.markdown(f"#### 💹 Top {top_margen} Artículos por Margen % con utilidad")
         fig3 = crear_grafica_margen_mejorada(df_resultado, top_n=top_margen)
         if fig3:
-            # ✅ KEY ÚNICO: periodo + tipo_grafico + slider_value
-            st.plotly_chart(
-                fig3, 
-                use_container_width=True,
-                key=f"plotly_margen_{periodo_seleccionado}_{año_analisis}_{top_margen}"
-            )
+            st.plotly_chart(fig3, width='content')
     
     with col4:
         st.markdown("#### ⏱️ Días de Cobertura (Top Margen)")
         df_top_margen = df_resultado.nlargest(top_margen, 'margen_real')
+        # fig4 = crear_grafica_cobertura_mejorada(df_top_margen, top_n=top_margen, cap_dias=31)
         fig4 = crear_grafica_cobertura_mejorada(df_top_margen, top_n=top_margen, cap_dias=31, ordenar_por=None)
 
         if fig4:
-            # ✅ KEY ÚNICO: periodo + tipo_grafico + slider_value
-            st.plotly_chart(
-                fig4, 
-                use_container_width=True,
-                key=f"plotly_cobertura_margen_{periodo_seleccionado}_{año_analisis}_{top_margen}"
-            )
+            st.plotly_chart(fig4, width='content')
     
     st.markdown("---")
     
@@ -807,14 +909,15 @@ def main_analisis_stock_simple(df_ventas_agregadas, df_stock, df_presupuesto, a�
    
     st.subheader("💾 Descargar Reporte")
     
-    nombre_archivo = f"Stock_Rentables_{periodo_seleccionado}_{año_analisis}_{datetime.now().strftime('%d%B%Y_%Hhs%Mmin')}.xlsx"
+    nombre_archivo = f"Stock_Rentables_{periodo_seleccionado}_{datetime.now().strftime('%d%B%Y_%Hhs%Mmin')}.xlsx"
     
     # ✅ FILTRAR POR MARGEN ANTES DE DESCARGAR
-    df_descarga = df_resultado[df_resultado['margen_real'] >= margen_min].copy()
+    df_descarga = df_resultado[df_resultado['margen_real'] >= (margen_min / 100)].copy()
 
-    print(f"   📥 Descarga: {len(df_resultado):,} → {len(df_descarga):,} artículos (margen >= {margen_min*100:.1f}%)")
+    print(f"   📥 Descarga: {len(df_resultado):,} → {len(df_descarga):,} artículos (margen >= {margen_min:.1f}%)")
 
-    # ✅ df_resultado ya tiene aplicado el filtro de margen (líneas 116-124 en filtrar_por_periodo)
+
+        # ✅ df_resultado ya tiene aplicado el filtro de margen (líneas 116-124 en filtrar_por_periodo)
     excel_bytes = generar_excel_con_formato(df_descarga, periodo_seleccionado)
     
     st.download_button(

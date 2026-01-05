@@ -496,7 +496,7 @@ def mostrar_alertas_criticas(df_analisis):
         
         # Formatear
         df_display['Costo Exceso Proveedor'] = df_display['Costo Exceso Proveedor'].apply(
-            lambda x: f"${x:,.0f}"
+            lambda x: f"${x:,.0f}".replace(",", ".")
         )
         df_display['% Participación Ventas'] = df_display['% Participación Ventas'].apply(
             lambda x: f"{x:.2f}%"

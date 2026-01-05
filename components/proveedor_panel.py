@@ -239,8 +239,8 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
                     df_arts_fam = df_arts_fam[['Ranking', 'Código', 'Descripción', 'Venta', 'Utilidad', 'Margen %']]
                     
                     # Formatear valores
-                    df_arts_fam['Venta'] = df_arts_fam['Venta'].apply(lambda x: f"${x:,.0f}")
-                    df_arts_fam['Utilidad'] = df_arts_fam['Utilidad'].apply(lambda x: f"${x:,.0f}")
+                    df_arts_fam['Venta'] = df_arts_fam['Venta'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+                    df_arts_fam['Utilidad'] = df_arts_fam['Utilidad'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
                     df_arts_fam['Margen %'] = df_arts_fam['Margen %'].apply(lambda x: f"{x:.2f}%")
                     
                     # Mostrar tabla con scroll
@@ -339,8 +339,8 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
                     df_arts_subfam = df_arts_subfam[['Ranking', 'Código', 'Descripción', 'Venta', 'Utilidad', 'Margen %']]
                     
                     # Formatear valores
-                    df_arts_subfam['Venta'] = df_arts_subfam['Venta'].apply(lambda x: f"${x:,.0f}")
-                    df_arts_subfam['Utilidad'] = df_arts_subfam['Utilidad'].apply(lambda x: f"${x:,.0f}")
+                    df_arts_subfam['Venta'] = df_arts_subfam['Venta'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+                    df_arts_subfam['Utilidad'] = df_arts_subfam['Utilidad'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
                     df_arts_subfam['Margen %'] = df_arts_subfam['Margen %'].apply(lambda x: f"{x:.2f}%")
                     
                     # Mostrar tabla con scroll
@@ -433,8 +433,8 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
                             df_sin_stock = df_sin_stock[['Ranking', 'Código', 'Descripción', 'Familia', 'Subfamilia', 'Venta', 'Utilidad', 'Margen %']]
                             
                             # Formatear valores
-                            df_sin_stock['Venta'] = df_sin_stock['Venta'].apply(lambda x: f"${x:,.0f}")
-                            df_sin_stock['Utilidad'] = df_sin_stock['Utilidad'].apply(lambda x: f"${x:,.0f}")
+                            df_sin_stock['Venta'] = df_sin_stock['Venta'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+                            df_sin_stock['Utilidad'] = df_sin_stock['Utilidad'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
                             df_sin_stock['Margen %'] = df_sin_stock['Margen %'].apply(lambda x: f"{x:.2f}%")
                             
                             # Mostrar tabla con scroll
@@ -567,8 +567,8 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
                         df_sin_familia['Ranking'] = range(1, len(df_sin_familia) + 1)
                         df_sin_familia = df_sin_familia[['Ranking', 'Código', 'Descripción', 'Venta', 'Utilidad', 'Margen %']]
                         
-                        df_sin_familia['Venta'] = df_sin_familia['Venta'].apply(lambda x: f"${x:,.0f}")
-                        df_sin_familia['Utilidad'] = df_sin_familia['Utilidad'].apply(lambda x: f"${x:,.0f}")
+                        df_sin_familia['Venta'] = df_sin_familia['Venta'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+                        df_sin_familia['Utilidad'] = df_sin_familia['Utilidad'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
                         df_sin_familia['Margen %'] = df_sin_familia['Margen %'].apply(lambda x: f"{x:.2f}%")
                         
                         st.dataframe(df_sin_familia, hide_index=True, height=300, width='stretch')
@@ -617,8 +617,8 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
                         df_sin_subfam['Ranking'] = range(1, len(df_sin_subfam) + 1)
                         df_sin_subfam = df_sin_subfam[['Ranking', 'Código', 'Descripción', 'Familia', 'Venta', 'Utilidad', 'Margen %']]
                         
-                        df_sin_subfam['Venta'] = df_sin_subfam['Venta'].apply(lambda x: f"${x:,.0f}")
-                        df_sin_subfam['Utilidad'] = df_sin_subfam['Utilidad'].apply(lambda x: f"${x:,.0f}")
+                        df_sin_subfam['Venta'] = df_sin_subfam['Venta'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+                        df_sin_subfam['Utilidad'] = df_sin_subfam['Utilidad'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
                         df_sin_subfam['Margen %'] = df_sin_subfam['Margen %'].apply(lambda x: f"{x:.2f}%")
                         
                         st.dataframe(df_sin_subfam, hide_index=True, height=300, width='stretch')
@@ -672,8 +672,8 @@ def mostrar_panel_proveedor(proveedor_seleccionado, id_proveedor, info_prov,
                         df_margen_neg = df_margen_neg[['Ranking', 'Código', 'Descripción', 'Familia', 'Subfamilia', 'Venta', 'Utilidad', 'Margen %']]
                         
                         # Formatear valores
-                        df_margen_neg['Venta'] = df_margen_neg['Venta'].apply(lambda x: f"${x:,.0f}")
-                        df_margen_neg['Utilidad'] = df_margen_neg['Utilidad'].apply(lambda x: f"${x:,.0f}")
+                        df_margen_neg['Venta'] = df_margen_neg['Venta'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+                        df_margen_neg['Utilidad'] = df_margen_neg['Utilidad'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
                         df_margen_neg['Margen %'] = df_margen_neg['Margen %'].apply(lambda x: f"{x:.2f}%")
                         
                         # Mostrar tabla con scroll
