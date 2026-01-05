@@ -945,7 +945,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             año_seleccionado = st.selectbox(
                 "📅 Año a analizar:",
                 options=años_disponibles,
-                index=len(años_disponibles) - 1,  # Por defecto: año más reciente
+                index=len(años_disponibles) - 2,  # Por defecto: año más reciente
                 key='selector_año_stock'
             )
         
