@@ -62,12 +62,12 @@ def show_presupuesto_estrategico(df):
     with tabs[7]:
         st.dataframe(df, width='stretch')
 
-
 def analisis_reposicion(df):
     """Análisis de artículos a reponer"""
     df_reponer = df[df['cantidad_optima'] > 0].copy()
+    
     st.subheader("🔄 Artículos a Reponer")
-    st.metric("Costo Total de Reposición", f"${df_reponer['PRESUPUESTO'].sum():,.0f}")
+    st.metric("Costo Total de Reposición", f"${df_reponer['PRESUPUESTO'].sum():,.0f}".replace(',', '.'))
     
     columnas = [
         "idarticulo", "descripcion", "cantidad_optima", "PRESUPUESTO",
@@ -76,8 +76,109 @@ def analisis_reposicion(df):
         "cor_abastecer", "exp_abastecer", "for_abastecer", 
         "hip_abastecer", "total_abastecer"
     ]
-    st.dataframe(df_reponer[columnas], width='stretch')
+    
+    # Crear copia para formatear visualización
+    df_display = df_reponer[columnas].copy()
+    
+    # Formatear columnas numéricas para visualización
+    columnas_numericas = [col for col in columnas if col not in ['idarticulo', 'descripcion']]
+    
+    for col in columnas_numericas:
+        if col == 'PRESUPUESTO':
+            df_display[col] = df_display[col].apply(lambda x: f"${int(x):,}".replace(',', '.') if pd.notna(x) else '')
+        else:
+            df_display[col] = df_display[col].apply(lambda x: f"{int(x):,}".replace(',', '.') if pd.notna(x) else '0')
+    
+    st.dataframe(df_display, use_container_width=True)
+    
+    # Botón de descarga Excel
+    buffer = crear_excel_reposicion(df_reponer[columnas])
+    st.download_button(
+        label="📥 Descargar Análisis de Reposición (Excel)",
+        data=buffer,
+        file_name=f"analisis_reposicion_{pd.Timestamp.now().strftime('%d%B%Y')}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
+
+def crear_excel_reposicion(df):
+    """Crea archivo Excel con formato profesional para análisis de reposición"""
+    from io import BytesIO
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils.dataframe import dataframe_to_rows
+    
+    buffer = BytesIO()
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Reposición"
+    
+    # Agregar datos
+    for r_idx, row in enumerate(dataframe_to_rows(df, index=False, header=True), 1):
+        for c_idx, value in enumerate(row, 1):
+            cell = ws.cell(row=r_idx, column=c_idx, value=value)
+            
+            # Formato de encabezado
+            if r_idx == 1:
+                cell.font = Font(bold=True, color="FFFFFF", size=11)
+                cell.fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+                cell.border = Border(
+                    left=Side(style='thin'),
+                    right=Side(style='thin'),
+                    top=Side(style='thin'),
+                    bottom=Side(style='thin')
+                )
+            else:
+                # Formato de datos
+                cell.alignment = Alignment(horizontal="center" if c_idx > 2 else "left", vertical="center")
+                cell.border = Border(
+                    left=Side(style='thin', color="D3D3D3"),
+                    right=Side(style='thin', color="D3D3D3"),
+                    top=Side(style='thin', color="D3D3D3"),
+                    bottom=Side(style='thin', color="D3D3D3")
+                )
+                
+                # Formato numérico
+                if c_idx > 2:  # Columnas numéricas
+                    if ws.cell(row=1, column=c_idx).value == 'PRESUPUESTO':
+                        cell.number_format = '$#,##0'
+                    else:
+                        cell.number_format = '#,##0'
+    
+    # Ajustar ancho de columnas
+    anchos = {
+        'A': 12,  # idarticulo
+        'B': 45,  # descripcion
+        'C': 15,  # cantidad_optima
+        'D': 15,  # PRESUPUESTO
+        'E': 13,  # stk_corrientes
+        'F': 13,  # stk_express
+        'G': 13,  # stk_formosa
+        'H': 13,  # stk_hiper
+        'I': 13,  # stk_TIROL
+        'J': 13,  # stk_central
+        'K': 13,  # STK_TOTAL
+        'L': 15,  # cor_abastecer
+        'M': 15,  # exp_abastecer
+        'N': 15,  # for_abastecer
+        'O': 15,  # hip_abastecer
+        'P': 15,  # total_abastecer
+    }
+    
+    for col, ancho in anchos.items():
+        ws.column_dimensions[col].width = ancho
+    
+    # Congelar primera fila
+    ws.freeze_panes = "A2"
+    
+    # Ajustar altura de fila de encabezado
+    ws.row_dimensions[1].height = 25
+    
+    wb.save(buffer)
+    buffer.seek(0)
+    
+    return buffer
 
 def analisis_presupuesto_sucursal(df):
     """Análisis de presupuesto por sucursal"""
