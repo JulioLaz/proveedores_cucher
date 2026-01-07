@@ -73,7 +73,7 @@ def analisis_reposicion(df):
         "idarticulo", "descripcion", "cantidad_optima", "PRESUPUESTO",
         "stk_corrientes", "stk_express", "stk_formosa", "stk_hiper", 
         "stk_TIROL", "stk_central", "STK_TOTAL",
-        "cor_abastecer", "exp_abastecer", "for_abastecer", 
+        "cor_abastecer", "for_abastecer", 
         "hip_abastecer", "total_abastecer"
     ]
     
@@ -89,7 +89,7 @@ def analisis_reposicion(df):
         else:
             df_display[col] = df_display[col].apply(lambda x: f"{int(x):,}".replace(',', '.') if pd.notna(x) else '0')
     
-    st.dataframe(df_display, use_container_width=True)
+    st.dataframe(df_display, width='stretch')
     
     # Botón de descarga Excel
     buffer = crear_excel_reposicion(df_reponer[columnas])
@@ -163,7 +163,7 @@ def crear_excel_reposicion(df):
         'M': 15,  # exp_abastecer
         'N': 15,  # for_abastecer
         'O': 15,  # hip_abastecer
-        'P': 15,  # total_abastecer
+        # 'P': 15,  # total_abastecer
     }
     
     for col, ancho in anchos.items():

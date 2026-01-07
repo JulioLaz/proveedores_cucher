@@ -949,7 +949,7 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
                 df_general_display = formatear_dataframe_para_visualizacion(df_general_ordenado)
                 
                 with st.expander("📊 Ver Tabla GENERAL", expanded=False):
-                    st.dataframe(df_general_display, use_container_width=True, height=400)
+                    st.dataframe(df_general_display, width='stretch', height=400)
                 
                 # ═══════════════════════════════════════════════════════════════════
                 # TABLAS CHACO y CORRIENTES en paralelo
@@ -976,7 +976,7 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
                         # Formatear para visualización
                         df_chaco_display = formatear_dataframe_para_visualizacion(df_chaco_tabla)
                         
-                        st.dataframe(df_chaco_display, use_container_width=True, height=400)
+                        st.dataframe(df_chaco_display, width='stretch', height=400)
                 
                 with col_t2:
                     with st.expander("🟦 Ver Tabla CORRIENTES", expanded=False):
@@ -997,7 +997,7 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
                         # Formatear para visualización
                         df_corr_display = formatear_dataframe_para_visualizacion(df_corr_tabla)
                         
-                        st.dataframe(df_corr_display, use_container_width=True, height=400)
+                        st.dataframe(df_corr_display, width='stretch', height=400)
 
 
             # Llamar a la función para mostrar las tablas
