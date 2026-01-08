@@ -36,40 +36,72 @@ warnings.filterwarnings('ignore')
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @st.cache_data(ttl=3600, show_spinner="Cargando datos de presupuesto...")
-def cargar_datos_presupuesto_bq(credentials_path, project_id, id_list):
+def cargar_datos_presupuesto_bq(credentials_path, project_id, id_list, tipo_id='idarticuloalfa'):
     """
     Carga datos del presupuesto desde BigQuery filtrados por IDs
+    
+    Args:
+        credentials_path: Ruta al archivo de credenciales
+        project_id: ID del proyecto en BigQuery
+        id_list: Lista de IDs a filtrar
+        tipo_id: Columna a usar para filtrar ('idarticuloalfa' o 'idarticulo')
     """
     try:
         client = bigquery.Client.from_service_account_json(credentials_path)
         
         id_str = ','.join(map(str, id_list))
+        
+        print(f"DEBUG cargar_datos_presupuesto_bq:")
+        print(f"  - tipo_id: {tipo_id}")
+        print(f"  - Cantidad de IDs: {len(id_list)}")
+        print(f"  - Primeros 3 IDs: {id_list[:3]}")
         
         query = f"""
         SELECT *
         FROM `{project_id}.presupuesto.result_final_alert_all`
-        WHERE idarticuloalfa IN ({id_str})
+        WHERE {tipo_id} IN ({id_str})
         """
+        
+        print(f"  - Query: {query[:200]}...")
         
         df = client.query(query).to_dataframe()
         
         st.success(f"✓ Presupuesto cargado: {len(df):,} registros")
+        print(f"  - Registros encontrados: {len(df)}")
         return df
     
     except Exception as e:
         st.error(f"Error al cargar presupuesto: {e}")
+        print(f"ERROR: {e}")
         return pd.DataFrame()
 
 
 @st.cache_data(ttl=3600, show_spinner="Cargando tickets históricos...")
-def cargar_datos_tickets_bq(credentials_path, project_id, bigquery_table, id_list, fecha_desde):
+def cargar_datos_tickets_bq(credentials_path, project_id, bigquery_table, id_list, fecha_desde, tipo_id='idarticuloalfa'):
     """
     Carga datos de tickets desde BigQuery filtrados por IDs y fecha
+    
+    Args:
+        credentials_path: Ruta al archivo de credenciales
+        project_id: ID del proyecto en BigQuery
+        bigquery_table: Nombre de la tabla de tickets
+        id_list: Lista de IDs a filtrar
+        fecha_desde: Fecha inicial para filtrar
+        tipo_id: Columna a usar para filtrar ('idarticuloalfa' o 'idarticulo')
     """
     try:
         client = bigquery.Client.from_service_account_json(credentials_path)
         
         id_str = ','.join(map(str, id_list))
+        
+        print(f"DEBUG cargar_datos_tickets_bq:")
+        print(f"  - tipo_id: {tipo_id}")
+        print(f"  - Cantidad de IDs: {len(id_list)}")
+        print(f"  - Primeros 3 IDs: {id_list[:3]}")
+        
+        # Mapear tipo_id a la columna correcta en la tabla de tickets
+        # La tabla de tickets usa 'idartalfa' como columna alfanumérica
+        columna_filtro = 'idartalfa' if tipo_id == 'idarticuloalfa' else 'idarticulo'
         
         query = f"""
         SELECT 
@@ -78,15 +110,19 @@ def cargar_datos_tickets_bq(credentials_path, project_id, bigquery_table, id_lis
             sucursal,
             cantidad_total as cantidad
         FROM `{project_id}.{bigquery_table}`
-        WHERE idartalfa IN ({id_str})
+        WHERE {columna_filtro} IN ({id_str})
         AND DATE(fecha_comprobante) >= '{fecha_desde}'
         ORDER BY fecha_comprobante
         """
+        
+        print(f"  - Columna filtro: {columna_filtro}")
+        print(f"  - Query: {query[:200]}...")
         
         df = client.query(query).to_dataframe()
         
         if df.empty:
             st.warning("No se encontraron tickets para los artículos seleccionados")
+            print(f"  - Registros encontrados: 0")
             return pd.DataFrame()
         
         # Procesar fechas
@@ -502,15 +538,26 @@ def formatear_hoja_excel(ws, destacar_columna=None):
             
             if destacar_columna and col_name == destacar_columna:
                 cell.fill = highlight_fill
-            
+
             if isinstance(cell.value, (int, float)):
                 cell.alignment = Alignment(horizontal='center', vertical='center')
-                if 'presupuesto' in str(col_name).lower():
+                
+                col_name_lower = str(col_name).lower()
+                if 'presupuesto' in col_name_lower or 'costo' in col_name_lower:
                     cell.number_format = '$#,##0'
                 else:
                     cell.number_format = '#,##0'
             else:
                 cell.alignment = data_alignment
+
+            # if isinstance(cell.value, (int, float)):
+            #     cell.alignment = Alignment(horizontal='center', vertical='center')
+            #     if 'presupuesto' in str(col_name).lower():
+            #         cell.number_format = '$#,##0'
+            #     else:
+            #         cell.number_format = '#,##0'
+            # else:
+            #     cell.alignment = data_alignment
     
     for column in ws.columns:
         max_length = 0
@@ -586,15 +633,15 @@ def crear_libro_excel_formateado(df_final, nombres_bloques, proveedor_nombre):
     
     if len(nombres_bloques) >= 1:
         ultima_semana_chaco = f"{nombres_bloques[-1]}_chaco"
-        df_chaco['ultimos_7_dias'] = df_chaco[ultima_semana_chaco] if ultima_semana_chaco in df_chaco.columns else 0
+        df_chaco['cnt_ultimos_7_dias'] = df_chaco[ultima_semana_chaco] if ultima_semana_chaco in df_chaco.columns else 0
     
     if len(nombres_bloques) >= 2:
         ultima_sem_chaco = f"{nombres_bloques[-1]}_chaco"
         anteultima_sem_chaco = f"{nombres_bloques[-2]}_chaco"
-        df_chaco['ultimos_14_dias'] = (df_chaco[ultima_sem_chaco] if ultima_sem_chaco in df_chaco.columns else 0) + \
+        df_chaco['cnt_ultimos_14_dias'] = (df_chaco[ultima_sem_chaco] if ultima_sem_chaco in df_chaco.columns else 0) + \
                                        (df_chaco[anteultima_sem_chaco] if anteultima_sem_chaco in df_chaco.columns else 0)
     
-    columnas_chaco = ['idartalfa', 'descripcion', 'uxb', 'ultimos_7_dias', 'ultimos_14_dias', 
+    columnas_chaco = ['idartalfa', 'descripcion', 'uxb','STK_CHACO','cnt_ultimos_7_dias', 'cnt_ultimos_14_dias', 
                       'chaco_abastecer_1sem', 'chaco_abastecer_2sem', 'chaco_abastecer_3sem', 'chaco_abastecer_4sem',
                       'costo_unitario', 
                       'presupuesto_chaco_1sem', 'presupuesto_chaco_2sem', 
@@ -616,15 +663,15 @@ def crear_libro_excel_formateado(df_final, nombres_bloques, proveedor_nombre):
     
     if len(nombres_bloques) >= 1:
         ultima_semana_corr = f"{nombres_bloques[-1]}_corr"
-        df_corr['ultimos_7_dias'] = df_corr[ultima_semana_corr] if ultima_semana_corr in df_corr.columns else 0
+        df_corr['cnt_ultimos_7_dias'] = df_corr[ultima_semana_corr] if ultima_semana_corr in df_corr.columns else 0
     
     if len(nombres_bloques) >= 2:
         ultima_sem_corr = f"{nombres_bloques[-1]}_corr"
         anteultima_sem_corr = f"{nombres_bloques[-2]}_corr"
-        df_corr['ultimos_14_dias'] = (df_corr[ultima_sem_corr] if ultima_sem_corr in df_corr.columns else 0) + \
+        df_corr['cnt_ultimos_14_dias'] = (df_corr[ultima_sem_corr] if ultima_sem_corr in df_corr.columns else 0) + \
                                       (df_corr[anteultima_sem_corr] if anteultima_sem_corr in df_corr.columns else 0)
     
-    columnas_corr = ['idartalfa', 'descripcion', 'uxb', 'ultimos_7_dias', 'ultimos_14_dias',
+    columnas_corr = ['idartalfa', 'descripcion', 'uxb', 'stk_corrientes', 'cnt_ultimos_7_dias', 'cnt_ultimos_14_dias',
                      'corr_abastecer_1sem', 'corr_abastecer_2sem', 'corr_abastecer_3sem', 'corr_abastecer_4sem',
                      'costo_unitario', 
                      'presupuesto_corrientes_1sem', 'presupuesto_corrientes_2sem',
@@ -659,11 +706,11 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
     """
     
     st.markdown("""
-        <div style="text-align: center; padding: 1.5rem; border: 2px solid #4CAF50; 
+        <div style="text-align: center; padding: .5rem; border: 2px solid #4CAF50; 
         border-radius: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-        margin-bottom: 2rem;">
-            <h1 style="color: white; margin: 0; font-size: 2.5rem;">
-                🎯 Predicción y Presupuesto de Reabastecimiento
+        margin-bottom: 1rem;">
+            <h1 style="color: white; margin: 0; font-size: 2rem;">
+                🎯 Presupuesto de Reabastecimiento
             </h1>
             <p style="color: white; margin-top: 0.5rem; font-size: 1.2rem;">
                 Sistema de bloques de 7 días con cálculo automático 1-4 semanas
@@ -710,7 +757,8 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
     incluir_formosa = st.checkbox(
         "Incluir sucursal Formosa en análisis de ventas",
         value=False,
-        help="Formosa representa <5% de ventas. Por defecto está excluida para simplificar análisis."
+        help="Formosa representa <5% de ventas. Por defecto está excluida para simplificar análisis.",
+        disabled=True
     )
     
     if incluir_formosa:
@@ -721,17 +769,21 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
     # Determinar IDs de artículos según proveedor
     if id_proveedor_seleccionado == SALTA_REFRESCOS_ID:
         ids_articulos = ID_LIST_SALTA
+        tipo_id = 'idarticuloalfa'
         st.info(f"📊 Proveedor virtual: {len(ids_articulos)} artículos agrupados")
+        print(f"DEBUG: Tipo ID = {tipo_id}, Primeros 3 IDs: {ids_articulos[:3]}")
     else:
         ids_articulos = df_proveedores[
             df_proveedores['idproveedor'] == id_proveedor_seleccionado
         ]['idarticulo'].unique().tolist()
+        tipo_id = 'idarticulo'
         
         if len(ids_articulos) == 0:
             st.warning("⚠️ No se encontraron artículos para este proveedor")
             return
         
         st.info(f"📦 {len(ids_articulos)} artículos encontrados")
+        print(f"DEBUG: Tipo ID = {tipo_id}, Primeros 3 IDs: {ids_articulos[:3]}")
     
     # ═══════════════════════════════════════════════════════════════════════════
     # BOTÓN DE GENERAR ANÁLISIS
@@ -745,7 +797,8 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
             df_presupuesto = cargar_datos_presupuesto_bq(
                 config['credentials_path'],
                 config['project_id'],
-                ids_articulos
+                ids_articulos,
+                tipo_id
             )
             
             if df_presupuesto.empty:
@@ -760,7 +813,8 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
                 config['project_id'],
                 config['bigquery_table'],
                 ids_articulos,
-                fecha_desde
+                fecha_desde,
+                tipo_id
             )
             
             if df_tickets.empty:
@@ -879,14 +933,14 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
                 # Identificar columnas numéricas (sin presupuesto)
                 columnas_enteros = [
                     'idartalfa', 'uxb', 'STK_CHACO', 'stk_corrientes', 
-                    'ultimos_7_dias', 'ultimos_14_dias',
+                    'cnt_ultimos_7_dias', 'cnt_ultimos_14_dias',
                     'chaco_abastecer_1sem', 'chaco_abastecer_2sem', 'chaco_abastecer_3sem', 'chaco_abastecer_4sem',
                     'corr_abastecer_1sem', 'corr_abastecer_2sem', 'corr_abastecer_3sem', 'corr_abastecer_4sem',
-                    'costo_unitario'
+                    
                 ]
                 
                 # Identificar columnas de presupuesto (llevan prefijo $)
-                columnas_presupuesto = [
+                columnas_presupuesto = ['costo_unitario',
                     'presupuesto_chaco_1sem', 'presupuesto_chaco_2sem', 'presupuesto_chaco_3sem', 'presupuesto_chaco_4sem',
                     'presupuesto_corrientes_1sem', 'presupuesto_corrientes_2sem', 'presupuesto_corrientes_3sem', 'presupuesto_corrientes_4sem',
                     'presupuesto_total_1sem', 'presupuesto_total_2sem', 'presupuesto_total_3sem', 'presupuesto_total_4sem'
@@ -913,20 +967,31 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
                 return df_display
 
 
-            def main_formato_tablas_presupuesto_proveedor(df_final):
+            def main_formato_tablas_presupuesto_proveedor(df_final, nombres_bloques):
                 """
                 Muestra tablas formateadas de presupuesto por proveedor (SALTA REFRESCOS por defecto)
                 con columnas específicas para CHACO y CORRIENTES
                 """
                 
-                # Calcular columnas adicionales
-                df_final['ultimos_7_dias'] = df_final['sem_29dec_04jan']
-                df_final['ultimos_14_dias'] = df_final['sem_08dec_14dec'] + df_final['sem_15dec_21dec']
+                # Calcular columnas adicionales DINÁMICAMENTE
+                # cnt_ultimos_7_dias = primera semana (más reciente)
+                if len(nombres_bloques) >= 1:
+                    df_final['cnt_ultimos_7_dias'] = df_final[nombres_bloques[0]]
+                else:
+                    df_final['cnt_ultimos_7_dias'] = 0
+                
+                # cnt_ultimos_14_dias = suma de las dos primeras semanas
+                if len(nombres_bloques) >= 2:
+                    df_final['cnt_ultimos_14_dias'] = df_final[nombres_bloques[0]] + df_final[nombres_bloques[1]]
+                elif len(nombres_bloques) == 1:
+                    df_final['cnt_ultimos_14_dias'] = df_final[nombres_bloques[0]]
+                else:
+                    df_final['cnt_ultimos_14_dias'] = 0
                 
                 # Definir columnas para CHACO
                 columnas_chaco = [
                     'idartalfa', 'descripcion', 'uxb', 'STK_CHACO', 
-                    'ultimos_7_dias', 'ultimos_14_dias',
+                    'cnt_ultimos_7_dias', 'cnt_ultimos_14_dias',
                     'chaco_abastecer_1sem', 'chaco_abastecer_2sem', 'chaco_abastecer_3sem', 'chaco_abastecer_4sem',
                     'costo_unitario',
                     'presupuesto_chaco_1sem', 'presupuesto_chaco_2sem', 'presupuesto_chaco_3sem', 'presupuesto_chaco_4sem'
@@ -935,7 +1000,7 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
                 # Definir columnas para CORRIENTES
                 columnas_corrientes = [
                     'idartalfa', 'descripcion', 'uxb', 'stk_corrientes',
-                    'ultimos_7_dias', 'ultimos_14_dias',
+                    'cnt_ultimos_7_dias', 'cnt_ultimos_14_dias',
                     'corr_abastecer_1sem', 'corr_abastecer_2sem', 'corr_abastecer_3sem', 'corr_abastecer_4sem',
                     'costo_unitario',
                     'presupuesto_corrientes_1sem', 'presupuesto_corrientes_2sem', 'presupuesto_corrientes_3sem', 'presupuesto_corrientes_4sem'
@@ -1001,7 +1066,7 @@ def render_tab_prediccion_presupuesto(df_proveedores, config):
 
 
             # Llamar a la función para mostrar las tablas
-            main_formato_tablas_presupuesto_proveedor(df_final)
+            main_formato_tablas_presupuesto_proveedor(df_final, nombres_bloques)
             # # TABLA GENERAL (ancho completo)
             # with st.expander("📊 Ver Tabla GENERAL", expanded=False):
             #     st.dataframe(df_final, width='stretch', height=400)
