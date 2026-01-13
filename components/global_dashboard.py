@@ -22,6 +22,7 @@ from components.analisis_stock_rentables_simple import main_analisis_stock_simpl
 from components.tab1_ranking_ventas import main_tab1_ranking_ventas  # ← NUEVO MÓDULO TAB1  
 # Busca la sección de imports de components y agrega:
 from components.tab_prediccion_presupuesto import render_tab_prediccion_presupuesto
+from components.ranking_proveedores_analisis import main_ranking_proveedores_analisis
 
 def format_millones(valor):
         if valor >= 1_000_000:
@@ -589,155 +590,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 #####################################################################################
 #### tooltips para tabs
 #####################################################################################
-    # st.markdown(
-    # """
-    # <style>
-    # /* Ajustar la distribución de los tabs */
-    # .stTabs [role="tablist"] {
-    #     justify-content: space-around;
-    #     overflow: visible !important;
-    # }
-
-    # /* Estilo general de los títulos de las tabs */
-    # .stTabs [data-baseweb="tab"] {
-    #     font-size: 1.5rem;
-    #     font-weight: 600;
-    #     color: #444;
-    #     background-color: #f0e69b;
-    #     border-radius: 5px;
-    #     padding: 0.5rem 1rem;
-    #     position: relative;
-    #     overflow: visible !important;
-    # }
-
-    # /* Tab seleccionada */
-    # .stTabs [aria-selected="true"] {
-    #     font-weight: bold;
-    #     color: #000;
-    #     background-color: #ffd700;
-    #     border-bottom: 5px solid #0066cc;
-    #     font-size: 1rem;
-    #     font-weight: 800;
-    #     height: 50px;
-    #     line-height: 50px;
-    #     padding-top: 5px;
-    #     padding-bottom: 5px;
-    #     transition: all 0.2s ease-in-out;        
-    # }
-
-    # /* TOOLTIPS - Posición absoluta, 1rem arriba, fondo transparente */
-    # .stTabs [data-baseweb="tab"]:nth-child(1):hover::after {
-    #     content: "Rankings de proveedores, análisis de desempeño y reportes detallados";
-    #     position: absolute;
-    #     top: -.8rem;
-    #     left: 50%;
-    #     transform: translateX(-50%) translateY(-100%);
-    #     background: rgba(45, 55, 72, 0.8);  /* Fondo semi-transparente */
-    #     color: white;
-    #     padding: 12px 18px;
-    #     border-radius: 8px;
-    #     font-size: 0.85rem;
-    #     font-weight: 500;
-    #     max-width: 280px;
-    #     white-space: normal;
-    #     text-align: center;
-    #     z-index: 99999;
-    #     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-    #     line-height: 1.5;
-    #     pointer-events: none;
-    #     backdrop-filter: blur(4px);  /* Efecto de desenfoque */
-    # }
-
-    # .stTabs [data-baseweb="tab"]:nth-child(2):hover::after {
-    #     content: "Análisis de utilidad vs cobertura de stock por proveedor";
-    #     position: absolute;
-    #     top: -.8rem;
-    #     left: 50%;
-    #     transform: translateX(-50%) translateY(-100%);
-    #     background: rgba(45, 55, 72, 0.8);
-    #     color: white;
-    #     padding: 12px 18px;
-    #     border-radius: 8px;
-    #     font-size: 0.85rem;
-    #     font-weight: 500;
-    #     max-width: 280px;
-    #     white-space: normal;
-    #     text-align: center;
-    #     z-index: 99999;
-    #     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-    #     line-height: 1.5;
-    #     pointer-events: none;
-    #     backdrop-filter: blur(4px);
-    # }
-
-    # .stTabs [data-baseweb="tab"]:nth-child(3):hover::after {
-    #     content: "Comparación de ventas vs presupuesto y análisis de cobertura";
-    #     position: absolute;
-    #     top: -.8rem;
-    #     left: 50%;
-    #     transform: translateX(-50%) translateY(-100%);
-    #     background: rgba(45, 55, 72, 0.8);
-    #     color: white;
-    #     padding: 12px 18px;
-    #     border-radius: 8px;
-    #     font-size: 0.85rem;
-    #     font-weight: 500;
-    #     max-width: 280px;
-    #     white-space: normal;
-    #     text-align: center;
-    #     z-index: 99999;
-    #     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-    #     line-height: 1.5;
-    #     pointer-events: none;
-    #     backdrop-filter: blur(4px);
-    # }
-
-    # .stTabs [data-baseweb="tab"]:nth-child(4):hover::after {
-    #     content: "Identificar artículos rentables con análisis de rotación y utilidad";
-    #     position: absolute;
-    #     top: -.8rem;
-    #     left: 50%;
-    #     transform: translateX(-50%) translateY(-100%);
-    #     background: rgba(45, 55, 72, 0.8);
-    #     color: white;
-    #     padding: 12px 18px;
-    #     border-radius: 8px;
-    #     font-size: 0.85rem;
-    #     font-weight: 500;
-    #     max-width: 280px;
-    #     white-space: normal;
-    #     text-align: center;
-    #     z-index: 99999;
-    #     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-    #     line-height: 1.5;
-    #     pointer-events: none;
-    #     backdrop-filter: blur(4px);
-    # }
-
-    # .stTabs [data-baseweb="tab"]:nth-child(5):hover::after {
-    #     content: "Sistema de predicción y cálculo de presupuesto de reabastecimiento";
-    #     position: absolute;
-    #     top: -.8rem;
-    #     left: 50%;
-    #     transform: translateX(-50%) translateY(-100%);
-    #     background: rgba(45, 55, 72, 0.8);
-    #     color: white;
-    #     padding: 12px 18px;
-    #     border-radius: 8px;
-    #     font-size: 0.85rem;
-    #     font-weight: 500;
-    #     max-width: 280px;
-    #     white-space: normal;
-    #     text-align: center;
-    #     z-index: 99999;
-    #     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-    #     line-height: 1.5;
-    #     pointer-events: none;
-    #     backdrop-filter: blur(4px);
-    # }
-    # </style>
-    # """,
-    # unsafe_allow_html=True)
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "1- 📊 Proveedores: Rankings, Insights y Reportes", 
@@ -755,7 +607,57 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         "<h3 style='text-align:center; color:rgb(30, 60, 114);font-weight: bold;'>📊 Rankings de Proveedores</h3>",
         unsafe_allow_html=True)
 
-        with st.expander("ℹ️ ¿Qué hace este análisis y qué contiene la descarga?", expanded=False):
+############################################################################
+
+        container = st.container(border=True)
+
+        with container:
+                    st.markdown("""
+                    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 5px; border-radius: 10px; text-align: center;margin-bottom: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
+                        <p style='font-weight: 600; font-size: .8em; color: white; margin: 0;'>
+                                Generar Reporte: Ranking de Proveedores y artículos (período seleccionado)
+                        </p>
+                        <p style='color: white; margin: 5px 0; font-size: 0.6em;'>
+                            6 hojas: Rankings por Cantidad, Venta, Utilidad + Detalles por artículo
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Botón de descarga
+                    if st.button(
+                        "📥 Descargar Análisis",
+                        type="primary",
+                        use_container_width=True,
+                        key="btn_ranking_analisis"
+                    ):
+                        with st.spinner("🔄 Generando análisis completo de proveedores..."):
+                            
+                            # Llamar a la función del módulo
+                            excel_file = main_ranking_proveedores_analisis(
+                                df_ventas=df_ventas,              # ← Datos completos del período
+                                df_proveedores=df_proveedores,    # ← Sin filtros
+                                fecha_desde=fecha_desde,
+                                fecha_hasta=fecha_hasta
+                            )
+                            
+                            if excel_file is not None:
+                                # Generar nombre del archivo
+                                inicio = fecha_desde.strftime('%d%b%Y')
+                                fin = fecha_hasta.strftime('%d%b%Y')
+                                nombre_archivo = f'RANKING_PROVEEDORES_ANALISIS_{inicio}_{fin}.xlsx'
+                                
+                                # Botón de descarga
+                                st.download_button(
+                                    label="💾 Descargar Excel",
+                                    data=excel_file,
+                                    file_name=nombre_archivo,
+                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                    use_container_width=True
+                                )
+                            else:
+                                st.error("❌ Error al generar el archivo. Revisar logs en consola.")
+
+        with st.expander("ℹ️ ¿Qué hace el siguiente análisis y qué contiene la descarga?", expanded=False):
             st.markdown(f"""
             ### 📊 **Este análisis muestra:**
             
@@ -816,6 +718,10 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
                .replace("{len(familias_disponibles)}", str(len(familias_disponibles)))
                .replace("{len(subfamilias_seleccionadas)}", str(len(subfamilias_seleccionadas)))
                .replace("{len(subfamilias_disponibles)}", str(len(subfamilias_disponibles))))
+
+        st.markdown("---")  # Separador visual
+
+############################################################################
 
 
         # ⭐ ANÁLISIS GRÁFICO DE RANKINGS (Gráficos, Tabla, Insights, Preparación Cobertura)
