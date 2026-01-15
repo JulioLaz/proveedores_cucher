@@ -53,43 +53,6 @@ NOMBRES_PROVEEDORES = {
     1702: "Alfa Nea S.A"
 }
 
-
-def extraer_ids_numericos(ids_list):
-    """
-    Extrae solo los IDs numéricos de una lista de strings con formato 'ID (Nombre)'.
-    
-    Args:
-        ids_list (list): Lista de IDs que pueden ser strings con formato 'ID (Nombre)' o enteros
-    
-    Returns:
-        list: Lista de IDs numéricos (enteros)
-    
-    Ejemplos:
-        ['1268 (Cia. Industrial)', '1316 (SALTA)'] -> [1268, 1316]
-        [1268, 1316] -> [1268, 1316]
-    """
-    import re
-    
-    ids_numericos = []
-    for id_item in ids_list:
-        if isinstance(id_item, str):
-            # Extraer solo los dígitos al inicio del string
-            match = re.match(r'^(\d+)', id_item)
-            if match:
-                ids_numericos.append(int(match.group(1)))
-            else:
-                # Si no hay match, intentar convertir directamente
-                try:
-                    ids_numericos.append(int(id_item))
-                except:
-                    print(f"   ⚠️ No se pudo extraer ID numérico de: {id_item}")
-        else:
-            # Ya es numérico
-            ids_numericos.append(int(id_item))
-    
-    return ids_numericos
-
-
 def obtener_ids_originales(id_proveedor):
     """
     Obtiene los IDs originales de un proveedor unificado con sus nombres.
@@ -118,7 +81,20 @@ def obtener_ids_originales(id_proveedor):
         resultado.append(f"{id_orig} ({nombre})")
     
     return resultado
-
+# 🔧 AGREGAR AQUÍ - Diccionario de unificación de proveedores
+# PROVEEDOR_UNIFICADO = {
+#     # YAPUR → 12000001
+#     1358: 12000001, 1285: 12000001, 1084: 12000001, 463: 12000001,
+#     1346: 12000001, 1351: 12000001, 1361: 12000001, 1366: 12000001,
+#     # COCA → 12000002
+#     1268: 12000002, 1316: 12000002, 1867: 12000002,
+#     # UNILEVER → 12000003
+#     503: 12000003, 1313: 12000003, 9: 12000003, 2466: 12000003,
+#     # ARCOR → 12000004
+#     181: 12000004, 189: 12000004, 440: 12000004, 1073: 12000004, 193: 12000004,
+#     # QUILMES → 12000005
+#     1332: 12000005, 2049: 12000005, 1702: 12000005
+# }
 
 def obtener_ids_originales_simple(id_proveedor):
     """
@@ -141,7 +117,6 @@ def obtener_ids_originales_simple(id_proveedor):
     else:
         # No es unificado, retornar el mismo ID
         return [id_proveedor]
-
 
 def aplicar_formatos_proveedor(workbook):
     """
@@ -299,11 +274,14 @@ def escribir_fila_datos(worksheet, row_num, row_data, formatos):
     for col in range(19, 22):
         worksheet.write(row_num, col, row_data.iloc[col], formatos['numero'])
     
+    # Márgenes (22-26)
     # Márgenes (22-26) - Multiplicar por 100 porque están en decimal
     for col in range(22, 27):
-        valor_decimal = row_data.iloc[col]
-        valor_porcentaje = valor_decimal * 100 if valor_decimal is not None else 0
-        worksheet.write(row_num, col, valor_porcentaje, formatos['porcentaje'])
+      valor_decimal = row_data.iloc[col]
+      valor_porcentaje = valor_decimal * 100 if valor_decimal is not None else 0
+      worksheet.write(row_num, col, valor_porcentaje, formatos['porcentaje'])
+   #  for col in range(22, 27):
+      #   worksheet.write(row_num, col, row_data.iloc[col], formatos['porcentaje'])
     
     # cnt_corregida, cantidad_optima
     worksheet.write(row_num, 27, row_data['cnt_corregida'], formatos['numero'])
@@ -382,9 +360,10 @@ def crear_excel_proveedor(df_proveedor, nombre_proveedor, fecha_inicio, fecha_fi
     # Generar nombre de archivo
     fecha_ini_fmt = datetime.strptime(fecha_inicio, '%d/%m/%Y').strftime('%d%b%Y')
     fecha_fin_fmt = datetime.strptime(fecha_fin, '%d/%m/%Y').strftime('%d%b%Y')
+   #  nombre_limpio = nombre_proveedor.replace(' ', '_').replace('/', '_').replace('\\', '_')
     import re
     nombre_limpio = re.sub(r"[ /\\]+", "_", nombre_proveedor)
-    nombre_archivo = f"{nombre_limpio}_{tipo_analisis}_{fecha_ini_fmt}_a_{fecha_fin_fmt}.xlsx"
+    nombre_archivo = f"{nombre_limpio}{tipo_analisis}_{fecha_ini_fmt}_a_{fecha_fin_fmt}.xlsx"
     
     print(f"   📁 Nombre archivo: {nombre_archivo}")
     print(f"   {'─'*76}\n")
@@ -530,7 +509,6 @@ def generar_reporte_proveedor(df_presupuesto, id_proveedor, fecha_inicio, fecha_
         con_filtros (bool): Si se aplicaron filtros
         familias_activas (list): Lista de familias incluidas
         subfamilias_activas (list): Lista de subfamilias incluidas
-        proveedor_name (str): Nombre del proveedor para el archivo
         
     Returns:
         tuple: (BytesIO con Excel, nombre del archivo)
@@ -540,25 +518,22 @@ def generar_reporte_proveedor(df_presupuesto, id_proveedor, fecha_inicio, fecha_
     print(f"{'='*80}")
     print(f"   🔍 Filtrando datos para proveedor ID: {id_proveedor}")
     
-    # Obtener IDs originales (si es unificado, obtiene todos los IDs)
-    ids_a_buscar = obtener_ids_originales(id_proveedor)
-    
-    print(f"   🔍 IDs originales: {ids_a_buscar}")
-    
-    # ✅ EXTRAER SOLO LOS NÚMEROS DE LOS IDs
-    ids_numericos = extraer_ids_numericos(ids_a_buscar)
-    print(f"   🔢 IDs numéricos para filtrado: {ids_numericos}")
-    
-    if len(ids_numericos) > 1:
-        print(f"   ⚠️ Proveedor UNIFICADO detectado - Buscando {len(ids_numericos)} proveedores originales")
+    # Filtrar datos del proveedor
+   #  df_prov = df_presupuesto[df_presupuesto['idproveedor'] == id_proveedor].copy()
 
-    # Filtrar datos del proveedor (uno o múltiples IDs)
-    df_prov = df_presupuesto[df_presupuesto['idproveedor'].isin(ids_numericos)].copy()
+   # Obtener IDs originales (si es unificado, obtiene todos los IDs)
+    ids_a_buscar = obtener_ids_originales(id_proveedor)
+      
+    print(f"   🔍 IDs a buscar: {ids_a_buscar}")
+    if len(ids_a_buscar) > 1:
+      print(f"   ⚠️ Proveedor UNIFICADO detectado - Buscando {len(ids_a_buscar)} proveedores originales")
+
+   # Filtrar datos del proveedor (uno o múltiples IDs)
+    df_prov = df_presupuesto[df_presupuesto['idproveedor'].isin(ids_a_buscar)].copy()
+
 
     if len(df_prov) == 0:
         print(f"   ❌ ERROR: No se encontraron datos para el proveedor ID {id_proveedor}")
-        print(f"   🔍 IDs buscados: {ids_numericos}")
-        print(f"   📊 IDs disponibles en df_presupuesto: {df_presupuesto['idproveedor'].unique()[:10]}...")
         return None, None
     
     nombre_proveedor = df_prov['proveedor'].iloc[0]
@@ -571,7 +546,8 @@ def generar_reporte_proveedor(df_presupuesto, id_proveedor, fecha_inicio, fecha_
     # Generar Excel
     return crear_excel_proveedor(
         df_prov, 
-        proveedor_name if proveedor_name else nombre_proveedor,
+        # nombre_proveedor,
+        proveedor_name,
         fecha_inicio, 
         fecha_fin,
         con_filtros,

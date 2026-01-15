@@ -14,7 +14,7 @@ Fecha: Diciembre 2024
 
 import streamlit as st
 import plotly.graph_objects as go
-from utils.proveedor_exporter import generar_reporte_proveedor, obtener_ids_originales
+from utils.proveedor_exporter import generar_reporte_proveedor, obtener_ids_originales, obtener_ids_originales_simple
 from utils.telegram_notifier import send_telegram_alert  # ← AGREGAR
 from components.proveedor_panel import mostrar_panel_proveedor
 
@@ -49,43 +49,6 @@ def get_color_cobertura(dias):
         return '#f39c12'  # Naranja - Bajo
     else:
         return '#27ae60'  # Verde - Óptimo
-
-
-def extraer_ids_numericos(ids_list):
-    """
-    Extrae solo los IDs numéricos de una lista de strings con formato 'ID (Nombre)'.
-    
-    Args:
-        ids_list (list): Lista de IDs que pueden ser strings con formato 'ID (Nombre)' o enteros
-    
-    Returns:
-        list: Lista de IDs numéricos (enteros)
-    
-    Ejemplos:
-        ['1268 (Cia. Industrial)', '1316 (SALTA)'] -> [1268, 1316]
-        [1268, 1316] -> [1268, 1316]
-    """
-    import re
-    
-    ids_numericos = []
-    for id_item in ids_list:
-        if isinstance(id_item, str):
-            # Extraer solo los dígitos al inicio del string
-            match = re.match(r'^(\d+)', id_item)
-            if match:
-                ids_numericos.append(int(match.group(1)))
-            else:
-                # Si no hay match, intentar convertir directamente
-                try:
-                    ids_numericos.append(int(id_item))
-                except:
-                    print(f"   ⚠️ No se pudo extraer ID numérico de: {id_item}")
-        else:
-            # Ya es numérico
-            ids_numericos.append(int(id_item))
-    
-    return ids_numericos
-
 
 def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveedores,
                                   fecha_desde, fecha_hasta,
@@ -238,20 +201,16 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                         print(f"{'='*80}")
                         
                         # Obtener IDs originales (maneja proveedores unificados)
-                        ids_a_buscar = obtener_ids_originales(id_proveedor)
+                        # ids_a_buscar = obtener_ids_originales(id_proveedor)
+                        ids_a_buscar = obtener_ids_originales_simple(id_proveedor)
 
-                        print(f"   🔍 IDs originales: {ids_a_buscar}")
-                        
-                        # ✅ EXTRAER SOLO LOS NÚMEROS DE LOS IDs
-                        ids_numericos = extraer_ids_numericos(ids_a_buscar)
-                        print(f"   🔢 IDs numéricos para filtrado: {ids_numericos}")
-                        
-                        if len(ids_numericos) > 1:
-                            print(f"   ⚠️ Proveedor UNIFICADO - Buscando {len(ids_numericos)} IDs")
+                        print(f"   🔍 IDs a buscar: {ids_a_buscar}")
+                        if len(ids_a_buscar) > 1:
+                            print(f"   ⚠️ Proveedor UNIFICADO - Buscando {len(ids_a_buscar)} IDs")
 
                         # Filtrar datos del proveedor
                         df_prov = df_presupuesto_con_ventas[
-                            df_presupuesto_con_ventas['idproveedor'].isin(ids_numericos)
+                            df_presupuesto_con_ventas['idproveedor'].isin(ids_a_buscar)
                         ].copy()
 
                         # Filtrar solo artículos con PRESUPUESTO > 0
@@ -331,20 +290,17 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                         print(f"{'='*80}")
                         
                         # Obtener IDs originales (maneja proveedores unificados)
-                        ids_a_buscar = obtener_ids_originales(id_proveedor)
+                        ids_a_buscar = obtener_ids_originales_simple(id_proveedor)
+                        # ids_a_buscar = obtener_ids_originales(id_proveedor)
 
-                        print(f"   🔍 IDs originales: {ids_a_buscar}")
-                        
-                        # ✅ EXTRAER SOLO LOS NÚMEROS DE LOS IDs
-                        ids_numericos = extraer_ids_numericos(ids_a_buscar)
-                        print(f"   🔢 IDs numéricos para filtrado: {ids_numericos}")
+                        print(f"   🔍 IDs a buscar: {ids_a_buscar}")
 
-                        if len(ids_numericos) > 1:
-                            print(f"   ⚠️ Proveedor UNIFICADO - Buscando {len(ids_numericos)} IDs")
+                        if len(ids_a_buscar) > 1:
+                            print(f"   ⚠️ Proveedor UNIFICADO - Buscando {len(ids_a_buscar)} IDs")
 
                         # Filtrar datos del proveedor
                         df_prov = df_presupuesto_con_ventas[
-                            df_presupuesto_con_ventas['idproveedor'].isin(ids_numericos)
+                            df_presupuesto_con_ventas['idproveedor'].isin(ids_a_buscar)
                         ].copy()
 
                         # Filtrar solo artículos con PRESUPUESTO > 0
@@ -405,17 +361,14 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                             ]
                         
                         # Obtener IDs originales (maneja proveedores unificados)
-                        ids_a_buscar = obtener_ids_originales(id_proveedor)
+                        # ids_a_buscar = obtener_ids_originales(id_proveedor)
+                        ids_a_buscar = obtener_ids_originales_simple(id_proveedor)
 
-                        print(f"   🔍 IDs originales: {ids_a_buscar}")
-                        
-                        # ✅ EXTRAER SOLO LOS NÚMEROS DE LOS IDs
-                        ids_numericos = extraer_ids_numericos(ids_a_buscar)
-                        print(f"   🔢 IDs numéricos para filtrado: {ids_numericos}")
+                        print(f"   🔍 IDs a buscar: {ids_a_buscar}")
 
                         # Filtrar por proveedor
                         df_prov = df_presupuesto_filtrado[
-                            df_presupuesto_filtrado['idproveedor'].isin(ids_numericos)
+                            df_presupuesto_filtrado['idproveedor'].isin(ids_a_buscar)
                         ].copy()
 
                         # Filtrar solo artículos con PRESUPUESTO > 0
@@ -507,73 +460,106 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
         
         # === BOTÓN DE DESCARGA ===
         st.markdown(f"### 📥 Descargar Reporte Excel - {nombre_prov}")
-        
+
         try:
-            # Preparar DataFrame según si hay filtros o no
-            if con_filtros:
-                # Reconstruir df_presupuesto_filtrado aplicando los filtros
-                df_para_excel = df_presupuesto_con_ventas.copy()
-                
-                if 'familia' in df_para_excel.columns:
-                    df_para_excel = df_para_excel[
-                        df_para_excel['familia'].isin(familias_seleccionadas)
-                    ]
-                
-                if 'subfamilia' in df_para_excel.columns:
-                    df_para_excel = df_para_excel[
-                        df_para_excel['subfamilia'].isin(subfamilias_seleccionadas)
-                    ]
-                
-                print(f"   📊 DataFrame con filtros para Excel: {len(df_para_excel):,} artículos")
-            else:
-                df_para_excel = df_presupuesto_con_ventas
-                print(f"   📊 DataFrame sin filtros para Excel: {len(df_para_excel):,} artículos")
-            
-            # Generar Excel
-            print(f"   🔄 Generando Excel para {nombre_prov}...")
-            excel_prov, nombre_archivo_prov = generar_reporte_proveedor(
-                df_para_excel,
-                id_prov,
-                fecha_desde.strftime('%d/%m/%Y'),
-                fecha_hasta.strftime('%d/%m/%Y'),
-                con_filtros=con_filtros,
-                familias_activas=familias_seleccionadas if con_filtros else None,
-                subfamilias_activas=subfamilias_seleccionadas if con_filtros else None,
-                proveedor_name = nombre_prov
-            )
-            
-            if excel_prov and nombre_archivo_prov:
-                print(f"   ✅ Excel generado exitosamente: {nombre_archivo_prov}")
-                
-                # ✅ NOTIFICACIÓN TELEGRAM - Excel preparado para descarga
-                usuario = st.session_state.get('username', 'Usuario desconocido')
-                tipo_filtro = "CON FILTROS" if con_filtros else "SIN FILTROS"
-                mensaje = (
-                    f"<b>👤 USUARIO:</b> {usuario} -\n"
-                    f"<b>📥 EXCEL PREPARADO PARA DESCARGA</b>\n"
-                    f"📄 <b>Archivo:</b> {nombre_archivo_prov}"
-                )
+                    # Preparar DataFrame según si hay filtros o no
+                    if con_filtros:
+                        # Reconstruir df_presupuesto_filtrado aplicando los filtros
+                        df_para_excel = df_presupuesto_con_ventas.copy()
+                        
+                        if 'familia' in df_para_excel.columns:
+                            df_para_excel = df_para_excel[
+                                df_para_excel['familia'].isin(familias_seleccionadas)
+                            ]
+                        
+                        if 'subfamilia' in df_para_excel.columns:
+                            df_para_excel = df_para_excel[
+                                df_para_excel['subfamilia'].isin(subfamilias_seleccionadas)
+                            ]
+                        
+                        print(f"   📊 DataFrame con filtros para Excel: {len(df_para_excel):,} artículos")
+                    else:
+                        df_para_excel = df_presupuesto_con_ventas
+                        print(f"   📊 DataFrame sin filtros para Excel: {len(df_para_excel):,} artículos")
+                    
+                    # Generar Excel
+                    print(f"   🔄 Generando Excel para {nombre_prov}...")
+                    excel_prov, nombre_archivo_prov = generar_reporte_proveedor(
+                        df_para_excel,
+                        id_prov,
+                        fecha_desde.strftime('%d/%m/%Y'),
+                        fecha_hasta.strftime('%d/%m/%Y'),
+                        con_filtros=con_filtros,
+                        familias_activas=familias_seleccionadas if con_filtros else None,
+                        subfamilias_activas=subfamilias_seleccionadas if con_filtros else None,
+                        proveedor_name = nombre_prov
+                    )
+                    
+                    if excel_prov and nombre_archivo_prov:
+                        print(f"   ✅ Excel generado exitosamente: {nombre_archivo_prov}")
+                        
+                        # ✅ NOTIFICACIÓN TELEGRAM - Excel preparado para descarga
+                        usuario = st.session_state.get('username', 'Usuario desconocido')
+                        tipo_filtro = "CON FILTROS" if con_filtros else "SIN FILTROS"
+                        mensaje = (
+                            f"<b>👤 USUARIO:</b> {usuario} -\n"
+                            f"<b>📥 EXCEL PREPARADO PARA DESCARGA</b>\n"
+                            f"📄 <b>Archivo:</b> {nombre_archivo_prov}"
+                        )
 
-                send_telegram_alert(mensaje, tipo="INFO")
+                        send_telegram_alert(mensaje, tipo="INFO")
 
-                st.download_button(
-                    label=f"📥 Descargar Excel: {nombre_archivo_prov}",
-                    data=excel_prov,
-                    file_name=nombre_archivo_prov,
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    use_container_width=True,
-                    type="primary"
-                )
-            else:
-                print(f"   ❌ Error: No se pudo generar el Excel")
-                st.error("❌ No se pudo generar el archivo Excel. Revisa los logs para más detalles.")
+                        st.download_button(
+                            label=f"📥 Descargar Excel: {nombre_archivo_prov}",
+                            data=excel_prov,
+                            file_name=nombre_archivo_prov,
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            use_container_width=True,
+                            type="primary"
+                        )
+                    else:
+                        print(f"   ❌ Error: No se pudo generar el Excel")
+                        st.error("❌ No se pudo generar el archivo Excel. Revisa los logs para más detalles.")
+                
+                except Exception as e:
+                    print(f"   ❌ ERROR al generar Excel: {str(e)}")
+                    import traceback
+                    print(traceback.format_exc())
+                    st.error(f"❌ Error al generar el Excel: {str(e)}")
+
+        # # Generar Excel
+        # excel_prov, nombre_archivo_prov = generar_reporte_proveedor(
+        #     df_presupuesto_con_ventas if not con_filtros else df_presupuesto_filtrado,
+        #     id_prov,
+        #     fecha_desde.strftime('%d/%m/%Y'),
+        #     fecha_hasta.strftime('%d/%m/%Y'),
+        #     con_filtros=con_filtros,
+        #     familias_activas=familias_seleccionadas if con_filtros else None,
+        #     subfamilias_activas=subfamilias_seleccionadas if con_filtros else None,
+        #     proveedor_name = nombre_prov
+        # )
         
-        except Exception as e:
-            print(f"   ❌ ERROR al generar Excel: {str(e)}")
-            import traceback
-            print(traceback.format_exc())
-            st.error(f"❌ Error al generar el Excel: {str(e)}")
+        # if excel_prov and nombre_archivo_prov:
 
+        # # ✅ NOTIFICACIÓN TELEGRAM - Excel preparado para descarga
+        #     usuario = st.session_state.get('username', 'Usuario desconocido')
+        #     tipo_filtro = "CON FILTROS" if con_filtros else "SIN FILTROS"
+        #     mensaje = (
+        #         f"<b>👤 USUARIO:</b> {usuario} -\n"
+        #         f"<b>📥 EXCEL PREPARADO PARA DESCARGA</b>\n"
+        #         f"📄 <b>Archivo:</b> {nombre_archivo_prov}"
+        #     )
+
+        #     send_telegram_alert(mensaje, tipo="INFO")
+
+        #     st.download_button(
+        #         label=f"📥 Descargar Excel: {nombre_archivo_prov}",
+        #         data=excel_prov,
+        #         file_name=nombre_archivo_prov,
+        #         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        #         width='content',
+        #         type="primary"
+        #     )
         
         # === ANÁLISIS VISUAL ===
         st.markdown(f"### 📊 Análisis Visual - {nombre_prov}")
@@ -883,4 +869,4 @@ def show_proveedor_report_section(ranking, df_presupuesto_con_ventas, df_proveed
                     </div>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)        
