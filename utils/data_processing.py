@@ -4,34 +4,57 @@ Funciones para procesamiento y cálculo de datos
 import pandas as pd
 import streamlit as st
 
-
 @st.cache_data(ttl=3600)
-def load_proveedores_from_sheet(sheet_id, sheet_name, 
+def load_proveedores_from_sheet(sheet_id, sheet_name,
                                 proveedor_unificado, nombres_unificados):
     """
-    Cargar datos de proveedores desde Google Sheet público
-    
-    Args:
-        sheet_id: ID de la Google Sheet
-        sheet_name: Nombre de la hoja
-        proveedor_unificado: Diccionario de mapeo de IDs
-        nombres_unificados: Diccionario de nombres unificados
-    
-    Returns:
-        DataFrame con los datos de proveedores
+    Cargar datos de proveedores desde MotherDuck (tabla my_db.proveedores).
+    Los parámetros sheet_id y sheet_name se mantienen por compatibilidad.
     """
-    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
-    df = pd.read_csv(url)
+    from utils.motherduck_connection import get_connection
+
+    con = get_connection()
+    df = con.execute("SELECT * FROM my_db.proveedores").df()
+    con.close()
+
     df = df.dropna(subset=['idproveedor'])
     df['idproveedor'] = df['idproveedor'].astype(int)
     df['proveedor'] = df['proveedor'].astype(str).str.strip().str.upper()
-    
-    # 🔥 UNIFICACIÓN: Cambiar ID pero MANTENER todas las filas
-    df['idproveedor_original'] = df['idproveedor']  # Guardar original
+
+    df['idproveedor_original'] = df['idproveedor']
     df['idproveedor'] = df['idproveedor'].map(proveedor_unificado).fillna(df['idproveedor']).astype(int)
     df['proveedor'] = df['idproveedor'].map(nombres_unificados).fillna(df['proveedor'])
-    
+
     return df
+
+### antees de cambiar a matherduck
+# @st.cache_data(ttl=3600)
+# def load_proveedores_from_sheet(sheet_id, sheet_name, 
+#                                 proveedor_unificado, nombres_unificados):
+#     """
+#     Cargar datos de proveedores desde Google Sheet público
+    
+#     Args:
+#         sheet_id: ID de la Google Sheet
+#         sheet_name: Nombre de la hoja
+#         proveedor_unificado: Diccionario de mapeo de IDs
+#         nombres_unificados: Diccionario de nombres unificados
+    
+#     Returns:
+#         DataFrame con los datos de proveedores
+#     """
+#     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
+#     df = pd.read_csv(url)
+#     df = df.dropna(subset=['idproveedor'])
+#     df['idproveedor'] = df['idproveedor'].astype(int)
+#     df['proveedor'] = df['proveedor'].astype(str).str.strip().str.upper()
+    
+#     # 🔥 UNIFICACIÓN: Cambiar ID pero MANTENER todas las filas
+#     df['idproveedor_original'] = df['idproveedor']  # Guardar original
+#     df['idproveedor'] = df['idproveedor'].map(proveedor_unificado).fillna(df['idproveedor']).astype(int)
+#     df['proveedor'] = df['idproveedor'].map(nombres_unificados).fillna(df['proveedor'])
+    
+#     return df
 
 
 def calculate_metrics(df):

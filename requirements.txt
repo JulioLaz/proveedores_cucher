@@ -7,16 +7,9 @@ numpy>=1.24.0
 python-dotenv>=1.0.0
 
 # ============================================
-# GOOGLE CLOUD & SHEETS
+# MOTHERDUCK / DUCKDB
 # ============================================
-google-cloud-bigquery>=3.10.0
-pandas-gbq
-db-dtypes
-gspread>=5.10.0
-google-auth>=2.20.0
-google-auth-oauthlib>=1.0.0
-google-auth-httplib2>=0.1.0
-google-api-python-client>=2.90.0
+duckdb>=1.2.0
 
 # ============================================
 # AUTHENTICATION (VERSIONES COMPATIBLES)

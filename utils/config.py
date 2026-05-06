@@ -1,55 +1,39 @@
 """
 Configuración central de la aplicación
 """
-import os
-import json
 import streamlit as st
-from dotenv import load_dotenv
+from utils.motherduck_connection import get_motherduck_token
+
 
 def detect_environment():
-    """Detectar si estamos en cloud o local"""
-    return "gcp_service_account" in st.secrets if hasattr(st, 'secrets') else False
+    """Detectar si estamos en cloud (Streamlit) o local"""
+    try:
+        return "motherduck_token" in st.secrets
+    except Exception:
+        return False
+
 
 def setup_credentials():
     """
-    Configurar credenciales según el entorno
-    
-    Returns:
-        dict: Diccionario con todas las credenciales necesarias
+    Retorna configuración de conexión a MotherDuck.
+    Mantiene las mismas claves para compatibilidad con código existente.
     """
     IS_CLOUD = detect_environment()
-    
-    if IS_CLOUD:
-        credentials_dict = dict(st.secrets["gcp_service_account"])
-        sheet_id = st.secrets["google_sheets"]["sheet_id"]
-        sheet_name = st.secrets["google_sheets"]["sheet_name"]
-        project_id = st.secrets["project_id"]
-        bigquery_table = st.secrets["bigquery_table"]
-        
-        # Crear archivo temporal de credenciales
-        with open("temp_credentials.json", "w") as f:
-            json.dump(credentials_dict, f)
-        credentials_path = "temp_credentials.json"
-    else:
-        load_dotenv()
-        credentials_path = os.getenv("GOOGLE_CREDENTIALS_PATH")
-        sheet_id = os.getenv("GOOGLE_SHEET_ID")
-        sheet_name = "proveedores_all"
-        project_id = "youtube-analysis-24"
-        bigquery_table = "tickets.tickets_all"
-    
+    token = get_motherduck_token()
+
     return {
-        'credentials_path': credentials_path,
-        'sheet_id': sheet_id,
-        'sheet_name': sheet_name,
-        'project_id': project_id,
-        'bigquery_table': bigquery_table,
+        'motherduck_token': token,
+        'credentials_path': None,   # deprecated — ya no se usa BigQuery
+        'sheet_id': None,           # deprecated — proveedores vienen de MotherDuck
+        'sheet_name': None,
+        'project_id': 'my_db',
+        'bigquery_table': 'tickets_all',
         'is_cloud': IS_CLOUD
     }
 
-# ═══════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════════
 # Mapeos de unificación de proveedores
-# ═══════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════════
 
 PROVEEDOR_UNIFICADO = {
     # YAPUR → 12000001
@@ -64,20 +48,6 @@ PROVEEDOR_UNIFICADO = {
     # QUILMES → 12000005
     1332: 12000005, 2049: 12000005, 1702: 12000005
 }
-
-# NOMBRES_UNIFICADOS = {
-#     12000001: 'YAPUR',
-#     12000002: 'COCA (Gaseosas y Cervezas)',
-#     12000003: 'UNILEVER',
-#     12000004: 'ARCOR',
-#     12000005: 'QUILMES'
-# }
-
-# Al final del archivo config.py, DESPUÉS de NOMBRES_UNIFICADOS:
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# SALTA REFRESCOS - Proveedor virtual creado por agrupación de artículos
-# ═══════════════════════════════════════════════════════════════════════════════
 
 SALTA_REFRESCOS_ID = 12000006
 
@@ -95,16 +65,15 @@ ID_LIST_SALTA = [
     147000137, 147000144, 147000140, 147000141, 147000155, 147000017, 147000050, 147000052,
     147000051, 147000089, 147000094, 147000112, 147000086, 147000163, 147000106, 147000186,
     147000183, 147000070, 147000073, 147000182, 147000181, 147000177,
-    190000033, 190000035, 190000044, 190000112, 190000031, 190000050, 190000079, 190000103, 
+    190000033, 190000035, 190000044, 190000112, 190000031, 190000050, 190000079, 190000103,
     190000057, 147000020
 ]
 
-# Agregar al diccionario de nombres unificados (modificar la línea existente):
 NOMBRES_UNIFICADOS = {
     12000001: 'YAPUR',
     12000002: 'COCA (Gaseosas y Cervezas)',
     12000003: 'UNILEVER',
     12000004: 'ARCOR',
     12000005: 'QUILMES',
-    12000006: 'SALTA REFRESCOS'  # ← NUEVO
+    12000006: 'SALTA REFRESCOS'
 }
