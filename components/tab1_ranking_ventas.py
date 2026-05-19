@@ -8,7 +8,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import time
 from google.cloud import bigquery
-
+from utils.crear_excel_ranking_flia_subflia import crear_excel_ranking_flias_subflias
 
 def format_millones(valor):
     """Formatea valores grandes en millones o miles"""
@@ -28,6 +28,7 @@ def format_miles(valor: int) -> str:
 
 def main_tab1_ranking_ventas(
     ranking,
+    ranking_flia_subflia,
     df_ventas_filtrado,
     df_presupuesto_filtrado,
     df_proveedores_filtrado,
@@ -40,8 +41,8 @@ def main_tab1_ranking_ventas(
     fecha_hasta,
     credentials_path,
     project_id,
-    bigquery_table
-):
+    bigquery_table):
+
     """
     Función principal del TAB1: Rankings de Proveedores por Ventas
     
@@ -54,6 +55,7 @@ def main_tab1_ranking_ventas(
     
     print(f"\n{'='*80}")
     print("📊 TAB1: RENDERIZANDO ANÁLISIS DE RANKINGS")
+    print("Columnas del df ranking:", ranking.columns.tolist())
     print(f"{'='*80}")
     inicio_tab1 = time.time()
     
@@ -272,18 +274,8 @@ def main_tab1_ranking_ventas(
     # ═════════════════════════════════════════════════════════════════════════
     
     st.markdown("#### 📋 Ranking Detallado de Proveedores ordenados por ranking Venta")
-    
-    # df_display = ranking.copy()
-    # df_display['Venta Total'] = df_display['Venta Total'].apply(lambda x: f"${x:,.0f}")
-    # df_display['Costo Total'] = df_display['Costo Total'].apply(lambda x: f"${x:,.0f}")
-    # df_display['Utilidad'] = df_display['Utilidad'].apply(lambda x: f"${x:,.0f}")
-    # df_display['Presupuesto'] = df_display['Presupuesto'].apply(lambda x: f"${x:,.0f}")
-    # df_display['Costo Exceso'] = df_display['Costo Exceso'].apply(lambda x: f"${x:,.0f}")
-    # df_display['Rentabilidad %'] = df_display['Rentabilidad %'].apply(lambda x: f"{x:.2f}%")
-    # df_display['% Participación Presupuesto'] = df_display['% Participación Presupuesto'].apply(lambda x: f"{x:.2f}%")
-    # df_display['% Participación Ventas'] = df_display['% Participación Ventas'].apply(lambda x: f"{x:.2f}%")
 
-    df_display = ranking.copy()
+    df_display = ranking_flia_subflia.copy()
 
     df_display['Venta Total'] = df_display['Venta Total'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
     df_display['Costo Total'] = df_display['Costo Total'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
@@ -304,13 +296,43 @@ def main_tab1_ranking_ventas(
     
     st.dataframe(
         df_display.head(num_mostrar)[[
-            'Ranking', 'Proveedor', '% Participación Ventas', 'Venta Total', 'Costo Total', 'Utilidad', 'Rentabilidad %',
+            'Ranking', 'Proveedor', 'Familia', 'Subfamilia', '% Participación Ventas', 'Venta Total', 'Costo Total', 'Utilidad', 'Rentabilidad %',
             '% Participación Presupuesto', 'Presupuesto', 'Artículos', 'Art. con Exceso', 
             'Costo Exceso', 'Art. Sin Stock'
         ]],
         width='stretch',
         hide_index=True
     )
+    # ═════════════════════════════════════════════════════════════════════════
+    ### BTN DE DESCARGA DE EXCEL:
+    # === BOTÓN DE DESCARGA (1 solo click) ===
+    @st.cache_data(ttl=300, show_spinner=False)
+    def _excel_ranking_flias_bytes(df, fecha_desde, fecha_hasta):
+        buf = crear_excel_ranking_flias_subflias(df, fecha_desde, fecha_hasta)
+        return buf.getvalue() if buf is not None else None
+
+    with st.spinner("🔄 Preparando Excel..."):
+        excel_bytes = _excel_ranking_flias_bytes(df_display, fecha_desde, fecha_hasta)
+
+    if excel_bytes:
+        inicio = fecha_desde.strftime('%d%b%Y')
+        fin = fecha_hasta.strftime('%d%b%Y')
+        nombre_archivo = f'RANKING_PROVEEDORES_FLIA_SUBFLIA_{inicio}_{fin}.xlsx'
+
+        st.download_button(
+            label="📥 Descargar Excel — Ranking por Familia/Subfamilia",
+            data=excel_bytes,
+            file_name=nombre_archivo,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            type="primary",
+            use_container_width=True,
+            key="btn_ranking_flias_subflias"
+        )
+    else:
+        st.error("❌ Error al generar el archivo. Revisar logs en consola.")
+    # ═════════════════════════════════════════════════════════════════════════
+
+
     
     # ═════════════════════════════════════════════════════════════════════════
     # SECCIÓN 3: INSIGHTS CLAVE (5 TARJETAS)

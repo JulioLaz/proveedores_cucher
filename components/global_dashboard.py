@@ -10,9 +10,9 @@ from google.cloud import bigquery  # ← AGREGAR ESTO
 # Importar funciones cacheadas
 from utils.ranking_proveedores import crear_excel_ranking, generar_nombre_archivo
 from utils.proveedor_exporter import generar_reporte_proveedor, obtener_ids_originales
-
+from utils.crear_excel_ranking_flia_subflia import crear_excel_ranking_flias_subflias  # ← NUEVA FUNCIÓN
 from components.cobertura_stock_exporter import generar_reporte_cobertura, obtener_metricas_cobertura  # ← CAMBIAR ESTO
-from components.global_dashboard_cache import (get_ventas_data, get_presupuesto_data, get_familias_data, process_ranking_data)
+from components.global_dashboard_cache import (get_ventas_data, get_presupuesto_data, get_familias_data, process_ranking_data, process_ranking_data_flias_subflias)
 from components.ranking_export_section import show_ranking_section
 from components.cobertura_section import show_cobertura_section
 from components.proveedor_report_section import show_proveedor_report_section
@@ -37,7 +37,6 @@ def format_miles(valor: int) -> str:
         return f"{valor:,}".replace(",", ".")
 
 def show_global_dashboard(df_proveedores, query_function, credentials_path, project_id, bigquery_table):
-        # AQUÍ, ANTES DE LAS TABS, AGREGA:
 
     st.markdown("""
             <style>
@@ -442,6 +441,13 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
         df_familias
     )
     
+    ranking_flia_subflia = process_ranking_data_flias_subflias(
+        df_proveedores_filtrado, 
+        df_ventas_filtrado,       # ← FILTRADO
+        df_presupuesto_filtrado,  # ← FILTRADO
+        df_familias
+    )
+    
     tiempo_ranking = time.time() - inicio_ranking
     
     if ranking is None or ranking.empty:
@@ -723,10 +729,10 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
 
 ############################################################################
 
-
         # ⭐ ANÁLISIS GRÁFICO DE RANKINGS (Gráficos, Tabla, Insights, Preparación Cobertura)
         df_para_cobertura = main_tab1_ranking_ventas(
             ranking=ranking,
+            ranking_flia_subflia=ranking_flia_subflia,
             df_ventas_filtrado=df_ventas_filtrado,
             df_presupuesto_filtrado=df_presupuesto_filtrado,
             df_proveedores_filtrado=df_proveedores_filtrado,
@@ -872,21 +878,7 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             print(f"{'='*80}")
             print(f"   • Año seleccionado: {año_seleccionado}")
             print(f"   • Tabla: {bigquery_table}")
-
-
-# #######################################################################################3
-        # with st.spinner("🔄 Cargando datos para análisis de stock... (~10 segundos)"):
-            
-        #     print(f"\n{'='*80}")
-        #     print(f"📦 TAB4: CARGANDO DATOS PARA ANÁLISIS DE STOCK")
-        #     print(f"{'='*80}")
-            
-        #     # Determinar año actual
-        #     año_actual = fecha_maxima_disponible.year
-            
-        #     print(f"   • Año de análisis: {año_actual}")
-        #     print(f"   • Tabla: {bigquery_table}")
-            
+           
             # 1. Cargar VENTAS AGREGADAS desde BigQuery (~7 segundos)
             df_ventas_agregadas = get_ventas_agregadas_stock(
                 credentials_path=credentials_path,
@@ -970,7 +962,6 @@ def show_global_dashboard(df_proveedores, query_function, credentials_path, proj
             - Métricas de rentabilidad y velocidad de venta
             - Clasificación de riesgo y recomendaciones
             """.replace("{año_actual}", str(año_seleccionado)))
-
 
         # ═══════════════════════════════════════════════════════════════════════════
         # ANÁLISIS Y VISUALIZACIÓN
