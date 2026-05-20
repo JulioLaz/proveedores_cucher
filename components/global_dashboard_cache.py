@@ -204,9 +204,10 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-
+## FUERA DE USO, TOMADA DEL MODULE: 
+## C:\CUCHER_STREAMLIT\CUCHER_STREAMLIT\components\process_ranking_data_flias_subflias.py
 @st.cache_data(ttl=300, show_spinner=False)
-def process_ranking_data_flias_subflias(df_proveedores, df_ventas, df_presupuesto, df_familias):
+def process_ranking_data_flias_subflias_00(df_proveedores, df_ventas, df_presupuesto, df_familias):
     """
     Procesa y genera el ranking de proveedores desglosado por
     familia/subfamilia (CACHEADO).

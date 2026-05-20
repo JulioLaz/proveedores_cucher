@@ -272,37 +272,101 @@ def main_tab1_ranking_ventas(
     # ═════════════════════════════════════════════════════════════════════════
     # SECCIÓN 2: TABLA RANKING DETALLADO
     # ═════════════════════════════════════════════════════════════════════════
-    
+
     st.markdown("#### 📋 Ranking Detallado de Proveedores ordenados por ranking Venta")
 
+    # ✅ df_display queda NUMÉRICO -> Streamlit lo formatea visualmente
+    #    y el mismo df sirve para el Excel con valores operables.
     df_display = ranking_flia_subflia.copy()
 
-    df_display['Venta Total'] = df_display['Venta Total'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
-    df_display['Costo Total'] = df_display['Costo Total'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
-    df_display['Utilidad'] = df_display['Utilidad'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
-    df_display['Presupuesto'] = df_display['Presupuesto'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
-    df_display['Costo Exceso'] = df_display['Costo Exceso'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+    # === COLUMNAS A MOSTRAR (incluye las 3 nuevas) ===
+    columnas_mostrar = [
+        'Ranking',
+        'Ranking-proveedor-subfamilia',
+        'Proveedor',
+        'Familia',
+        'Subfamilia',
+        '% Participación Ventas',
+        '% Participación Ventas x Familia',
+        '% Participación Ventas x Proveedor',
+        'Venta Total',
+        'Costo Total',
+        'Utilidad',
+        'Rentabilidad %',
+        '% Participación Presupuesto',
+        'Presupuesto',
+        'Artículos',
+        'Art. con Exceso',
+        'Costo Exceso',
+        'Art. Sin Stock',
+    ]
 
-    df_display['Rentabilidad %'] = df_display['Rentabilidad %'].apply(lambda x: f"{x:.2f}%")
-    df_display['% Participación Presupuesto'] = df_display['% Participación Presupuesto'].apply(lambda x: f"{x:.2f}%")
-    df_display['% Participación Ventas'] = df_display['% Participación Ventas'].apply(lambda x: f"{x:.2f}%")
-
+    # === FORMATOS VISUALES (no alteran los datos) ===
+    config_cols = {
+        'Ranking':                            st.column_config.NumberColumn('Ranking', format='%d'),
+        'Ranking-proveedor-subfamilia':       st.column_config.NumberColumn('Rk. Prov-Subflia', format='%d'),
+        'Proveedor':                          st.column_config.TextColumn('Proveedor'),
+        'Familia':                            st.column_config.TextColumn('Familia'),
+        'Subfamilia':                         st.column_config.TextColumn('Subfamilia'),
+        '% Participación Ventas':             st.column_config.NumberColumn('% Part. Ventas',         format='%.2f%%'),
+        '% Participación Ventas x Familia':   st.column_config.NumberColumn('% Part. Ventas x Flia',  format='%.2f%%'),
+        '% Participación Ventas x Proveedor': st.column_config.NumberColumn('% Part. Ventas x Prov',  format='%.2f%%'),
+        'Venta Total':                        st.column_config.NumberColumn('Venta Total',  format='dollar'),
+        'Costo Total':                        st.column_config.NumberColumn('Costo Total',  format='dollar'),
+        'Utilidad':                           st.column_config.NumberColumn('Utilidad',     format='dollar'),
+        'Rentabilidad %':                     st.column_config.NumberColumn('Rentabilidad %', format='%.2f%%'),
+        '% Participación Presupuesto':        st.column_config.NumberColumn('% Part. Presupuesto',   format='%.2f%%'),
+        'Presupuesto':                        st.column_config.NumberColumn('Presupuesto',   format='dollar'),
+        'Artículos':                          st.column_config.NumberColumn('Artículos',       format='%d'),
+        'Art. con Exceso':                    st.column_config.NumberColumn('Art. con Exceso', format='%d'),
+        'Costo Exceso':                       st.column_config.NumberColumn('Costo Exceso',  format='dollar'),
+        'Art. Sin Stock':                     st.column_config.NumberColumn('Art. Sin Stock', format='%d'),
+    }
 
     num_mostrar = st.slider(
-        "Cantidad de proveedores a mostrar:", 
-        10, len(df_display), 20, step=5, 
+        "Cantidad de filas a mostrar:",
+        10, len(df_display), 20, step=5,
         key='slider_tabla'
     )
-    
+
     st.dataframe(
-        df_display.head(num_mostrar)[[
-            'Ranking', 'Proveedor', 'Familia', 'Subfamilia', '% Participación Ventas', 'Venta Total', 'Costo Total', 'Utilidad', 'Rentabilidad %',
-            '% Participación Presupuesto', 'Presupuesto', 'Artículos', 'Art. con Exceso', 
-            'Costo Exceso', 'Art. Sin Stock'
-        ]],
+        df_display.head(num_mostrar)[columnas_mostrar],
         width='stretch',
-        hide_index=True
+        hide_index=True,
+        column_config=config_cols
     )
+
+    # st.markdown("#### 📋 Ranking Detallado de Proveedores ordenados por ranking Venta")
+
+    # df_display = ranking_flia_subflia.copy()
+
+    # df_display['Venta Total'] = df_display['Venta Total'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+    # df_display['Costo Total'] = df_display['Costo Total'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+    # df_display['Utilidad'] = df_display['Utilidad'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+    # df_display['Presupuesto'] = df_display['Presupuesto'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+    # df_display['Costo Exceso'] = df_display['Costo Exceso'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
+
+    # df_display['Rentabilidad %'] = df_display['Rentabilidad %'].apply(lambda x: f"{x:.2f}%")
+    # df_display['% Participación Presupuesto'] = df_display['% Participación Presupuesto'].apply(lambda x: f"{x:.2f}%")
+    # df_display['% Participación Ventas'] = df_display['% Participación Ventas'].apply(lambda x: f"{x:.2f}%")
+
+
+    # num_mostrar = st.slider(
+    #     "Cantidad de proveedores a mostrar:", 
+    #     10, len(df_display), 20, step=5, 
+    #     key='slider_tabla'
+    # )
+    
+    # st.dataframe(
+    #     df_display.head(num_mostrar)[[
+    #         'Ranking', 'Proveedor', 'Familia', 'Subfamilia', '% Participación Ventas', 'Venta Total', 'Costo Total', 'Utilidad', 'Rentabilidad %',
+    #         '% Participación Presupuesto', 'Presupuesto', 'Artículos', 'Art. con Exceso', 
+    #         'Costo Exceso', 'Art. Sin Stock'
+    #     ]],
+    #     width='stretch',
+    #     hide_index=True
+    # )
+
     # ═════════════════════════════════════════════════════════════════════════
     ### BTN DE DESCARGA DE EXCEL:
     # === BOTÓN DE DESCARGA (1 solo click) ===
