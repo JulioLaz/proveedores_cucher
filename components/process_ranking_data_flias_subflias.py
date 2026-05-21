@@ -175,9 +175,9 @@ def process_ranking_data_flias_subflias(df_proveedores, df_ventas, df_presupuest
         (ranking['Utilidad'] / ranking['Venta Total'].replace(0, np.nan)) * 100
     ).round(2).fillna(0)
 
-    ranking['% Participación Presupuesto'] = (ranking['Presupuesto'] / ranking['Presupuesto'].sum() * 100).round(2)
-    ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(2)
-    ranking['% Participación Utilidad'] = (ranking['Utilidad'] / ranking['Utilidad'].sum() * 100).round(2)
+    ranking['% Participación Presupuesto'] = (ranking['Presupuesto'] / ranking['Presupuesto'].sum() * 100).round(3)
+    ranking['% Participación Ventas'] = (ranking['Venta Total'] / ranking['Venta Total'].sum() * 100).round(3)
+    ranking['% Participación Utilidad'] = (ranking['Utilidad'] / ranking['Utilidad'].sum() * 100).round(3)
 
     # === % PARTICIPACIÓN VENTAS x FAMILIA y x PROVEEDOR (v1.2) ===
     # Ambas sobre TOTAL GENERAL: suma del % Participación Ventas dentro del
@@ -185,12 +185,12 @@ def process_ranking_data_flias_subflias(df_proveedores, df_ventas, df_presupuest
     ranking['% Participación Ventas x Familia'] = (
         ranking.groupby(['Proveedor', 'Familia'])['% Participación Ventas']
         .transform('sum')
-        .round(2)
+        .round(3)
     )
     ranking['% Participación Ventas x Proveedor'] = (
         ranking.groupby('Proveedor')['% Participación Ventas']
         .transform('sum')
-        .round(2)
+        .round(3)
     )
 
     # === ORDEN JERÁRQUICO (todo por Venta Total desc) ===
