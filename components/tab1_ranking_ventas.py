@@ -295,7 +295,7 @@ def main_tab1_ranking_ventas(
             'Rentabilidad %':              st.column_config.NumberColumn('Rentabilidad %', format='%.2f%%'),
             'Subfamilias':                 st.column_config.TextColumn(
                                                 'Subfamilias (Top 5, % s/ familia)',
-                                                width=700,
+                                                width=800,
                                                 help='Top 5 subfamilias de la familia, ordenadas por venta. % sobre la familia.'
                                             ),
             # 'Presupuesto':                 st.column_config.NumberColumn('Presupuesto', format='dollar'),
