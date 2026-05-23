@@ -13,7 +13,7 @@ from utils.proveedor_exporter import generar_reporte_proveedor, obtener_ids_orig
 from utils.crear_excel_ranking_flia_subflia import crear_excel_ranking_flias_subflias  # ← NUEVA FUNCIÓN
 from components.cobertura_stock_exporter import generar_reporte_cobertura, obtener_metricas_cobertura  # ← CAMBIAR ESTO
 from components.global_dashboard_cache import (get_ventas_data, get_presupuesto_data, get_familias_data, process_ranking_data)
-from components.process_ranking_data_flias_subflias import process_ranking_data_flias_subflias  # ← NUEVO MÓDULO
+from utils.process_ranking_data_flias_subflias import process_ranking_data_flias_subflias  # ← NUEVO MÓDULO
 from components.ranking_export_section import show_ranking_section
 from components.cobertura_section import show_cobertura_section
 from components.proveedor_report_section import show_proveedor_report_section

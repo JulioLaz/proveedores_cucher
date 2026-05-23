@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 import time
 from google.cloud import bigquery
 from utils.crear_excel_ranking_flia_subflia import crear_excel_ranking_flias_subflias
+from utils.process_resumen_proveedor_familia import process_resumen_proveedor_familia
 
 def format_millones(valor):
     """Formatea valores grandes en millones o miles"""
@@ -272,6 +273,45 @@ def main_tab1_ranking_ventas(
     # ═════════════════════════════════════════════════════════════════════════
     # SECCIÓN 2: TABLA RANKING DETALLADO
     # ═════════════════════════════════════════════════════════════════════════
+    resumen_pf = process_resumen_proveedor_familia(ranking_flia_subflia)
+    resumen_pf = resumen_pf[['Ranking', 'Proveedor', 'Familia', '% Part. Ventas', '% Part. Ventas x Proveedor', 'Venta Total', 'Rentabilidad %', 'Subfamilias']]
+    with st.expander("📊 Resumen Proveedor × Familia — ¿En qué concentrar las compras?",
+                    expanded=True):
+        st.caption(
+            "Una fila por combinación Proveedor + Familia. La columna "
+            "**Subfamilias** muestra el Top 5 de subfamilias dentro de cada "
+            "familia (con % sobre la familia, no sobre el total general)."
+        )
+
+        config_resumen = {
+            'Ranking':                     st.column_config.NumberColumn('Rk.', format='%d', width='small'),
+            'Proveedor':                   st.column_config.TextColumn('Proveedor', width='medium'),
+            'Familia':                     st.column_config.TextColumn('Familia',   width='medium'),
+            '% Part. Ventas':              st.column_config.NumberColumn('% Part. Ventas',       format='%.2f%%'),
+            '% Part. Ventas x Proveedor':  st.column_config.NumberColumn('% Part. Ventas x Prov', format='%.2f%%'),
+            'Venta Total':                 st.column_config.NumberColumn('Venta Total',  format='dollar'),
+            'Utilidad':                    st.column_config.NumberColumn('Utilidad',     format='dollar'),
+            'Rentabilidad %':              st.column_config.NumberColumn('Rentabilidad %', format='%.2f%%'),
+            'Subfamilias':                 st.column_config.TextColumn(
+                                                'Subfamilias (Top 5, % s/ familia)',
+                                                width='large',
+                                                help='Top 5 subfamilias de la familia, ordenadas por venta. % sobre la familia.'
+                                            ),
+            # 'Presupuesto':                 st.column_config.NumberColumn('Presupuesto', format='dollar'),
+            # '% Cumplimiento Presup.':      st.column_config.NumberColumn('% Cumpl. Presup.', format='%.2f%%'),
+        }
+
+        st.dataframe(
+            resumen_pf,
+            width='stretch',
+            hide_index=True,
+            column_config=config_resumen
+        )
+
+
+    # ═════════════════════════════════════════════════════════════════════════
+    # SECCIÓN 2.1: TABLA RANKING DETALLADO
+    # ═════════════════════════════════════════════════════════════════════════
 
     st.markdown("#### 📋 Ranking Detallado de Proveedores ordenados por ranking Venta")
 
@@ -308,14 +348,14 @@ def main_tab1_ranking_ventas(
         'Proveedor':                          st.column_config.TextColumn('Proveedor'),
         'Familia':                            st.column_config.TextColumn('Familia'),
         'Subfamilia':                         st.column_config.TextColumn('Subfamilia'),
-        '% Participación Ventas':             st.column_config.NumberColumn('% Part. Ventas',         format='%.2f%%'),
-        '% Participación Ventas x Familia':   st.column_config.NumberColumn('% Part. Ventas x Flia',  format='%.2f%%'),
-        '% Participación Ventas x Proveedor': st.column_config.NumberColumn('% Part. Ventas x Prov',  format='%.2f%%'),
+        '% Participación Ventas':             st.column_config.NumberColumn('% Part. Ventas',         format='%.3f%%'),
+        '% Participación Ventas x Familia':   st.column_config.NumberColumn('% Part. Ventas x Flia',  format='%.3f%%'),
+        '% Participación Ventas x Proveedor': st.column_config.NumberColumn('% Part. Ventas x Prov',  format='%.3f%%'),
         'Venta Total':                        st.column_config.NumberColumn('Venta Total',  format='dollar'),
         'Costo Total':                        st.column_config.NumberColumn('Costo Total',  format='dollar'),
         'Utilidad':                           st.column_config.NumberColumn('Utilidad',     format='dollar'),
-        'Rentabilidad %':                     st.column_config.NumberColumn('Rentabilidad %', format='%.2f%%'),
-        '% Participación Presupuesto':        st.column_config.NumberColumn('% Part. Presupuesto',   format='%.2f%%'),
+        'Rentabilidad %':                     st.column_config.NumberColumn('Rentabilidad %', format='%.3f%%'),
+        '% Participación Presupuesto':        st.column_config.NumberColumn('% Part. Presupuesto',   format='%.3f%%'),
         'Presupuesto':                        st.column_config.NumberColumn('Presupuesto',   format='dollar'),
         'Artículos':                          st.column_config.NumberColumn('Artículos',       format='%d'),
         'Art. con Exceso':                    st.column_config.NumberColumn('Art. con Exceso', format='%d'),
@@ -335,37 +375,6 @@ def main_tab1_ranking_ventas(
         hide_index=True,
         column_config=config_cols
     )
-
-    # st.markdown("#### 📋 Ranking Detallado de Proveedores ordenados por ranking Venta")
-
-    # df_display = ranking_flia_subflia.copy()
-
-    # df_display['Venta Total'] = df_display['Venta Total'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
-    # df_display['Costo Total'] = df_display['Costo Total'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
-    # df_display['Utilidad'] = df_display['Utilidad'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
-    # df_display['Presupuesto'] = df_display['Presupuesto'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
-    # df_display['Costo Exceso'] = df_display['Costo Exceso'].apply(lambda x: f"${x:,.0f}".replace(",", "."))
-
-    # df_display['Rentabilidad %'] = df_display['Rentabilidad %'].apply(lambda x: f"{x:.2f}%")
-    # df_display['% Participación Presupuesto'] = df_display['% Participación Presupuesto'].apply(lambda x: f"{x:.2f}%")
-    # df_display['% Participación Ventas'] = df_display['% Participación Ventas'].apply(lambda x: f"{x:.2f}%")
-
-
-    # num_mostrar = st.slider(
-    #     "Cantidad de proveedores a mostrar:", 
-    #     10, len(df_display), 20, step=5, 
-    #     key='slider_tabla'
-    # )
-    
-    # st.dataframe(
-    #     df_display.head(num_mostrar)[[
-    #         'Ranking', 'Proveedor', 'Familia', 'Subfamilia', '% Participación Ventas', 'Venta Total', 'Costo Total', 'Utilidad', 'Rentabilidad %',
-    #         '% Participación Presupuesto', 'Presupuesto', 'Artículos', 'Art. con Exceso', 
-    #         'Costo Exceso', 'Art. Sin Stock'
-    #     ]],
-    #     width='stretch',
-    #     hide_index=True
-    # )
 
     # ═════════════════════════════════════════════════════════════════════════
     ### BTN DE DESCARGA DE EXCEL:
