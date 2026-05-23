@@ -274,8 +274,9 @@ def main_tab1_ranking_ventas(
     # SECCIÓN 2: TABLA RANKING DETALLADO
     # ═════════════════════════════════════════════════════════════════════════
     resumen_pf = process_resumen_proveedor_familia(ranking_flia_subflia)
+    num_proveedores = resumen_pf['Proveedor'].nunique()
     resumen_pf = resumen_pf[['Ranking', 'Proveedor', 'Familia', '% Part. Ventas', '% Part. Ventas x Proveedor', 'Venta Total', 'Rentabilidad %', 'Subfamilias']]
-    with st.expander("📊 Resumen Proveedor × Familia — ¿En qué concentrar las compras?",
+    with st.expander(f"📊 Resumen de {num_proveedores} Proveedoreres: Proveedor × Familia — ¿En qué familias concentrar las compras?",
                     expanded=True):
         st.caption(
             "Una fila por combinación Proveedor + Familia. La columna "
@@ -284,9 +285,9 @@ def main_tab1_ranking_ventas(
         )
 
         config_resumen = {
-            'Ranking':                     st.column_config.NumberColumn('Rk.', format='%d', width='small'),
-            'Proveedor':                   st.column_config.TextColumn('Proveedor', width='medium'),
-            'Familia':                     st.column_config.TextColumn('Familia',   width='medium'),
+            'Ranking':                     st.column_config.NumberColumn('Rk.', format='%d', width=10),
+            'Proveedor':                   st.column_config.TextColumn('Proveedor', width='small'),
+            'Familia':                     st.column_config.TextColumn('Familia',   width='small'),
             '% Part. Ventas':              st.column_config.NumberColumn('% Part. Ventas',       format='%.2f%%'),
             '% Part. Ventas x Proveedor':  st.column_config.NumberColumn('% Part. Ventas x Prov', format='%.2f%%'),
             'Venta Total':                 st.column_config.NumberColumn('Venta Total',  format='dollar'),
@@ -294,7 +295,7 @@ def main_tab1_ranking_ventas(
             'Rentabilidad %':              st.column_config.NumberColumn('Rentabilidad %', format='%.2f%%'),
             'Subfamilias':                 st.column_config.TextColumn(
                                                 'Subfamilias (Top 5, % s/ familia)',
-                                                width='large',
+                                                width=700,
                                                 help='Top 5 subfamilias de la familia, ordenadas por venta. % sobre la familia.'
                                             ),
             # 'Presupuesto':                 st.column_config.NumberColumn('Presupuesto', format='dollar'),
