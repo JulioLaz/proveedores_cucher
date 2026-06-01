@@ -5,6 +5,7 @@ Contiene visualizaciones gráficas, tabla detallada, insights y preparación de 
 
 import streamlit as st
 import pandas as pd
+import io
 import plotly.graph_objects as go
 import time
 from google.cloud import bigquery
@@ -309,6 +310,22 @@ def main_tab1_ranking_ventas(
             column_config=config_resumen
         )
 
+
+    # === BOTÓN DE DESCARGA DEL DF ===
+    # Convertir a Excel en memoria
+    buffer = io.BytesIO()
+    resumen_pf.to_excel(buffer, index=False, sheet_name="Resumen", engine="openpyxl")
+    excel_bytes = buffer.getvalue()
+
+    st.download_button(
+        label="📥 Descargar Excel — Resumen Proveedor × Familia",
+        data=excel_bytes,
+        file_name="Resumen_Proveedor_Familia.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        type="primary",
+        use_container_width=True,
+        key="btn_resumen_pf"
+    )
 
     # ═════════════════════════════════════════════════════════════════════════
     # SECCIÓN 2.1: TABLA RANKING DETALLADO
