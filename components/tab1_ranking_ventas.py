@@ -316,11 +316,12 @@ def main_tab1_ranking_ventas(
     buffer = io.BytesIO()
     resumen_pf.to_excel(buffer, index=False, sheet_name="Resumen", engine="openpyxl")
     excel_bytes = buffer.getvalue()
-
+    inicio = fecha_desde.strftime('%d%b%Y')
+    fin = fecha_hasta.strftime('%d%b%Y')
     st.download_button(
         label="📥 Descargar Excel — Resumen Proveedor × Familia",
         data=excel_bytes,
-        file_name="Resumen_Proveedor_Familia.xlsx",
+        file_name=f"Resumen_Proveedor_Familia_{inicio}_{fin}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         type="primary",
         use_container_width=True,
