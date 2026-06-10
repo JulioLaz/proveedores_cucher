@@ -323,7 +323,7 @@ def main_tab1_ranking_ventas(
         data=excel_bytes,
         file_name=f"Resumen_Proveedor_Familia_{inicio}_{fin}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        type="primary",
+        type="secondary",
         use_container_width=True,
         key="btn_resumen_pf"
     )
