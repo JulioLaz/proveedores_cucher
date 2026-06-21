@@ -65,14 +65,20 @@ def show_sidebar_filters(df_proveedores, df_proveedor_ids, query_bigquery_functi
             try:
                 df_presu_temp = query_presupuesto_function(fila)
                 if df_presu_temp is not None and 'ultima_fecha' in df_presu_temp.columns:
-                    fecha_maxima_disponible = pd.to_datetime(df_presu_temp['ultima_fecha']).max().date()
+                    # fecha_maxima_disponible = pd.to_datetime(df_presu_temp['ultima_fecha']).max().date()
+                    # DESPUÉS
+                    fecha_max = pd.to_datetime(df_presu_temp['ultima_fecha']).max()
+                    if pd.notna(fecha_max):
+                        fecha_maxima_disponible = fecha_max.date()
                     print(f"   ✅ Última fecha disponible: {fecha_maxima_disponible.strftime('%d/%m/%Y')}")
             except Exception as e:
                 print(f"   ⚠️  No se pudo obtener fecha máxima: {e}")
                 # Mantener el valor por defecto
 
     # Mostrar última fecha disponible
-    st.sidebar.info(f"📊 **Datos al:** {fecha_maxima_disponible.strftime('%d/%m/%Y')}")
+    fecha_str = fecha_maxima_disponible.strftime('%d/%m/%Y') if pd.notna(fecha_maxima_disponible) else "Sin datos"
+    st.sidebar.info(f"📊 **Datos al:** {fecha_str}")
+    # st.sidebar.info(f"📊 **Datos al:** {fecha_maxima_disponible.strftime('%d/%m/%Y')}")
 
     # Rango de fechas
     rango_opciones = {
